@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 Aether Orchestrator - Phase B
-With improved tracking, logging, and skill registration.
+With structured logging and improved skill registration.
 """
 
 import logging
@@ -9,16 +9,11 @@ from dataclasses import dataclass, field
 from typing import List, Dict, Any, Optional
 from datetime import datetime
 
-from .memory import AetherMemory
-from .guardrails import Guardrails
-from .tools import ToolRegistry, ToolExecutor
+from memory import AetherMemory
+from guardrails import Guardrails
+from tools import ToolRegistry, ToolExecutor
 
-
-# Setup logging
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s | %(levelname)s | %(message)s"
-)
+logging.basicConfig(level=logging.INFO, format="%(asctime)s | %(levelname)s | %(message)s")
 logger = logging.getLogger("AetherOrchestrator")
 
 
@@ -31,7 +26,6 @@ class TaskState:
     tool_calls: List[Dict[str, Any]] = field(default_factory=list)
     proposed_changes: List[Dict[str, Any]] = field(default_factory=list)
     risks: List[str] = field(default_factory=list)
-    cultural_considerations: List[str] = field(default_factory=list)
     current_phase: str = "planning"
     created_at: str = field(default_factory=lambda: datetime.now().isoformat())
     history: List[str] = field(default_factory=list)
@@ -43,24 +37,20 @@ class AetherOrchestrator:
         self.memory = AetherMemory(persist_path=memory_path)
         self.guardrails = Guardrails()
 
-        # Tool system
         self.tool_registry = ToolRegistry()
         self.tool_executor = ToolExecutor(self.tool_registry)
         self._register_default_tools()
 
-        # Skill Registry (more structured)
         self.skills_registry: Dict[str, Dict[str, Any]] = {}
         self._register_default_skills()
 
         logger.info("AetherOrchestrator initialized")
 
-    # ==================== Tool Registration ====================
-
     def _register_default_tools(self):
-        from .tools.file_reader import FileReaderTool
-        from .tools.codebase_search import CodebaseSearchTool
-        from .tools.memory_query import MemoryQueryTool
-        from .tools.file_writer import FileWriterTool
+        from tools.file_reader import FileReaderTool
+        from tools.codebase_search import CodebaseSearchTool
+        from tools.memory_query import MemoryQueryTool
+        from tools.file_writer import FileWriterTool
 
         self.tool_registry.register(FileReaderTool())
         self.tool_registry.register(CodebaseSearchTool())
@@ -70,9 +60,22 @@ class AetherOrchestrator:
         memory_tool.memory = self.memory
         self.tool_registry.register(memory_tool)
 
-        logger.info(f"Registered {len(self.tool_registry.list_tools())} tools")
+    def _register_default_skills(self):
+        default_skills = {
+            "hub-nextjs-component": {"description": "Builds accessible UI components", "tags": ["ui", "component"]},
+            "security-auth-guard": {"description": "Adds auth and role guards to routes", "tags": ["security", "auth"]},
+            "agent-reliability-context": {"description": "Improves agent context and reliability", "tags": ["agent", "context"]},
+            "build-ci-hygiene": {"description": "Fixes build and CI issues", "tags": ["build", "ci"]},
+            "schema-migration-hygiene": {"description": "Handles schema drift and migrations", "tags": ["database", "migration"]},
+        }
+        for name, meta in default_skills.items():
+            self.register_skill(name, meta)
 
-    # ==================== Tool Execution ====================
+    def register_skill(self, name: str, metadata: Dict[str, Any]):
+        self.skills_registry[name] = metadata
+
+    def get_available_skills(self) -> List[str]:
+        return list(self.skills_registry.keys())
 
     def get_available_tools(self) -> List[str]:
         return self.tool_registry.list_tool_names()
@@ -94,70 +97,17 @@ class AetherOrchestrator:
             raise RuntimeError(f"Tool '{tool_name}' failed: {result.error}")
 
     def _select_tools_for_goal(self, goal: str) -> List[str]:
-        """Smart tool selection based on goal keywords."""
         goal_lower = goal.lower()
         selected = []
 
-        if any(kw in goal_lower for kw in ["existing", "current", "pattern", "codebase", "already", "search"]):
+        if any(kw in goal_lower for kw in ["existing", "pattern", "codebase", "search"]):
             selected.append("codebase_search")
-        if any(kw in goal_lower for kw in ["previous", "before", "memory", "past", "recall"]):
+        if any(kw in goal_lower for kw in ["memory", "previous", "past"]):
             selected.append("memory_query")
-        if any(kw in goal_lower for kw in ["read", "inspect", "look at", "check file"]):
-            selected.append("file_reader")
-        if any(kw in goal_lower for kw in ["create", "write", "generate", "implement", "build"]):
+        if any(kw in goal_lower for kw in ["create", "write", "generate", "implement"]):
             selected.append("file_writer")
 
         return selected
-
-    # ==================== Skill Registration ====================
-
-    def _register_default_skills(self):
-        """Register core skills with metadata."""
-        default_skills = {
-            "hub-nextjs-component": {
-                "description": "Builds accessible UI components following Hub standards",
-                "tags": ["ui", "component", "frontend", "accessibility"],
-                "requires_hitl": False
-            },
-            "security-auth-guard": {
-                "description": "Adds authentication and role-based guards to sensitive routes",
-                "tags": ["security", "auth", "api"],
-                "requires_hitl": False
-            },
-            "agent-reliability-context": {
-                "description": "Improves agent history, streaming, and tool usage",
-                "tags": ["agent", "reliability", "context"],
-                "requires_hitl": False
-            },
-            "build-ci-hygiene": {
-                "description": "Fixes build/CI issues and prevents module-level crashes",
-                "tags": ["build", "ci", "hygiene"],
-                "requires_hitl": False
-            },
-            "schema-migration-hygiene": {
-                "description": "Detects schema drift and creates safe migrations",
-                "tags": ["database", "migration", "schema"],
-                "requires_hitl": True
-            },
-        }
-
-        for name, meta in default_skills.items():
-            self.register_skill(name, meta)
-
-        logger.info(f"Registered {len(self.skills_registry)} skills")
-
-    def register_skill(self, name: str, metadata: Dict[str, Any]):
-        """Register a new skill dynamically."""
-        self.skills_registry[name] = metadata
-        logger.info(f"Registered skill: {name}")
-
-    def get_available_skills(self) -> List[str]:
-        return list(self.skills_registry.keys())
-
-    def get_skill_info(self, name: str) -> Optional[Dict[str, Any]]:
-        return self.skills_registry.get(name)
-
-    # ==================== Core Methods ====================
 
     def start_task(self, goal: str) -> TaskState:
         self.state = TaskState(goal=goal)
@@ -190,136 +140,60 @@ class AetherOrchestrator:
                 self.state.history.append(f"Loaded skill: {skill_name}")
                 logger.info(f"Loaded skill: {skill_name}")
 
-    def create_plan(self) -> List[str]:
-        if not self.state:
-            return []
+    def execute_file_write(self, file_path: str, content: str) -> bool:
+        """Safe file writing with HITL gate."""
+        if self.guardrails.enforce_hitl("file_write"):
+            logger.warning("File write requires human approval.")
+            self.state.history.append(f"Pending approval for writing to: {file_path}")
+            return False
 
-        # === Phase B: Intelligent Tool Selection ===
-        tools_to_use = self._select_tools_for_goal(self.state.goal)
-
-        for tool_name in tools_to_use:
-            try:
-                if tool_name == "codebase_search":
-                    result = self.call_tool("codebase_search", query=self.state.goal, max_results=5)
-                    self.state.tool_calls.append({"tool": tool_name, "results": len(result)})
-
-                elif tool_name == "memory_query":
-                    result = self.call_tool("memory_query", query=self.state.goal, limit=3)
-                    self.state.tool_calls.append({"tool": tool_name, "results": len(result)})
-
-            except Exception as e:
-                self.state.tool_calls.append({"tool": tool_name, "error": str(e)})
-
-        # === Generate Plan ===
-        plan = [
-            "1. Understand goal and gather context",
-            "2. Load relevant skills",
-            "3. Explore codebase and memory using tools",
-            "4. Design solution with guardrails",
-            "5. Generate changes",
-            "6. Prepare review package"
-        ]
-
-        if self.state.tool_calls:
-            plan.insert(1, f"   → Used {len(self.state.tool_calls)} tool(s) during planning")
-
-        self.state.plan = plan
-        self.state.current_phase = "plan_created"
-        logger.info("Plan created")
-        return plan
+        try:
+            result = self.call_tool("file_writer", file_path=file_path, content=content)
+            self.state.history.append(f"Wrote to file: {file_path}")
+            return True
+        except Exception as e:
+            logger.error(f"File write failed: {e}")
+            return False
 
     def run_react_loop(self, goal: str, max_steps: int = 8) -> TaskState:
-        """
-        Enhanced ReAct loop that can intelligently use both tools and skills.
-        """
         self.start_task(goal)
-        logger.info(f"Starting enhanced ReAct loop for: {goal}")
 
         for step in range(max_steps):
-            logger.info(f"\n[ReAct] Step {step + 1}/{max_steps}")
-
-            # 1. Reason about current progress
             thought = self._generate_thought()
-
-            # 2. Decide next action (tool or skill)
             action = self._decide_next_action(thought, goal)
 
             if action == "conclude":
-                logger.info("[ReAct] Task appears complete or max steps reached.")
                 break
 
-            # 3. Execute the action
             if action in self.tool_registry.list_tool_names():
                 try:
-                    logger.info(f"[ReAct] Calling tool: {action}")
                     result = self.call_tool(action, query=goal)
-                    self.state.tool_calls.append({
-                        "step": step + 1,
-                        "type": "tool",
-                        "name": action,
-                        "success": True
-                    })
+                    self.state.tool_calls.append({"step": step + 1, "type": "tool", "name": action})
                 except Exception as e:
-                    logger.error(f"Tool call failed: {e}")
-                    self.state.tool_calls.append({
-                        "step": step + 1,
-                        "type": "tool",
-                        "name": action,
-                        "success": False,
-                        "error": str(e)
-                    })
+                    self.state.tool_calls.append({"step": step + 1, "type": "tool", "name": action, "error": str(e)})
 
             elif action in self.skills_registry:
-                logger.info(f"[ReAct] Loading skill: {action}")
                 self.load_skill(action)
-                self.state.tool_calls.append({
-                    "step": step + 1,
-                    "type": "skill",
-                    "name": action
-                })
-
-            else:
-                logger.warning(f"[ReAct] Unknown action: {action}")
+                self.state.tool_calls.append({"step": step + 1, "type": "skill", "name": action})
 
         self.state.current_phase = "react_complete"
-        logger.info(f"ReAct loop finished after {step + 1} steps")
         return self.state
 
     def _generate_thought(self) -> str:
-        """Simple internal reasoning step."""
-        if len(self.state.tool_calls) == 0:
-            return "No actions taken yet. I should gather information using tools or skills."
-        return f"I have taken {len(self.state.tool_calls)} actions so far."
+        return f"Current actions taken: {len(self.state.tool_calls)}"
 
     def _decide_next_action(self, thought: str, goal: str) -> str:
-        """
-        Decide whether to use a tool, load a skill, or conclude.
-        This logic can later be upgraded with LLM reasoning.
-        """
-        tool_calls_count = len(self.state.tool_calls)
-
-        # Stop condition
-        if tool_calls_count >= 6:
+        if len(self.state.tool_calls) >= 6:
             return "conclude"
 
-        # If no skills loaded yet, try loading a relevant one
-        suggested_skills = self._suggest_skills(goal)
-        if suggested_skills and not self.state.loaded_skills:
-            return suggested_skills[0]
+        suggested = self._suggest_skills(goal)
+        if suggested and not self.state.loaded_skills:
+            return suggested[0]
 
-        # Prefer using tools for information gathering
-        available_tools = self.tool_registry.list_tool_names()
-
-        if "codebase_search" in available_tools and tool_calls_count < 2:
+        if "codebase_search" in self.tool_registry.list_tool_names():
             return "codebase_search"
-
-        if "memory_query" in available_tools and tool_calls_count < 3:
+        if "memory_query" in self.tool_registry.list_tool_names():
             return "memory_query"
-
-        # If the goal involves creating or modifying code, consider file writing
-        if any(kw in goal.lower() for kw in ["create", "write", "implement", "generate", "build"]):
-            if "file_writer" in available_tools:
-                return "file_writer"
 
         return "conclude"
 
@@ -335,3 +209,12 @@ Suggested Skills: {self.state.suggested_skills}
 Loaded Skills: {self.state.loaded_skills}
 Tool Calls: {len(self.state.tool_calls)}
 """
+
+if __name__ == "__main__":
+    aether = AetherOrchestrator()
+
+    state = aether.run_react_loop(
+        "Explore the current codebase and suggest improvements for the agent system"
+    )
+
+    print(state.summarize())
