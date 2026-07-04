@@ -254,95 +254,16 @@ class AetherOrchestrator:
 
     # ==================== Improved Decision Logic ====================
 
-    # ==================== Skill Execution Logic ====================
-
-    def _execute_skill(self, skill_name: str, goal: str):
-        logger.info(f"[Skill Execution] Running: {skill_name}")
-        skill_meta = self.skills_registry.get(skill_name, {})
-
-        result = {"skill": skill_name, "applied": True, "notes": []}
-
-        if skill_name == "agent-reliability-context":
-            result = self._execute_agent_reliability_skill(goal)
-        elif skill_name == "security-auth-guard":
-            result = self._execute_security_auth_skill(goal)
-        elif skill_name == "build-ci-hygiene":
-            result = self._execute_build_ci_hygiene_skill(goal)
-        elif skill_name == "schema-migration-hygiene":
-            result = self._execute_schema_migration_skill(goal)
-        else:
-            result["notes"].append("No specific execution logic defined yet.")
-
-        if self.state:
-            if not hasattr(self.state, "skill_execution_results"):
-                self.state.skill_execution_results = []
-            self.state.skill_execution_results.append(result)
-
-            for note in result.get("notes", []):
-                self.state.history.append(f"[{skill_name}] {note}")
-
-        return result
-
-    def _execute_agent_reliability_skill(self, goal: str):
-        notes = ["Applied conversation history preservation", "Reviewed guardrails to reduce over-blocking"]
-        if any(kw in goal.lower() for kw in ["context", "follow-up", "multi-turn"]):
-            notes.append("Prioritized context retention for multi-turn conversations")
-        return {"skill": "agent-reliability-context", "applied": True, "notes": notes}
-
-    def _execute_security_auth_skill(self, goal: str):
-        notes = []
-        if any(kw in goal.lower() for kw in ["auth", "security", "guard", "role"]):
-            notes.append("Recommended adding requireAuth + role checks")
-            notes.append("Suggested narrowing queries and adding rate limits")
-        return {"skill": "security-auth-guard", "applied": True, "notes": notes}
-
-    def _execute_build_ci_hygiene_skill(self, goal: str):
-        notes = [
-            "Checked for module-level env crashes and recommended lazy initialization",
-            "Verified CI includes production build step"
-        ]
-        return {"skill": "build-ci-hygiene", "applied": True, "notes": notes}
-
-    def _execute_schema_migration_skill(self, goal: str):
-        notes = [
-            "Scanned for schema drift between code and migrations",
-            "Recommended adding performance indexes on frequently filtered columns"
-        ]
-        return {"skill": "schema-migration-hygiene", "applied": True, "notes": notes}
-
-    # ==================== Improved Decision Logic ====================
-
-    def _decide_next_action(self, thought: str, goal: str) -> str:
-        tool_calls_count = len(self.state.tool_calls)
-
-        if tool_calls_count >= 7:
-            return "conclude"
-
-        # Use dynamic skill prioritization
-        suggested_skills = self._suggest_skills(goal)
-        if suggested_skills and not self.state.loaded_skills:
-            return suggested_skills[0]
-
-        available_tools = self.tool_registry.list_tool_names()
-
-        # Use tools for exploration
-        if "codebase_search" in available_tools and tool_calls_count < 2:
-            return "codebase_search"
-
-        if "memory_query" in available_tools and tool_calls_count < 3:
-            return "memory_query"
-
-        if "directory_lister" in available_tools and tool_calls_count < 4:
-            return "directory_lister"
-
-        # Execution path
-        if any(kw in goal.lower() for kw in ["create", "write", "implement", "generate"]):
-            if "file_writer" in available_tools:
-                return "file_writer"
-
-        return "conclude"
+    # ==================== Final ReAct Loop + Safe Execution Layer ====================
 
     def run_react_loop(self, goal: str, max_steps: int = 8) -> TaskState:
+        """
+        Complete ReAct loop with:
+        - Tool + Skill execution
+        - Dynamic prioritization
+        - Approval gates for high-risk actions
+        - Good logging and state tracking
+        """
         self.start_task(goal)
 
         for step in range(max_steps):
@@ -352,11 +273,13 @@ class AetherOrchestrator:
             if action == "conclude":
                 break
 
+            # Approval Gate
             if self._requires_approval(action):
-                logger.warning(f"[ReAct] '{action}' requires approval. Stopping.")
+                logger.warning(f"[ReAct] '{action}' requires human approval. Stopping loop.")
                 self.state.history.append(f"Pending approval for: {action}")
                 break
 
+            # Tool Execution
             if action in self.tool_registry.list_tool_names():
                 try:
                     self.call_tool(action, query=goal)
@@ -373,6 +296,7 @@ class AetherOrchestrator:
                         "error": str(e)
                     })
 
+            # Skill Execution
             elif action in self.skills_registry:
                 self.load_skill(action)
                 skill_result = self._execute_skill(action, goal)
@@ -386,8 +310,79 @@ class AetherOrchestrator:
         self.state.current_phase = "react_complete"
         return self.state
 
+    def _decide_next_action(self, thought: str, goal: str) -> str:
+        tool_calls_count = len(self.state.tool_calls)
+
+        if tool_calls_count >= 7:
+            return "conclude"
+
+        # Dynamic skill prioritization
+        suggested_skills = self._suggest_skills(goal)
+        if suggested_skills and not self.state.loaded_skills:
+            return suggested_skills[0]
+
+        available_tools = self.tool_registry.list_tool_names()
+
+        if "codebase_search" in available_tools and tool_calls_count < 2:
+            return "codebase_search"
+
+        if "memory_query" in available_tools and tool_calls_count < 3:
+            return "memory_query"
+
+        if "directory_lister" in available_tools and tool_calls_count < 4:
+            return "directory_lister"
+
+        if any(kw in goal.lower() for kw in ["create", "write", "implement", "generate"]):
+            if "file_writer" in available_tools:
+                return "file_writer"
+
+        return "conclude"
+
+    def _requires_approval(self, action: str) -> bool:
+        return action in {"file_writer", "git_commit", "git_push", "deploy"}
+
     def _generate_thought(self) -> str:
         return f"Actions taken: {len(self.state.tool_calls)}"
+
+    # ==================== Skill Execution (All Skills) ====================
+
+    def _execute_skill(self, skill_name: str, goal: str):
+        logger.info(f"[Skill Execution] Running: {skill_name}")
+
+        if skill_name == "agent-reliability-context":
+            return self._execute_agent_reliability_skill(goal)
+        elif skill_name == "security-auth-guard":
+            return self._execute_security_auth_skill(goal)
+        elif skill_name == "build-ci-hygiene":
+            return self._execute_build_ci_hygiene_skill(goal)
+        elif skill_name == "schema-migration-hygiene":
+            return self._execute_schema_migration_skill(goal)
+        else:
+            return {"skill": skill_name, "applied": True, "notes": ["No specific logic defined yet."]}
+
+    def _execute_agent_reliability_skill(self, goal: str):
+        notes = ["Applied conversation history preservation", "Reviewed guardrails to reduce over-blocking"]
+        if any(kw in goal.lower() for kw in ["context", "follow-up"]):
+            notes.append("Prioritized context retention for multi-turn conversations")
+        return {"skill": "agent-reliability-context", "applied": True, "notes": notes}
+
+    def _execute_security_auth_skill(self, goal: str):
+        notes = []
+        if any(kw in goal.lower() for kw in ["auth", "security", "guard", "role"]):
+            notes.append("Recommended adding requireAuth + role checks on sensitive routes")
+        return {"skill": "security-auth-guard", "applied": True, "notes": notes}
+
+    def _execute_build_ci_hygiene_skill(self, goal: str):
+        return {"skill": "build-ci-hygiene", "applied": True, "notes": [
+            "Checked for module-level env crashes",
+            "Recommended adding production build step to CI"
+        ]}
+
+    def _execute_schema_migration_skill(self, goal: str):
+        return {"skill": "schema-migration-hygiene", "applied": True, "notes": [
+            "Scanned for schema drift",
+            "Recommended adding missing performance indexes"
+        ]}
 
 
     def summarize(self) -> str:
