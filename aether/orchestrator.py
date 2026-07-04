@@ -123,6 +123,7 @@ class AetherOrchestrator:
         return self.state
 
     def _suggest_skills(self, goal: str) -> List[str]:
+        """Suggest relevant skills based on goal keywords and tags."""
         goal_lower = goal.lower()
         suggestions = []
 
@@ -130,6 +131,10 @@ class AetherOrchestrator:
             tags = meta.get("tags", [])
             if any(tag in goal_lower for tag in tags):
                 suggestions.append(skill_name)
+
+        # Remove already loaded skills
+        if self.state:
+            suggestions = [s for s in suggestions if s not in self.state.loaded_skills]
 
         return suggestions
 
@@ -165,16 +170,31 @@ class AetherOrchestrator:
             if action == "conclude":
                 break
 
+            # Execute Tool
             if action in self.tool_registry.list_tool_names():
                 try:
                     result = self.call_tool(action, query=goal)
-                    self.state.tool_calls.append({"step": step + 1, "type": "tool", "name": action})
+                    self.state.tool_calls.append({
+                        "step": step + 1,
+                        "type": "tool",
+                        "name": action
+                    })
                 except Exception as e:
-                    self.state.tool_calls.append({"step": step + 1, "type": "tool", "name": action, "error": str(e)})
+                    self.state.tool_calls.append({
+                        "step": step + 1,
+                        "type": "tool",
+                        "name": action,
+                        "error": str(e)
+                    })
 
+            # Load Skill
             elif action in self.skills_registry:
                 self.load_skill(action)
-                self.state.tool_calls.append({"step": step + 1, "type": "skill", "name": action})
+                self.state.tool_calls.append({
+                    "step": step + 1,
+                    "type": "skill",
+                    "name": action
+                })
 
         self.state.current_phase = "react_complete"
         return self.state
@@ -183,16 +203,21 @@ class AetherOrchestrator:
         return f"Current actions taken: {len(self.state.tool_calls)}"
 
     def _decide_next_action(self, thought: str, goal: str) -> str:
-        if len(self.state.tool_calls) >= 6:
+        tool_calls_count = len(self.state.tool_calls)
+
+        if tool_calls_count >= 6:
             return "conclude"
 
-        suggested = self._suggest_skills(goal)
-        if suggested and not self.state.loaded_skills:
-            return suggested[0]
+        # Prioritize loading a relevant skill early
+        suggested_skills = self._suggest_skills(goal)
+        if suggested_skills and not self.state.loaded_skills:
+            return suggested_skills[0]
 
-        if "codebase_search" in self.tool_registry.list_tool_names():
+        # Then use tools for information gathering
+        if "codebase_search" in self.tool_registry.list_tool_names() and tool_calls_count < 2:
             return "codebase_search"
-        if "memory_query" in self.tool_registry.list_tool_names():
+
+        if "memory_query" in self.tool_registry.list_tool_names() and tool_calls_count < 3:
             return "memory_query"
 
         return "conclude"
