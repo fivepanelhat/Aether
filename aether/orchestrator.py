@@ -150,10 +150,7 @@ class AetherOrchestrator:
 
     # ==================== Safe Execution Layer ====================
 
-    def _requires_approval(self, action: str) -> bool:
-        """Define which actions require human approval before execution."""
-        high_risk_actions = {"file_writer", "git_commit", "git_push", "deploy"}
-        return action in high_risk_actions
+    # ==================== Safe Execution Layer ====================
 
     def execute_with_approval(self, action: str, **kwargs) -> bool:
         """
@@ -181,53 +178,12 @@ class AetherOrchestrator:
 
     # ==================== Improved Decision Logic ====================
 
-    def _generate_thought(self) -> str:
-        """Internal reasoning step."""
-        if len(self.state.tool_calls) == 0:
-            return "No actions taken yet. I should gather information."
-        return f"I have taken {len(self.state.tool_calls)} actions so far."
-
-    def _decide_next_action(self, thought: str, goal: str) -> str:
-        """
-        Improved decision logic for the ReAct loop.
-        Prioritizes skills early, then tools, then execution.
-        """
-        tool_calls_count = len(self.state.tool_calls)
-
-        # Stop condition
-        if tool_calls_count >= 7:
-            return "conclude"
-
-        # 1. Load a relevant skill early if none loaded yet
-        suggested_skills = self._suggest_skills(goal)
-        if suggested_skills and not self.state.loaded_skills:
-            return suggested_skills[0]
-
-        # 2. Use tools for information gathering
-        available_tools = self.tool_registry.list_tool_names()
-
-        if "codebase_search" in available_tools and tool_calls_count < 2:
-            return "codebase_search"
-
-        if "memory_query" in available_tools and tool_calls_count < 3:
-            return "memory_query"
-
-        # 3. Consider file writing only when the goal involves creation/generation
-        if any(kw in goal.lower() for kw in ["create", "write", "implement", "generate", "build"]):
-            if "file_writer" in available_tools:
-                return "file_writer"
-
-        return "conclude"
-
-    # ==================== Enhanced ReAct Loop ====================
-
     def run_react_loop(self, goal: str, max_steps: int = 8) -> TaskState:
         """
-        Enhanced ReAct loop with better decision logic.
-        Supports both tools and skills.
+        Full ReAct loop with tools, skills, and approval gate awareness.
         """
         self.start_task(goal)
-        logger.info(f"Starting ReAct loop for: {goal}")
+        logger.info(f"Starting ReAct loop for goal: {goal}")
 
         for step in range(max_steps):
             thought = self._generate_thought()
@@ -237,13 +193,13 @@ class AetherOrchestrator:
                 logger.info("[ReAct] Concluding loop.")
                 break
 
-            # Check if action requires human approval
+            # === Approval Gate Check ===
             if self._requires_approval(action):
                 logger.warning(f"[ReAct] Action '{action}' requires human approval. Stopping loop.")
-                self.state.history.append(f"Pending approval for: {action}")
+                self.state.history.append(f"Pending approval for action: {action}")
                 break
 
-            # Execute Tool
+            # === Execute Tool ===
             if action in self.tool_registry.list_tool_names():
                 try:
                     logger.info(f"[ReAct] Calling tool: {action}")
@@ -255,7 +211,7 @@ class AetherOrchestrator:
                         "success": True
                     })
                 except Exception as e:
-                    logger.error(f"Tool failed: {e}")
+                    logger.error(f"Tool call failed: {e}")
                     self.state.tool_calls.append({
                         "step": step + 1,
                         "type": "tool",
@@ -264,7 +220,7 @@ class AetherOrchestrator:
                         "error": str(e)
                     })
 
-            # Load Skill
+            # === Load Skill ===
             elif action in self.skills_registry:
                 logger.info(f"[ReAct] Loading skill: {action}")
                 self.load_skill(action)
@@ -277,6 +233,40 @@ class AetherOrchestrator:
         self.state.current_phase = "react_complete"
         logger.info(f"ReAct loop finished after {step + 1} steps")
         return self.state
+
+    def _generate_thought(self) -> str:
+        return f"Actions taken: {len(self.state.tool_calls)}"
+
+    def _decide_next_action(self, thought: str, goal: str) -> str:
+        tool_calls_count = len(self.state.tool_calls)
+
+        if tool_calls_count >= 7:
+            return "conclude"
+
+        # Load a relevant skill early if none loaded yet
+        suggested_skills = self._suggest_skills(goal)
+        if suggested_skills and not self.state.loaded_skills:
+            return suggested_skills[0]
+
+        # Use tools for information gathering
+        available_tools = self.tool_registry.list_tool_names()
+
+        if "codebase_search" in available_tools and tool_calls_count < 2:
+            return "codebase_search"
+
+        if "memory_query" in available_tools and tool_calls_count < 3:
+            return "memory_query"
+
+        # Consider file writing only when goal involves creation/generation
+        if any(kw in goal.lower() for kw in ["create", "write", "implement", "generate", "build"]):
+            if "file_writer" in available_tools:
+                return "file_writer"
+
+        return "conclude"
+
+    def _requires_approval(self, action: str) -> bool:
+        """High-risk actions that require human approval."""
+        return action in {"file_writer", "git_commit", "git_push", "deploy"}
 
     def summarize(self) -> str:
         if not self.state:
