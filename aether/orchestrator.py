@@ -180,10 +180,13 @@ class AetherOrchestrator:
 
     def run_react_loop(self, goal: str, max_steps: int = 8) -> TaskState:
         """
-        Full ReAct loop with tools, skills, and approval gate awareness.
+        ReAct loop that supports:
+        - Tool calling
+        - Skill loading + basic execution
+        - Approval gates
         """
         self.start_task(goal)
-        logger.info(f"Starting ReAct loop for goal: {goal}")
+        logger.info(f"Starting ReAct loop for: {goal}")
 
         for step in range(max_steps):
             thought = self._generate_thought()
@@ -193,10 +196,10 @@ class AetherOrchestrator:
                 logger.info("[ReAct] Concluding loop.")
                 break
 
-            # === Approval Gate Check ===
+            # === Approval Gate ===
             if self._requires_approval(action):
-                logger.warning(f"[ReAct] Action '{action}' requires human approval. Stopping loop.")
-                self.state.history.append(f"Pending approval for action: {action}")
+                logger.warning(f"[ReAct] Action '{action}' requires human approval. Stopping.")
+                self.state.history.append(f"Pending approval for: {action}")
                 break
 
             # === Execute Tool ===
@@ -211,7 +214,6 @@ class AetherOrchestrator:
                         "success": True
                     })
                 except Exception as e:
-                    logger.error(f"Tool call failed: {e}")
                     self.state.tool_calls.append({
                         "step": step + 1,
                         "type": "tool",
@@ -220,10 +222,14 @@ class AetherOrchestrator:
                         "error": str(e)
                     })
 
-            # === Load Skill ===
+            # === Load + Execute Skill ===
             elif action in self.skills_registry:
-                logger.info(f"[ReAct] Loading skill: {action}")
+                logger.info(f"[ReAct] Loading and executing skill: {action}")
                 self.load_skill(action)
+
+                # Basic skill execution hook (we can expand this later)
+                self._execute_skill(action, goal)
+
                 self.state.tool_calls.append({
                     "step": step + 1,
                     "type": "skill",
@@ -233,6 +239,18 @@ class AetherOrchestrator:
         self.state.current_phase = "react_complete"
         logger.info(f"ReAct loop finished after {step + 1} steps")
         return self.state
+
+    def _execute_skill(self, skill_name: str, goal: str):
+        """
+        Placeholder for executing skill-specific logic.
+        For now it just logs. We will expand this per skill.
+        """
+        logger.info(f"[Skill Execution] Running logic for skill: {skill_name}")
+        self.state.history.append(f"Executed skill logic: {skill_name}")
+
+        # Example: You can add skill-specific behavior here later
+        if skill_name == "agent-reliability-context":
+            self.state.history.append("Applied agent reliability improvements (simulated)")
 
     def _generate_thought(self) -> str:
         return f"Actions taken: {len(self.state.tool_calls)}"
