@@ -1,0 +1,12 @@
+Git API.txt
+__pycache__/
+*.pyc
+.env
+.env.local
+.venv/
+dist/
+build/
+*.egg-info/
+.vscode/
+.idea/
+.DS_Store
