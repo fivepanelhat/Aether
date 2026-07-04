@@ -126,20 +126,54 @@ class AetherOrchestrator:
         return self.state
 
     def _suggest_skills(self, goal: str) -> List[str]:
-        """Suggest relevant skills based on goal keywords and tags."""
+        """
+        Dynamic skill prioritization based on multiple factors:
+        - Keyword/tag matching
+        - Skill type priority
+        - Cultural sensitivity & HITL requirements
+        - Whether the skill has already been loaded
+        """
         goal_lower = goal.lower()
-        suggestions = []
+        scored_skills = []
 
         for skill_name, meta in self.skills_registry.items():
+            if self.state and skill_name in self.state.loaded_skills:
+                continue  # Skip already loaded skills
+
+            score = 0
             tags = meta.get("tags", [])
-            if any(tag in goal_lower for tag in tags):
-                suggestions.append(skill_name)
+            skill_type = meta.get("type", "")
+            requires_hitl = meta.get("requires_hitl", False)
+            cultural_sensitivity = meta.get("cultural_sensitivity", "low")
 
-        # Remove already loaded skills
-        if self.state:
-            suggestions = [s for s in suggestions if s not in self.state.loaded_skills]
+            # 1. Tag / Keyword matching (base score)
+            for tag in tags:
+                if tag in goal_lower:
+                    score += 3
 
-        return suggestions
+            # 2. Boost high-impact skill types
+            if skill_type in ["security", "orchestration"]:
+                score += 4
+            elif skill_type in ["workflow", "hygiene"]:
+                score += 2
+
+            # 3. Prioritize skills that require HITL (they are often critical)
+            if requires_hitl:
+                score += 2
+
+            # 4. Slightly boost culturally sensitive skills when relevant
+            if cultural_sensitivity in ["medium", "high"]:
+                if any(kw in goal_lower for kw in ["cultural", "maori", "whanau", "community"]):
+                    score += 3
+
+            if score > 0:
+                scored_skills.append((skill_name, score))
+
+        # Sort by score descending (highest priority first)
+        scored_skills.sort(key=lambda x: x[1], reverse=True)
+
+        # Return only skill names, sorted by priority
+        return [skill[0] for skill in scored_skills]
 
     def load_skill(self, skill_name: str):
         if self.state and skill_name in self.skills_registry:
@@ -147,8 +181,6 @@ class AetherOrchestrator:
                 self.state.loaded_skills.append(skill_name)
                 self.state.history.append(f"Loaded skill: {skill_name}")
                 logger.info(f"Loaded skill: {skill_name}")
-
-    # ==================== Safe Execution Layer ====================
 
     # ==================== Safe Execution Layer ====================
 
