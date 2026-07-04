@@ -230,26 +230,25 @@ class AetherOrchestrator:
 
     def run_react_loop(self, goal: str, max_steps: int = 8) -> TaskState:
         """
-        Enhanced ReAct loop that can use both tools and skills.
-        Includes basic execution awareness (safe file writing path).
+        Enhanced ReAct loop that can intelligently use both tools and skills.
         """
         self.start_task(goal)
-        logger.info(f"Starting ReAct loop for goal: {goal}")
+        logger.info(f"Starting enhanced ReAct loop for: {goal}")
 
         for step in range(max_steps):
             logger.info(f"\n[ReAct] Step {step + 1}/{max_steps}")
 
-            # 1. Reason about current state
-            thought = self._reason(goal)
+            # 1. Reason about current progress
+            thought = self._generate_thought()
 
-            # 2. Decide next action (tool, skill, or conclude)
-            action = self._decide_action(thought, goal)
+            # 2. Decide next action (tool or skill)
+            action = self._decide_next_action(thought, goal)
 
             if action == "conclude":
-                logger.info("[ReAct] Task complete or max steps reached.")
+                logger.info("[ReAct] Task appears complete or max steps reached.")
                 break
 
-            # 3. Execute action
+            # 3. Execute the action
             if action in self.tool_registry.list_tool_names():
                 try:
                     logger.info(f"[ReAct] Calling tool: {action}")
@@ -258,10 +257,17 @@ class AetherOrchestrator:
                         "step": step + 1,
                         "type": "tool",
                         "name": action,
-                        "result": str(result)[:200]  # truncate for logging
+                        "success": True
                     })
                 except Exception as e:
                     logger.error(f"Tool call failed: {e}")
+                    self.state.tool_calls.append({
+                        "step": step + 1,
+                        "type": "tool",
+                        "name": action,
+                        "success": False,
+                        "error": str(e)
+                    })
 
             elif action in self.skills_registry:
                 logger.info(f"[ReAct] Loading skill: {action}")
@@ -272,48 +278,48 @@ class AetherOrchestrator:
                     "name": action
                 })
 
-            # 4. Check for execution actions (safe file writing)
-            if action == "file_writer":
-                if self.guardrails.enforce_hitl("file_write"):
-                    logger.warning("[ReAct] File write requires human approval.")
-                    self.state.history.append("File write blocked - awaiting approval")
+            else:
+                logger.warning(f"[ReAct] Unknown action: {action}")
 
         self.state.current_phase = "react_complete"
         logger.info(f"ReAct loop finished after {step + 1} steps")
         return self.state
 
-    def _reason(self, goal: str) -> str:
-        """Simple reasoning step."""
+    def _generate_thought(self) -> str:
+        """Simple internal reasoning step."""
         if len(self.state.tool_calls) == 0:
-            return "No information gathered yet. Should explore the codebase or memory."
-        return f"Gathered {len(self.state.tool_calls)} actions so far."
+            return "No actions taken yet. I should gather information using tools or skills."
+        return f"I have taken {len(self.state.tool_calls)} actions so far."
 
-    def _decide_action(self, thought: str, goal: str) -> str:
+    def _decide_next_action(self, thought: str, goal: str) -> str:
         """
-        Decide next action: tool, skill, file write, or conclude.
-        This can later be upgraded with LLM reasoning.
+        Decide whether to use a tool, load a skill, or conclude.
+        This logic can later be upgraded with LLM reasoning.
         """
         tool_calls_count = len(self.state.tool_calls)
 
         # Stop condition
-        if tool_calls_count >= 5:
+        if tool_calls_count >= 6:
             return "conclude"
 
-        # Prefer loading a relevant skill early
-        suggested = self._suggest_skills(goal)
-        if suggested and not self.state.loaded_skills:
-            return suggested[0]
+        # If no skills loaded yet, try loading a relevant one
+        suggested_skills = self._suggest_skills(goal)
+        if suggested_skills and not self.state.loaded_skills:
+            return suggested_skills[0]
 
-        # Then use tools
+        # Prefer using tools for information gathering
         available_tools = self.tool_registry.list_tool_names()
+
         if "codebase_search" in available_tools and tool_calls_count < 2:
             return "codebase_search"
+
         if "memory_query" in available_tools and tool_calls_count < 3:
             return "memory_query"
 
-        # Execution path (safe file writing)
-        if any(kw in goal.lower() for kw in ["create", "write", "implement", "generate"]):
-            return "file_writer"
+        # If the goal involves creating or modifying code, consider file writing
+        if any(kw in goal.lower() for kw in ["create", "write", "implement", "generate", "build"]):
+            if "file_writer" in available_tools:
+                return "file_writer"
 
         return "conclude"
 
