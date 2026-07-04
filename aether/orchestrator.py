@@ -293,12 +293,12 @@ class AetherOrchestrator:
         if tool_calls_count >= 7:
             return "conclude"
 
-        # Load a relevant skill early if none loaded yet
+        # Use dynamic skill prioritization
         suggested_skills = self._suggest_skills(goal)
         if suggested_skills and not self.state.loaded_skills:
-            return suggested_skills[0]
+            return suggested_skills[0]  # Highest priority skill first
 
-        # Use tools for information gathering
+        # Then fall back to tools
         available_tools = self.tool_registry.list_tool_names()
 
         if "codebase_search" in available_tools and tool_calls_count < 2:
@@ -307,8 +307,7 @@ class AetherOrchestrator:
         if "memory_query" in available_tools and tool_calls_count < 3:
             return "memory_query"
 
-        # Consider file writing only when goal involves creation/generation
-        if any(kw in goal.lower() for kw in ["create", "write", "implement", "generate", "build"]):
+        if any(kw in goal.lower() for kw in ["create", "write", "implement", "generate"]):
             if "file_writer" in available_tools:
                 return "file_writer"
 
