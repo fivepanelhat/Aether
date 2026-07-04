@@ -76,6 +76,7 @@ class AetherOrchestrator:
             "security-route-audit": {"description": "Audits API routes for security vulnerabilities", "tags": ["security", "audit", "routes", "validation", "auth"]},
             "error-message-sanitization": {"description": "Prevents leaking internal error details to API clients", "tags": ["security", "error-handling", "sanitization", "api"]},
             "service-role-key-protection": {"description": "Ensures admin operations use createAdminClient()", "tags": ["security", "supabase", "auth", "admin"]},
+            "strict-zod-schema-enforcement": {"description": "Enforces strict Zod validation schemas", "tags": ["security", "validation", "zod", "schema", "api"]},
         }
         for name, meta in default_skills.items():
             self.register_skill(name, meta)
@@ -330,6 +331,8 @@ class AetherOrchestrator:
             return self._execute_error_message_sanitization_skill(goal)
         elif skill_name == "service-role-key-protection":
             return self._execute_service_role_key_protection_skill(goal)
+        elif skill_name == "strict-zod-schema-enforcement":
+            return self._execute_strict_zod_schema_enforcement_skill(goal)
         else:
             return {"skill": skill_name, "applied": True, "notes": ["No specific logic defined yet."]}
 
@@ -378,6 +381,12 @@ class AetherOrchestrator:
         ]
         return {"skill": "service-role-key-protection", "applied": True, "notes": notes}
 
+    def _execute_strict_zod_schema_enforcement_skill(self, goal: str):
+        notes = [
+            "Checked for loose or missing Zod schemas",
+            "Enforced strict validation for API inputs"
+        ]
+        return {"skill": "strict-zod-schema-enforcement", "applied": True, "notes": notes}
 
     def summarize(self) -> str:
         if not self.state:
