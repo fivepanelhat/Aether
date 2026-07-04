@@ -11,6 +11,7 @@ from .file_reader import FileReaderTool
 from .codebase_search import CodebaseSearchTool
 from .memory_query import MemoryQueryTool
 from .file_writer import FileWriterTool
+from .directory_lister import DirectoryListerTool
 
 __all__ = [
     "Tool",
@@ -22,4 +23,5 @@ __all__ = [
     "CodebaseSearchTool",
     "MemoryQueryTool",
     "FileWriterTool",
+    "DirectoryListerTool",
 ]

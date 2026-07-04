@@ -53,10 +53,12 @@ class AetherOrchestrator:
         from tools.codebase_search import CodebaseSearchTool
         from tools.memory_query import MemoryQueryTool
         from tools.file_writer import FileWriterTool
+        from tools.directory_lister import DirectoryListerTool
 
         self.tool_registry.register(FileReaderTool())
         self.tool_registry.register(CodebaseSearchTool())
         self.tool_registry.register(FileWriterTool())
+        self.tool_registry.register(DirectoryListerTool())
 
         memory_tool = MemoryQueryTool()
         memory_tool.memory = self.memory
@@ -185,29 +187,70 @@ class AetherOrchestrator:
 
     # ==================== Safe Execution Layer ====================
 
-    def execute_with_approval(self, action: str, **kwargs) -> bool:
+    def _requires_approval(self, action: str) -> bool:
+        """Define which actions require explicit human approval."""
+        high_risk_actions = {"file_writer", "git_commit", "git_push", "deploy"}
+        return action in high_risk_actions
+
+    def request_approval(self, action: str, details: str = "") -> str:
+        """Generate a clear approval request message."""
+        message = f"\n{'='*60}\n"
+        message += f"AETHER APPROVAL REQUIRED\n"
+        message += f"{'='*60}\n"
+        message += f"Action: {action}\n"
+        if details:
+            message += f"Details: {details}\n"
+        message += "\nReply with: APPROVE / REVISE / CANCEL\n"
+        return message
+
+    def execute_with_approval(self, action: str, **kwargs) -> dict:
         """
-        Execute high-risk actions only after checking approval requirements.
-        Currently logs a warning and blocks execution.
+        Execute an action only if it doesn't require approval,
+        or if approval has been granted.
         """
         if self._requires_approval(action):
-            logger.warning(f"Action '{action}' requires human approval. Execution blocked.")
-            if self.state:
-                self.state.history.append(f"Blocked execution of: {action} (pending approval)")
-            return False
+            approval_message = self.request_approval(action, str(kwargs))
+            logger.warning(f"Approval required for action: {action}")
 
-        # If no approval needed, proceed with tool execution
+            if self.state:
+                self.state.history.append(f"Approval requested for: {action}")
+                # In a real system, this would pause and wait for user input
+                # For now we block execution
+                return {
+                    "executed": False,
+                    "reason": "Approval required",
+                    "approval_message": approval_message
+                }
+
+        # Safe to execute
         try:
-            result = self.call_tool(action, **kwargs)
-            return result.success if hasattr(result, 'success') else True
+            if action == "file_writer":
+                result = self.call_tool("file_writer", **kwargs)
+            else:
+                result = self.call_tool(action, **kwargs)
+
+            if self.state:
+                self.state.history.append(f"Executed: {action}")
+
+            return {
+                "executed": True,
+                "result": result.output if hasattr(result, "output") else str(result)
+            }
+
         except Exception as e:
             logger.error(f"Execution failed for {action}: {e}")
-            return False
+            return {"executed": False, "error": str(e)}
 
-    # Example: Controlled file writing
-    def safe_write_file(self, file_path: str, content: str) -> bool:
-        """Safe wrapper around file writing with approval gate."""
-        return self.execute_with_approval("file_writer", file_path=file_path, content=content)
+    # ==================== Controlled File Writing ====================
+
+    def safe_write_file(self, file_path: str, content: str, mode: str = "write") -> dict:
+        """Safe file writing with approval gate."""
+        return self.execute_with_approval(
+            "file_writer",
+            file_path=file_path,
+            content=content,
+            mode=mode
+        )
 
     # ==================== Improved Decision Logic ====================
 
@@ -299,7 +342,7 @@ class AetherOrchestrator:
 
         return "conclude"
 
-    # ==================== Enhanced ReAct Loop ====================
+    # ==================== Enhanced ReAct Loop with Safe Execution ====================
 
     def run_react_loop(self, goal: str, max_steps: int = 8) -> TaskState:
         self.start_task(goal)
@@ -311,12 +354,15 @@ class AetherOrchestrator:
             if action == "conclude":
                 break
 
+            # Check approval requirement
             if self._requires_approval(action):
-                logger.warning(f"[ReAct] '{action}' requires approval. Stopping.")
-                self.state.history.append(f"Pending approval for: {action}")
-                break
+                approval_result = self.execute_with_approval(action)
+                if not approval_result.get("executed"):
+                    logger.warning(f"[ReAct] Stopped - approval needed for {action}")
+                    self.state.history.append(f"Execution blocked pending approval: {action}")
+                    break
 
-            # Tool Execution
+            # Execute Tool
             if action in self.tool_registry.list_tool_names():
                 try:
                     result = self.call_tool(action, query=goal)
@@ -333,7 +379,7 @@ class AetherOrchestrator:
                         "error": str(e)
                     })
 
-            # Skill Execution
+            # Execute Skill
             elif action in self.skills_registry:
                 self.load_skill(action)
                 skill_result = self._execute_skill(action, goal)
@@ -350,8 +396,6 @@ class AetherOrchestrator:
     def _generate_thought(self) -> str:
         return f"Actions taken: {len(self.state.tool_calls)}"
 
-    def _requires_approval(self, action: str) -> bool:
-        return action in {"file_writer", "git_commit", "git_push", "deploy"}
 
     def summarize(self) -> str:
         if not self.state:
