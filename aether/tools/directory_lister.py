@@ -14,7 +14,7 @@ class DirectoryListerTool(Tool):
         "max_depth": "Recursion depth (default: 1)"
     }
 
-    def run(self, path: str = ".", max_depth: int = 1) -> ToolResult:
+    def run(self, path: str = ".", max_depth: int = 1, **kwargs) -> ToolResult:
         try:
             if not os.path.exists(path):
                 return ToolResult(success=False, error=f"Path does not exist: {path}")

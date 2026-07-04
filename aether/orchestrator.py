@@ -185,129 +185,63 @@ class AetherOrchestrator:
                 self.state.history.append(f"Loaded skill: {skill_name}")
                 logger.info(f"Loaded skill: {skill_name}")
 
-    # ==================== Safe Execution Layer ====================
-
-    def _requires_approval(self, action: str) -> bool:
-        """Define which actions require explicit human approval."""
-        high_risk_actions = {"file_writer", "git_commit", "git_push", "deploy"}
-        return action in high_risk_actions
-
-    def request_approval(self, action: str, details: str = "") -> str:
-        """Generate a clear approval request message."""
-        message = f"\n{'='*60}\n"
-        message += f"AETHER APPROVAL REQUIRED\n"
-        message += f"{'='*60}\n"
-        message += f"Action: {action}\n"
-        if details:
-            message += f"Details: {details}\n"
-        message += "\nReply with: APPROVE / REVISE / CANCEL\n"
-        return message
-
-    def execute_with_approval(self, action: str, **kwargs) -> dict:
-        """
-        Execute an action only if it doesn't require approval,
-        or if approval has been granted.
-        """
-        if self._requires_approval(action):
-            approval_message = self.request_approval(action, str(kwargs))
-            logger.warning(f"Approval required for action: {action}")
-
-            if self.state:
-                self.state.history.append(f"Approval requested for: {action}")
-                # In a real system, this would pause and wait for user input
-                # For now we block execution
-                return {
-                    "executed": False,
-                    "reason": "Approval required",
-                    "approval_message": approval_message
-                }
-
-        # Safe to execute
-        try:
-            if action == "file_writer":
-                result = self.call_tool("file_writer", **kwargs)
-            else:
-                result = self.call_tool(action, **kwargs)
-
-            if self.state:
-                self.state.history.append(f"Executed: {action}")
-
-            return {
-                "executed": True,
-                "result": result.output if hasattr(result, "output") else str(result)
-            }
-
-        except Exception as e:
-            logger.error(f"Execution failed for {action}: {e}")
-            return {"executed": False, "error": str(e)}
-
-    # ==================== Controlled File Writing ====================
-
-    def safe_write_file(self, file_path: str, content: str, mode: str = "write") -> dict:
-        """Safe file writing with approval gate."""
-        return self.execute_with_approval(
-            "file_writer",
-            file_path=file_path,
-            content=content,
-            mode=mode
-        )
-
-    # ==================== Improved Decision Logic ====================
-
-    # ==================== Final ReAct Loop + Safe Execution Layer ====================
+    # ==================== Final Strengthened ReAct Loop ====================
 
     def run_react_loop(self, goal: str, max_steps: int = 8) -> TaskState:
         """
-        Complete ReAct loop with:
-        - Tool + Skill execution
-        - Dynamic prioritization
-        - Approval gates for high-risk actions
-        - Good logging and state tracking
+        Final robust ReAct loop.
+        Includes tools, skills, approval gates, error handling, and result tracking.
         """
         self.start_task(goal)
+        logger.info(f"Starting ReAct loop for goal: {goal}")
 
         for step in range(max_steps):
-            thought = self._generate_thought()
-            action = self._decide_next_action(thought, goal)
+            try:
+                thought = self._generate_thought()
+                action = self._decide_next_action(thought, goal)
 
-            if action == "conclude":
-                break
+                if action == "conclude":
+                    logger.info("[ReAct] Task complete or max steps reached.")
+                    break
 
-            # Approval Gate
-            if self._requires_approval(action):
-                logger.warning(f"[ReAct] '{action}' requires human approval. Stopping loop.")
-                self.state.history.append(f"Pending approval for: {action}")
-                break
+                # Approval Gate
+                if self._requires_approval(action):
+                    logger.warning(f"[ReAct] '{action}' requires human approval. Stopping.")
+                    self.state.history.append(f"Pending approval for: {action}")
+                    break
 
-            # Tool Execution
-            if action in self.tool_registry.list_tool_names():
-                try:
-                    self.call_tool(action, query=goal)
-                    self.state.tool_calls.append({
-                        "step": step + 1,
-                        "type": "tool",
-                        "name": action
-                    })
-                except Exception as e:
+                # Execute Tool
+                if action in self.tool_registry.list_tool_names():
+                    result = self.call_tool(action, query=goal)
                     self.state.tool_calls.append({
                         "step": step + 1,
                         "type": "tool",
                         "name": action,
-                        "error": str(e)
+                        "success": result.success if hasattr(result, "success") else True
                     })
 
-            # Skill Execution
-            elif action in self.skills_registry:
-                self.load_skill(action)
-                skill_result = self._execute_skill(action, goal)
+                # Execute Skill
+                elif action in self.skills_registry:
+                    self.load_skill(action)
+                    skill_result = self._execute_skill(action, goal)
+                    self.state.tool_calls.append({
+                        "step": step + 1,
+                        "type": "skill",
+                        "name": action,
+                        "result": skill_result
+                    })
+
+            except Exception as e:
+                logger.error(f"[ReAct] Error at step {step + 1}: {e}")
                 self.state.tool_calls.append({
                     "step": step + 1,
-                    "type": "skill",
-                    "name": action,
-                    "result": skill_result
+                    "type": "error",
+                    "message": str(e)
                 })
+                break
 
         self.state.current_phase = "react_complete"
+        logger.info(f"ReAct loop finished after {step + 1} steps")
         return self.state
 
     def _decide_next_action(self, thought: str, goal: str) -> str:
@@ -323,6 +257,7 @@ class AetherOrchestrator:
 
         available_tools = self.tool_registry.list_tool_names()
 
+        # Information gathering tools first
         if "codebase_search" in available_tools and tool_calls_count < 2:
             return "codebase_search"
 
@@ -332,17 +267,46 @@ class AetherOrchestrator:
         if "directory_lister" in available_tools and tool_calls_count < 4:
             return "directory_lister"
 
-        if any(kw in goal.lower() for kw in ["create", "write", "implement", "generate"]):
+        # Execution tools
+        if any(kw in goal.lower() for kw in ["create", "write", "implement", "generate", "build"]):
             if "file_writer" in available_tools:
                 return "file_writer"
 
         return "conclude"
 
+    def _generate_thought(self) -> str:
+        return f"Actions taken so far: {len(self.state.tool_calls)}"
+
     def _requires_approval(self, action: str) -> bool:
         return action in {"file_writer", "git_commit", "git_push", "deploy"}
 
-    def _generate_thought(self) -> str:
-        return f"Actions taken: {len(self.state.tool_calls)}"
+    # ==================== Final Safe Execution Layer ====================
+
+    def execute_action_safely(self, action: str, **kwargs) -> dict:
+        """
+        Centralized safe execution method with approval gates.
+        """
+        if self._requires_approval(action):
+            logger.warning(f"Approval required for action: {action}")
+            if self.state:
+                self.state.history.append(f"Approval requested for: {action}")
+            return {
+                "executed": False,
+                "reason": "Human approval required",
+                "action": action
+            }
+
+        try:
+            result = self.call_tool(action, **kwargs)
+            if self.state:
+                self.state.history.append(f"Executed safely: {action}")
+            return {
+                "executed": True,
+                "result": result.output if hasattr(result, "output") else str(result)
+            }
+        except Exception as e:
+            logger.error(f"Safe execution failed for {action}: {e}")
+            return {"executed": False, "error": str(e)}
 
     # ==================== Skill Execution (All Skills) ====================
 
