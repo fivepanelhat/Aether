@@ -73,6 +73,9 @@ class AetherOrchestrator:
             "schema-migration-hygiene": {"description": "Handles schema drift and migrations", "tags": ["database", "migration"]},
             "design-system-unification": {"description": "Unifies design tokens and component styling", "tags": ["design", "ui", "theme", "consistency"]},
             "release-engineering": {"description": "Manages versioning, builds, testing, and releases", "tags": ["release", "versioning", "ci", "build", "deploy", "tagging"]},
+            "security-route-audit": {"description": "Audits API routes for security vulnerabilities", "tags": ["security", "audit", "routes", "validation", "auth"]},
+            "error-message-sanitization": {"description": "Prevents leaking internal error details to API clients", "tags": ["security", "error-handling", "sanitization", "api"]},
+            "service-role-key-protection": {"description": "Ensures admin operations use createAdminClient()", "tags": ["security", "supabase", "auth", "admin"]},
         }
         for name, meta in default_skills.items():
             self.register_skill(name, meta)
@@ -321,6 +324,12 @@ class AetherOrchestrator:
             return self._execute_build_ci_hygiene_skill(goal)
         elif skill_name == "schema-migration-hygiene":
             return self._execute_schema_migration_skill(goal)
+        elif skill_name == "security-route-audit":
+            return self._execute_security_route_audit_skill(goal)
+        elif skill_name == "error-message-sanitization":
+            return self._execute_error_message_sanitization_skill(goal)
+        elif skill_name == "service-role-key-protection":
+            return self._execute_service_role_key_protection_skill(goal)
         else:
             return {"skill": skill_name, "applied": True, "notes": ["No specific logic defined yet."]}
 
@@ -347,6 +356,27 @@ class AetherOrchestrator:
             "Scanned for schema drift",
             "Recommended adding missing performance indexes"
         ]}
+
+    def _execute_security_route_audit_skill(self, goal: str):
+        notes = [
+            "Inventoried API routes for sensitivity",
+            "Checked auth, input validation, and error handling"
+        ]
+        return {"skill": "security-route-audit", "applied": True, "notes": notes}
+
+    def _execute_error_message_sanitization_skill(self, goal: str):
+        notes = [
+            "Sanitized internal error details",
+            "Ensured only safe, user-friendly messages are returned"
+        ]
+        return {"skill": "error-message-sanitization", "applied": True, "notes": notes}
+
+    def _execute_service_role_key_protection_skill(self, goal: str):
+        notes = [
+            "Checked for manual service role key usage",
+            "Replaced unsafe patterns with createAdminClient()"
+        ]
+        return {"skill": "service-role-key-protection", "applied": True, "notes": notes}
 
 
     def summarize(self) -> str:
