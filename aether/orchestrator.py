@@ -342,8 +342,6 @@ class AetherOrchestrator:
 
         return "conclude"
 
-    # ==================== Enhanced ReAct Loop with Safe Execution ====================
-
     def run_react_loop(self, goal: str, max_steps: int = 8) -> TaskState:
         self.start_task(goal)
 
@@ -354,18 +352,14 @@ class AetherOrchestrator:
             if action == "conclude":
                 break
 
-            # Check approval requirement
             if self._requires_approval(action):
-                approval_result = self.execute_with_approval(action)
-                if not approval_result.get("executed"):
-                    logger.warning(f"[ReAct] Stopped - approval needed for {action}")
-                    self.state.history.append(f"Execution blocked pending approval: {action}")
-                    break
+                logger.warning(f"[ReAct] '{action}' requires approval. Stopping.")
+                self.state.history.append(f"Pending approval for: {action}")
+                break
 
-            # Execute Tool
             if action in self.tool_registry.list_tool_names():
                 try:
-                    result = self.call_tool(action, query=goal)
+                    self.call_tool(action, query=goal)
                     self.state.tool_calls.append({
                         "step": step + 1,
                         "type": "tool",
@@ -379,7 +373,6 @@ class AetherOrchestrator:
                         "error": str(e)
                     })
 
-            # Execute Skill
             elif action in self.skills_registry:
                 self.load_skill(action)
                 skill_result = self._execute_skill(action, goal)
