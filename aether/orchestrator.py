@@ -69,6 +69,7 @@ class AetherOrchestrator:
             "build-ci-hygiene": {"description": "Fixes build and CI issues", "tags": ["build", "ci"]},
             "schema-migration-hygiene": {"description": "Handles schema drift and migrations", "tags": ["database", "migration"]},
             "design-system-unification": {"description": "Unifies design tokens and component styling", "tags": ["design", "ui", "theme", "consistency"]},
+            "release-engineering": {"description": "Manages versioning, builds, testing, and releases", "tags": ["release", "versioning", "ci", "build", "deploy", "tagging"]},
         }
         for name, meta in default_skills.items():
             self.register_skill(name, meta)
