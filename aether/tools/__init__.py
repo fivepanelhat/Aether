@@ -5,6 +5,7 @@ Aether Tools Package
 from .base import Tool, ToolResult
 from .registry import ToolRegistry
 from .executor import ToolExecutor
+from .cache import ToolCache
 
 from .file_reader import FileReaderTool
 from .codebase_search import CodebaseSearchTool
@@ -16,6 +17,7 @@ __all__ = [
     "ToolResult",
     "ToolRegistry",
     "ToolExecutor",
+    "ToolCache",
     "FileReaderTool",
     "CodebaseSearchTool",
     "MemoryQueryTool",

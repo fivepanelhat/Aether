@@ -11,7 +11,7 @@ from datetime import datetime
 
 from memory import AetherMemory
 from guardrails import Guardrails
-from tools import ToolRegistry, ToolExecutor
+from tools import ToolRegistry, ToolExecutor, ToolCache
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s | %(levelname)s | %(message)s")
 logger = logging.getLogger("AetherOrchestrator")
@@ -38,7 +38,8 @@ class AetherOrchestrator:
         self.guardrails = Guardrails()
 
         self.tool_registry = ToolRegistry()
-        self.tool_executor = ToolExecutor(self.tool_registry)
+        self.tool_cache = ToolCache(default_ttl=300)  # 5 minutes
+        self.tool_executor = ToolExecutor(self.tool_registry, cache=self.tool_cache)
         self._register_default_tools()
 
         self.skills_registry: Dict[str, Dict[str, Any]] = {}
@@ -242,4 +243,4 @@ if __name__ == "__main__":
         "Explore the current codebase and suggest improvements for the agent system"
     )
 
-    print(state.summarize())
+    print(aether.summarize())
