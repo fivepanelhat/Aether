@@ -16,17 +16,18 @@ def print_header(text: str):
     print("=" * 70)
 
 
-def run_task(goal: str, max_steps: int = 8, memory_path: str = None):
+def run_task(goal: str, max_steps: int = 8, memory_path: str = None, auto_remediate: bool = False):
     print("\n" + "=" * 70)
     print("AETHER".center(70))
     print("=" * 70)
     print(f"Goal: {goal}")
     print(f"Max Steps: {max_steps}")
+    print(f"Auto-Remediate: {auto_remediate}")
     print("-" * 70)
 
     try:
         aether = AetherOrchestrator(memory_path=memory_path)
-        state = aether.run_react_loop(goal=goal, max_steps=max_steps)
+        state = aether.run_react_loop(goal=goal, max_steps=max_steps, auto_remediate=auto_remediate)
 
         print("\n[Summary]")
         print(state.summarize())
@@ -88,6 +89,7 @@ def main():
     run_parser.add_argument("goal", type=str, help="The goal or task to work on")
     run_parser.add_argument("--max-steps", type=int, default=8, help="Maximum reasoning steps")
     run_parser.add_argument("--memory", type=str, default=None, help="Path to memory file")
+    run_parser.add_argument("--auto-remediate", action="store_true", help="Authorize Aether to automatically fix issues, create branches, and run tests")
 
     # Skills command
     subparsers.add_parser("skills", help="List available skills")
@@ -106,7 +108,7 @@ def main():
             if not args.goal or args.goal.strip() == "":
                 print("Error: Please provide a goal. Example:\n  aether run \"Audit the API routes\"")
                 sys.exit(1)
-            run_task(args.goal, args.max_steps, args.memory)
+            run_task(args.goal, args.max_steps, args.memory, getattr(args, "auto_remediate", False))
         elif args.command == "skills":
             list_skills()
         elif args.command == "init":

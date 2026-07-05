@@ -214,12 +214,18 @@ class AetherOrchestrator:
 
     # ==================== Final Strengthened ReAct Loop ====================
 
-    def run_react_loop(self, goal: str, max_steps: int = 8) -> TaskState:
+    def run_react_loop(self, goal: str, max_steps: int = 5, auto_remediate: bool = False) -> TaskState:
         """
         Final robust ReAct loop.
         Includes tools, skills, approval gates, error handling, and result tracking.
         """
-        self.start_task(goal)
+        state = self.start_task(goal)
+
+        if auto_remediate:
+            auto_msg = "AUTO-REMEDIATION ENABLED: The agent is authorized and expected to create git branches, apply fixes, run tests, and output summaries for any issues found."
+            state.history.append(auto_msg)
+            state.goal += f" ({auto_msg})"
+
         logger.info(f"Starting ReAct loop for goal: {goal}")
 
         for step in range(max_steps):
