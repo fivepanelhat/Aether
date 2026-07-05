@@ -281,36 +281,54 @@ class AetherOrchestrator:
     def _generate_thought(self) -> str:
         return f"Actions taken so far: {len(self.state.tool_calls)}"
 
-    def _requires_approval(self, action: str) -> bool:
-        return action in {"file_writer", "git_commit", "git_push", "deploy"}
+    # ==================== Enhanced Safe Execution Layer ====================
 
-    # ==================== Final Safe Execution Layer ====================
+    def _requires_approval(self, action: str) -> bool:
+        high_risk = {"file_writer", "git_commit", "git_push", "deploy", "delete_data"}
+        return action in high_risk
+
+    def request_approval(self, action: str, details: str = "") -> bool:
+        """
+        Interactive approval prompt.
+        In a real CLI this would pause and wait for user input.
+        """
+        print("\n" + "="*70)
+        print("AETHER — HUMAN APPROVAL REQUIRED")
+        print("="*70)
+        print(f"Action: {action}")
+        if details:
+            print(f"Details: {details}")
+        print("\nThis action is considered high-risk.")
+        response = input("Do you want to proceed? (yes/no): ").strip().lower()
+        return response in ["yes", "y"]
 
     def execute_action_safely(self, action: str, **kwargs) -> dict:
-        """
-        Centralized safe execution method with approval gates.
-        """
+        """Execute high-risk actions only after approval."""
         if self._requires_approval(action):
-            logger.warning(f"Approval required for action: {action}")
-            if self.state:
-                self.state.history.append(f"Approval requested for: {action}")
-            return {
-                "executed": False,
-                "reason": "Human approval required",
-                "action": action
-            }
+            approved = self.request_approval(action, str(kwargs))
+            if not approved:
+                logger.warning(f"User denied execution of: {action}")
+                if self.state:
+                    self.state.history.append(f"User rejected action: {action}")
+                return {"executed": False, "reason": "User rejected action"}
 
         try:
             result = self.call_tool(action, **kwargs)
             if self.state:
                 self.state.history.append(f"Executed safely: {action}")
-            return {
-                "executed": True,
-                "result": result.output if hasattr(result, "output") else str(result)
-            }
+            return {"executed": True, "result": result}
         except Exception as e:
-            logger.error(f"Safe execution failed for {action}: {e}")
+            logger.error(f"Execution failed: {e}")
             return {"executed": False, "error": str(e)}
+
+    def safe_write_file(self, file_path: str, content: str, mode: str = "write") -> dict:
+        """Safe wrapper for writing files with approval gate."""
+        return self.execute_action_safely(
+            "file_writer",
+            file_path=file_path,
+            content=content,
+            mode=mode
+        )
 
     # ==================== Skill Execution (All Skills) ====================
 
