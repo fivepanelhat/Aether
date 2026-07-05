@@ -95,3 +95,18 @@ This allows Aether to persist memory across sessions.
 - Review suggested skills before execution when possible
 - Pay attention to approval requests
 - Use the `summarize()` method to inspect what Aether has done
+
+## Command-Line Interface
+
+You can also run Aether tasks directly from the command line using the built-in CLI:
+
+```bash
+# Run a task
+python -m aether.cli run "Audit all API routes for security issues"
+
+# Or with more steps
+python -m aether.cli run "Fix CSV injection and error leaking issues" --max-steps 10
+
+# List available skills
+python -m aether.cli skills
+```
