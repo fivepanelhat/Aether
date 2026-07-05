@@ -40,19 +40,28 @@ class AetherOrchestrator:
         self.memory = AetherMemory(persist_path=memory_path)
         self.guardrails = Guardrails()
 
+        # Tool system
         self.tool_registry = ToolRegistry()
         self.tool_cache = ToolCache(default_ttl=300)  # 5 minutes
         self.tool_executor = ToolExecutor(self.tool_registry, cache=self.tool_cache)
         self._register_default_tools()
 
-        self.skills_registry: Dict[str, Dict[str, Any]] = {}
-        self.skill_loader = SkillLoader()
-        
-        # Discover skills in the aether/../skills directory
-        skills_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "skills")
-        self.skills_registry = self.skill_loader.discover_skills(skills_dir)
+        # === NEW: Dynamic Skill Loading ===
+        self.skill_loader = SkillLoader(skills_directory="skills")
+        self.skills_registry = self.skill_loader.load_all_skills()
 
-        logger.info("AetherOrchestrator initialized")
+        logger.info(f"AetherOrchestrator initialized with {len(self.skills_registry)} skills")
+
+    def register_skill(self, name: str, metadata: Dict[str, Any]):
+        """Manually register a skill (useful for testing or runtime addition)."""
+        self.skills_registry[name] = metadata
+        logger.info(f"Manually registered skill: {name}")
+
+    def get_available_skills(self) -> List[str]:
+        return list(self.skills_registry.keys())
+
+    def get_skill_info(self, name: str) -> Optional[Dict[str, Any]]:
+        return self.skills_registry.get(name)
 
     def _register_default_tools(self):
         from .tools.file_reader import FileReaderTool
@@ -331,7 +340,7 @@ class AetherOrchestrator:
         skill_meta = self.skills_registry[skill_name]
         
         # Inject the instructions into the context
-        instructions = skill_meta.get("instructions", "No instructions found.")
+        instructions = skill_meta.get("body", "No instructions found.")
         
         if self.state:
             self.state.history.append(f"Loaded instructions for skill '{skill_name}':\n{instructions}")
