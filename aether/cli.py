@@ -34,7 +34,7 @@ def print_header(text: str):
 
 def run_task(goal: str, max_steps: int = 8, memory_path: str = None, auto_remediate: bool = False):
     if not goal or goal.strip() == "":
-        print("Error: Please provide a goal.\nExample: aether run \"Audit the API routes for security issues\"")
+        print("Error: Please provide a goal.\nExample:\n  aether run \"Audit the API routes for security issues\"")
         sys.exit(1)
 
     print_header("AETHER")
@@ -60,11 +60,17 @@ def run_task(goal: str, max_steps: int = 8, memory_path: str = None, auto_remedi
         for entry in state.history[-8:]:
             print(f"  {entry}")
 
+        if aether.errors:
+            print("\n[Errors Encountered]")
+            for err in aether.errors:
+                print(f"  \u2022 {err}")
+
     except KeyboardInterrupt:
         print("\n\nOperation cancelled by user.")
         sys.exit(0)
     except Exception as e:
-        print(f"\n[Error] {e}")
+        print(f"\n[Unexpected Error] {e}")
+        print("Please check the logs or try again with a simpler goal.")
         sys.exit(1)
 
     print("\n" + "=" * 72)

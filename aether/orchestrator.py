@@ -80,6 +80,8 @@ class AetherOrchestrator:
             print("[Aether] Initialized with no skills loaded.")
             print("         Add skills to the 'skills/' folder to unlock more capabilities.")
 
+        self.errors: list[str] = []  # Track errors during a task
+
         logger.info(f"AetherOrchestrator initialized with {skill_count} skills")
 
     def register_skill(self, name: str, metadata: Dict[str, Any]):
@@ -92,6 +94,18 @@ class AetherOrchestrator:
 
     def get_skill_info(self, name: str) -> Optional[Dict[str, Any]]:
         return self.skills_registry.get(name)
+
+    def _handle_error(self, error: Exception, context: str = "") -> dict:
+        """Centralized error handling with logging and user-friendly messages."""
+        error_msg = str(error)
+        logger.error(f"Error in {context}: {error_msg}", exc_info=True)
+        self.errors.append(f"{context}: {error_msg}")
+        return {
+            "success": False,
+            "error": error_msg,
+            "context": context,
+            "user_message": "An error occurred while processing your request. Please check the logs for details."
+        }
 
     def _register_default_tools(self):
         from .tools.file_reader import FileReaderTool
@@ -224,6 +238,7 @@ class AetherOrchestrator:
         Final robust ReAct loop.
         Includes tools, skills, approval gates, error handling, and result tracking.
         """
+        self.errors = []  # Reset errors for new task
         state = self.start_task(goal)
 
         if auto_remediate:
@@ -250,13 +265,24 @@ class AetherOrchestrator:
 
                 # Execute Tool
                 if action in self.tool_registry.list_tool_names():
-                    result = self.call_tool(action, query=goal)
-                    self.state.tool_calls.append({
-                        "step": step + 1,
-                        "type": "tool",
-                        "name": action,
-                        "success": result.success if hasattr(result, "success") else True
-                    })
+                    try:
+                        result = self.call_tool(action, query=goal)
+                        self.state.tool_calls.append({
+                            "step": step + 1,
+                            "type": "tool",
+                            "name": action,
+                            "success": getattr(result, "success", True)
+                        })
+                    except Exception as e:
+                        error_result = self._handle_error(e, f"tool:{action}")
+                        self.state.tool_calls.append({
+                            "step": step + 1,
+                            "type": "tool",
+                            "name": action,
+                            "success": False,
+                            "error": error_result.get("user_message")
+                        })
+                        logger.warning(f"Tool '{action}' failed. Continuing with reduced capability.")
 
                 # Execute Skill
                 elif action in self.skills_registry:
