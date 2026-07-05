@@ -1,22 +1,19 @@
 #!/usr/bin/env python3
 """
-Aether CLI - Improved Output Formatting
+Aether CLI
 """
 
 import argparse
 import sys
 from aether.orchestrator import AetherOrchestrator
 
+__version__ = "0.4.0"
+
 
 def print_header(text: str):
-    print("\n" + "="*70)
+    print("\n" + "=" * 70)
     print(text.center(70))
-    print("="*70)
-
-
-def print_section(title: str, content: str):
-    print(f"\n[{title}]")
-    print(content)
+    print("=" * 70)
 
 
 def run_task(goal: str, max_steps: int = 8, memory_path: str = None):
@@ -25,55 +22,72 @@ def run_task(goal: str, max_steps: int = 8, memory_path: str = None):
     print(f"Goal: {goal}")
     print(f"Max Steps: {max_steps}")
 
-    aether = AetherOrchestrator(memory_path=memory_path)
-    state = aether.run_react_loop(goal=goal, max_steps=max_steps)
+    try:
+        aether = AetherOrchestrator(memory_path=memory_path)
+        state = aether.run_react_loop(goal=goal, max_steps=max_steps)
 
-    print_section("Summary", state.summarize())
+        print("\n[Summary]")
+        print(state.summarize())
 
-    if hasattr(state, "skill_execution_results") and state.skill_execution_results:
-        print("\n[Skill Execution Results]")
-        for res in state.skill_execution_results:
-            print(f"  Skill: {res.get('skill')}")
-            for note in res.get("notes", []):
-                print(f"    - {note}")
+        if hasattr(state, "skill_execution_results") and state.skill_execution_results:
+            print("\n[Skills Used]")
+            for result in state.skill_execution_results:
+                print(f"  - {result.get('skill')}")
 
-    print("\n[Recent Activity]")
-    for entry in state.history[-10:]:
-        print(f"  {entry}")
+        print("\n[Recent Activity]")
+        for entry in state.history[-8:]:
+            print(f"  {entry}")
 
-    print("\n" + "="*70)
-    print("Task completed.")
-    print("="*70 + "\n")
+    except Exception as e:
+        print(f"\n[Error] {e}")
+        sys.exit(1)
 
-    return state
+    print("\n" + "=" * 70)
+    print("Task finished.")
+    print("=" * 70 + "\n")
 
 
 def list_skills():
-    aether = AetherOrchestrator()
-    print_header("AVAILABLE SKILLS")
+    try:
+        aether = AetherOrchestrator()
+        print_header("AVAILABLE SKILLS")
 
-    for name, meta in aether.skills_registry.items():
-        desc = meta.get("description", "No description")
-        skill_type = meta.get("type", "general")
-        hitl = "Yes" if meta.get("requires_hitl") else "No"
-        print(f"  {name}")
-        print(f"    Type: {skill_type} | Requires Approval: {hitl}")
-        try:
-            print(f"    {desc}\n")
-        except UnicodeEncodeError:
-            clean_desc = desc.encode("ascii", "ignore").decode("ascii")
-            print(f"    {clean_desc}\n")
+        skills = aether.get_available_skills()
+        if not skills:
+            print("No skills found. Make sure the 'skills/' directory exists.")
+            return
+
+        for name in skills:
+            info = aether.get_skill_info(name) or {}
+            desc = info.get("description", "No description")
+            print(f"  {name}")
+            try:
+                print(f"    {desc}\n")
+            except UnicodeEncodeError:
+                clean_desc = desc.encode("ascii", "ignore").decode("ascii")
+                print(f"    {clean_desc}\n")
+
+    except Exception as e:
+        print(f"[Error] {e}")
+        sys.exit(1)
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Aether - Sovereign Agentic Development System")
+    parser = argparse.ArgumentParser(
+        description="Aether - Sovereign Agentic Development System",
+        formatter_class=argparse.RawDescriptionHelpFormatter
+    )
+    parser.add_argument("--version", action="version", version=f"%(prog)s {__version__}")
+
     subparsers = parser.add_subparsers(dest="command")
 
-    run_parser = subparsers.add_parser("run", help="Run a task")
-    run_parser.add_argument("goal", type=str, help="Task goal")
-    run_parser.add_argument("--max-steps", type=int, default=8)
-    run_parser.add_argument("--memory", type=str, default=None)
+    # Run command
+    run_parser = subparsers.add_parser("run", help="Run a task using the ReAct loop")
+    run_parser.add_argument("goal", type=str, help="The goal or task to work on")
+    run_parser.add_argument("--max-steps", type=int, default=8, help="Maximum reasoning steps")
+    run_parser.add_argument("--memory", type=str, default=None, help="Path to memory file")
 
+    # Skills command
     subparsers.add_parser("skills", help="List available skills")
 
     args = parser.parse_args()
