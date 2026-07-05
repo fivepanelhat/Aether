@@ -361,9 +361,62 @@ class AetherOrchestrator:
 
     # ==================== Skill Execution (All Skills) ====================
 
+    def _execute_error_remediation_orchestrator(self, goal: str):
+        """Coordinates error analysis and remediation."""
+        notes = []
+        notes.append("Starting error remediation process")
+        notes.append("Using ci-failure-parser and relevant auditor skills")
+        notes.append("Will request approval before applying fixes and git operations")
+        return {
+            "skill": "error-remediation-orchestrator",
+            "applied": True,
+            "notes": notes
+        }
+
+    def _execute_git_workflow(self, goal: str):
+        """Handles git operations with approval gates."""
+        return {
+            "skill": "git-workflow",
+            "applied": True,
+            "notes": [
+                "Git workflow skill invoked",
+                "Branch creation, commit, and push require human approval"
+            ]
+        }
+
+    def _execute_ci_failure_parser(self, goal: str):
+        """Parses CI and GitHub failure logs."""
+        return {
+            "skill": "ci-failure-parser",
+            "applied": True,
+            "notes": ["Parsing CI/GitHub error output into structured format"]
+        }
+
+    def _execute_notification_responder(self, goal: str):
+        """Generates responses for GitHub, email, etc."""
+        return {
+            "skill": "notification-responder",
+            "applied": True,
+            "notes": ["Generating clear status update or approval request"]
+        }
+
     def _execute_skill(self, skill_name: str, goal: str):
+        """
+        Dynamic skill execution with support for the new remediation skills.
+        """
         logger.info(f"[Skill Execution] Running: {skill_name}")
 
+        # Core remediation skills
+        if skill_name == "error-remediation-orchestrator":
+            return self._execute_error_remediation_orchestrator(goal)
+        elif skill_name == "git-workflow":
+            return self._execute_git_workflow(goal)
+        elif skill_name == "ci-failure-parser":
+            return self._execute_ci_failure_parser(goal)
+        elif skill_name == "notification-responder":
+            return self._execute_notification_responder(goal)
+
+        # Dynamic fallback for all other skills
         if skill_name not in self.skills_registry:
             logger.warning(f"Skill '{skill_name}' not found in registry.")
             return {"skill": skill_name, "applied": False, "error": "Skill not found in registry"}

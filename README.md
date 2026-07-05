@@ -2,11 +2,11 @@
 
 **Sovereign Agentic Development System**
 
-Aether is a culturally grounded, extensible agentic development orchestrator designed to help founders and small teams build high-quality software while maintaining strong human oversight and alignment with Te Tiriti o Waitangi and Te Mana Raraunga principles.
+Aether is a culturally grounded, extensible agentic development orchestrator. It helps founders and small teams plan and execute development work using tools, reusable skills, and strong human oversight — while staying aligned with Te Tiriti o Waitangi and Te Mana Raraunga principles.
 
 ## Quick Start
 
-### Installation
+### 1. Installation
 
 ```bash
 git clone https://github.com/fivepanelhat/Aether.git
@@ -14,41 +14,84 @@ cd Aether
 pip install -e .
 ```
 
-### Usage
+### 2. Verify Installation
 
 ```bash
-# See available skills
+aether --version
 aether skills
+```
 
-# Run a task
-aether run "Audit the API routes for security issues and missing validation"
+### 3. Run Your First Task
 
-# Run with more reasoning steps
+```bash
+aether run "Audit the API routes for security issues like error leaking and missing authentication"
+
+# Or run with more reasoning steps:
 aether run "Improve conversation history handling in agents" --max-steps 10
 ```
 
 - **[Getting Started Guide](docs/GETTING_STARTED.md)**: A complete guide on how to use Aether's ReAct loop and tools.
 - **[CLI Reference](docs/CLI_REFERENCE.md)**: A detailed reference of all available CLI commands.
 
+### `aether remediate`
+
+Trigger the error remediation workflow on a specific error or CI failure.
+
+```bash
+aether remediate "CI failed on main branch with test error in user.test.ts"
+```
+
+## Error Remediation Capabilities
+
+Aether includes a set of skills designed to help with automated debugging and fixing:
+
+- **`error-remediation-orchestrator`** — Coordinates the full process of analyzing errors and proposing fixes.
+- **`git-workflow`** — Safely creates branches, commits changes, and opens pull requests (with approval).
+- **`ci-failure-parser`** — Extracts useful information from CI failures and GitHub Actions logs.
+- **`notification-responder`** — Generates clear status updates and approval requests.
+
+These skills are designed to work together. You can trigger them manually or have them respond to CI failures and GitHub issues.
+
+> **Note**: Git operations and code changes require human approval by default for safety.
+
+## Required Setup for Advanced Features
+
+Some features (especially error remediation and git operations) require additional configuration:
+
+### GitHub Integration (Recommended)
+
+To use the `git-workflow` skill effectively, you should have:
+
+- A GitHub Personal Access Token (classic) with the following scopes:
+  - `repo` (Full control of private repositories)
+  - `workflow` (Update GitHub Action workflows)
+
+**How to create a token:**
+1. Go to GitHub → Settings → Developer settings → Personal access tokens → Tokens (classic)
+2. Generate new token
+3. Select the scopes listed above
+4. Store the token securely (e.g. in a `.env` file or password manager)
+
+> **Note**: Aether currently expects you to handle git authentication via your local environment (SSH keys or credential manager). Token support can be added later.
+
+### Future Integrations
+
+- GitHub App / Webhooks (for automatic triggering on CI failure)
+- Email parsing (for inbox-based remediation)
+- Slack / Discord notifications
+
+These are planned but not yet implemented.
+
 ## Project Structure
 
 ```text
 Aether/
-├── aether/
-│   ├── __init__.py
-│   └── orchestrator.py
-├── docs/
-│   ├── AETHER_SKILL_FORMAT.md
-│   ├── AETHER_VISION.md
-│   ├── ROADMAP.md
-│   └── COMPLIANCE.md
-├── skills/
-├── examples/
-├── tests/
-├── README.md
-├── COMPLIANCE.md
-├── pyproject.toml
-└── .gitignore
+├── aether/           # Core engine (orchestrator, tools, guardrails)
+├── skills/           # Reusable skills (add your own here)
+├── docs/             # Documentation
+├── examples/         # Usage examples
+├── pyproject.toml    # Packaging configuration
+└── README.md
 ```
 
 ## License

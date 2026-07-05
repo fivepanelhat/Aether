@@ -41,10 +41,11 @@ For each route, verify the following:
 - **HIGH**: Missing validation, CSV injection, weak schemas, unauthorized data access.
 - **MEDIUM**: CSP issues, missing env schema entries, weak input sanitization.
 
-### 4. Document and Patch
-- Record findings with file paths and line numbers.
-- Apply fixes systematically (batch similar issues together).
-- Re-run type-check, lint, and tests after patching.
+### 4. Auto-Remediation Workflow
+- **Branch**: Create a new git branch `audit/<date>-<topic>`.
+- **Patch**: Apply fixes systematically (batch similar issues together).
+- **Verify**: Re-run the test suite, type-check, and lint after patching.
+- **Report**: Output a summary of the diffs and test results as raw output for the user to review.
 
 ## Guardrails & Constraints
 - Never expose internal error details to clients.

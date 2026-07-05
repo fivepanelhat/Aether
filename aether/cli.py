@@ -1,4 +1,17 @@
 #!/usr/bin/env python3
+# Copyright 2026 Aether Project Contributors
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
 """
 Aether CLI
 """
@@ -97,6 +110,10 @@ def main():
     # Init command
     init_parser = subparsers.add_parser("init", help="Initialize Aether in the current project (coming soon)")
 
+    # Remediate command
+    remediate_parser = subparsers.add_parser("remediate", help="Trigger the error remediation workflow on a specific error or CI failure")
+    remediate_parser.add_argument("error", type=str, help="The error or CI failure to remediate")
+
     try:
         args = parser.parse_args()
 
@@ -111,6 +128,12 @@ def main():
             run_task(args.goal, args.max_steps, args.memory, getattr(args, "auto_remediate", False))
         elif args.command == "skills":
             list_skills()
+        elif args.command == "remediate":
+            if not getattr(args, "error", "") or args.error.strip() == "":
+                print("Error: Please provide an error. Example:\n  aether remediate \"CI failed on main branch\"")
+                sys.exit(1)
+            goal = f"Remediate the following error using error-remediation-orchestrator: {args.error}"
+            run_task(goal, getattr(args, "max_steps", 10), None, True)
         elif args.command == "init":
             print("Init command coming soon!")
         else:
