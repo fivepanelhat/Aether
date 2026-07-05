@@ -29,7 +29,11 @@ class SkillLoader:
         self.loaded_skills = {}
 
         if not os.path.isdir(self.skills_directory):
-            logger.warning(f"Skills directory does not exist: {self.skills_directory}")
+            logger.warning(
+                f"Skills directory '{self.skills_directory}' not found. "
+                "Aether will start with no skills loaded. "
+                "Create the folder and add skills to use extended functionality."
+            )
             return self.loaded_skills
 
         for folder_name in os.listdir(self.skills_directory):
