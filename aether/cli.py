@@ -23,7 +23,7 @@ from aether.orchestrator import AetherOrchestrator
 from aether.logging_config import setup_logging
 
 
-__version__ = "0.5.0"
+__version__ = "0.6.0"
 
 
 def print_header(text: str):
@@ -41,8 +41,8 @@ def run_task(goal: str, max_steps: int = 8, memory_path: str = None, auto_remedi
 
     print(f"Goal: {goal}")
     print(f"Max Steps: {max_steps}")
-    print(f"Auto-Remediate: {auto_remediate}")
     print("-" * 72)
+    print("Note: High-risk actions (writing files, git operations) require approval.\n")
 
     try:
         aether = AetherOrchestrator(memory_path=memory_path)

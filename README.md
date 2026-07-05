@@ -2,32 +2,18 @@
 
 **Sovereign Agentic Development System**
 
-Aether is a culturally grounded, extensible agentic development orchestrator. It helps founders and small teams plan, debug, and execute development work using tools and reusable skills — while maintaining strong human oversight and alignment with Te Tiriti o Waitangi and Te Mana Raraunga principles.
+Aether is a culturally grounded, extensible agentic development orchestrator. It helps you plan, debug, scaffold, and execute development work using tools and reusable skills - while keeping you in control through strong human oversight.
 
 ## Quick Start
-
-### Installation
 
 ```bash
 git clone https://github.com/fivepanelhat/Aether.git
 cd Aether
 pip install -e .
-```
 
-### Verify Installation
-
-```bash
-aether --version
+aether --help
 aether skills
-```
-
-### Run Your First Task
-
-```bash
-aether run "Audit the API routes for security issues like error leaking and missing authentication"
-
-# More reasoning steps:
-aether run "Improve conversation history handling in agents" --max-steps 10
+aether run "Audit the API routes for security issues"
 ```
 
 
@@ -144,6 +130,14 @@ Aether/
 ├── pyproject.toml        # Packaging configuration
 └── README.md
 ```
+
+## Known Limitations
+
+- Builder capabilities are still early (only the Project Scaffolder exists so far).
+- Auto-remediation requires human approval at multiple steps for safety.
+- Some advanced features (full auto-remediation, email triggers, etc.) are still in development.
+
+We are actively working on improving generative (builder) capabilities.
 
 ## License
 

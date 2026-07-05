@@ -96,3 +96,12 @@ Aether is built on the following principles:
 - **Te Tiriti alignment**: Designed with respect for Te Tiriti o Waitangi and Te Mana Raraunga.
 - **Transparency**: All actions are logged and summarized.
 - **Extensibility**: Add new skills to extend what Aether can do.
+
+## Try the Examples
+
+After installing Aether, you can explore some practical examples:
+
+```bash
+python examples/project_scaffolding_example.py
+python examples/error_remediation_example.py
+```
