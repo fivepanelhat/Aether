@@ -102,11 +102,11 @@ You can also run Aether tasks directly from the command line using the built-in 
 
 ```bash
 # Run a task
-python -m aether.cli run "Audit all API routes for security issues"
+aether run "Your task here"
 
 # Or with more steps
-python -m aether.cli run "Fix CSV injection and error leaking issues" --max-steps 10
+aether run "Fix CSV injection and error leaking issues" --max-steps 10
 
 # List available skills
-python -m aether.cli skills
+aether skills
 ```
