@@ -1,43 +1,42 @@
 ---
 name: notification-responder
-description: Generates appropriate responses to notifications received via GitHub, email, Slack, or other channels. Used to communicate status updates, proposed fixes, or requests for approval.
+description: Generates clear, professional responses for GitHub comments, email, or other channels during remediation workflows. Used to request approval or provide status updates.
 version: "0.1.0"
 type: workflow
 requires_hitl: false
 cultural_sensitivity: low
-tags: [notification, communication, github, email, response]
+tags: [notification, github, communication, response]
 ---
 
 # Notification Responder
 
 ## Overview
-This skill helps generate clear, professional responses when Aether needs to communicate with humans (via GitHub comments, email, Slack, etc.). It is especially useful during remediation workflows.
+Helps Aether communicate clearly with humans during automated workflows (especially remediation).
 
 ## When to Use
-- When reporting analysis results or proposed fixes.
-- When requesting human approval for a change.
-- When providing status updates on remediation tasks.
+- When requesting human approval for a proposed fix.
+- When providing status updates on a remediation task.
+- When replying to GitHub issues or PRs.
 
 ## Instructions
 
-### 1. Determine Context
-- Understand what triggered the notification (CI failure, GitHub issue, email, etc.).
-- Know what stage the remediation is at (analysis done, fix proposed, changes applied, etc.).
+### 1. Understand Context
+- Know what stage the task is at (analysis complete, fix proposed, changes applied, etc.).
+- Know what action is needed from the user.
 
-### 2. Generate Appropriate Response
-- Be clear and concise.
-- Include relevant details (what was found, what fix is proposed, what action is needed from the user).
-- Use a professional but friendly tone.
+### 2. Craft Response
+- Be clear, concise, and professional.
+- Include what was found and what action is being requested.
+- Provide enough context for the user to make a quick decision.
 
 ### 3. Include Next Steps
-- Clearly state what you need from the user (approval, more information, etc.).
-- Provide context so the user can make a quick decision.
+- Clearly state what you need from the user (e.g., approval to apply the fix).
 
 ## Guardrails & Constraints
-- Never make promises about timelines or outcomes that cannot be guaranteed.
-- Be transparent when Aether is unsure or needs human input.
+- Never overpromise on timelines or outcomes.
+- Be transparent when human input is required.
 
 ## Input / Output
 
-**Input**: Current status of a task and what needs to be communicated.  
-**Output**: Well-structured message ready to be sent via GitHub, email, or Slack.
+**Input**: Current task status and what needs to be communicated.  
+**Output**: Well-written message ready to post or send.
