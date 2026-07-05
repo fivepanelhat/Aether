@@ -104,6 +104,24 @@ Aether can automatically start remediation when your CI fails.
    - Secret: your `GITHUB_WEBHOOK_SECRET` value
    - Events: Select **Workflow runs** and **Check runs**
 
+### Webhook Retry Behavior
+
+When a CI failure is received, Aether will attempt to trigger remediation up to **4 times** using exponential backoff (2s → 4s → 8s → 16s).
+
+If all retry attempts fail, the error is logged but no further automatic action is taken. You can still trigger remediation manually:
+
+```bash
+aether run "Investigate CI failure in <repo> on branch <branch>"
+```
+
+Retry parameters are configurable via environment variables:
+
+| Variable               | Default | Description                      |
+|------------------------|---------|----------------------------------|
+| `WEBHOOK_MAX_RETRIES`  | `4`     | Maximum number of retry attempts |
+| `WEBHOOK_MIN_WAIT`     | `2`     | Minimum wait between retries (s) |
+| `WEBHOOK_MAX_WAIT`     | `30`    | Maximum wait between retries (s) |
+
 ### Future Integrations
 
 - Email parsing (for inbox-based remediation)

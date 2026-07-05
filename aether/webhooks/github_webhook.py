@@ -17,6 +17,11 @@ app = FastAPI(title="Aether GitHub Webhook Handler")
 
 GITHUB_WEBHOOK_SECRET = os.getenv("GITHUB_WEBHOOK_SECRET", "")
 
+# Retry configuration — override via environment variables
+MAX_RETRIES = int(os.getenv("WEBHOOK_MAX_RETRIES", "4"))
+MIN_WAIT    = int(os.getenv("WEBHOOK_MIN_WAIT", "2"))
+MAX_WAIT    = int(os.getenv("WEBHOOK_MAX_WAIT", "30"))
+
 
 def verify_signature(payload: bytes, signature: str) -> bool:
     if not GITHUB_WEBHOOK_SECRET:
@@ -54,8 +59,8 @@ def _extract_failure_info(data: dict, event: str) -> dict | None:
 
 
 @retry(
-    stop=stop_after_attempt(4),                          # Retry up to 4 times
-    wait=wait_exponential(multiplier=1, min=2, max=30),  # 2s, 4s, 8s, 16s...
+    stop=stop_after_attempt(MAX_RETRIES),
+    wait=wait_exponential(multiplier=1, min=MIN_WAIT, max=MAX_WAIT),
     retry=retry_if_exception_type(Exception),
     reraise=True
 )
