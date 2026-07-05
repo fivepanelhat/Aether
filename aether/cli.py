@@ -7,7 +7,7 @@ import argparse
 import sys
 from aether.orchestrator import AetherOrchestrator
 
-__version__ = "0.4.0"
+__version__ = "0.1.0"
 
 
 def print_header(text: str):
@@ -92,14 +92,32 @@ def main():
     # Skills command
     subparsers.add_parser("skills", help="List available skills")
 
-    args = parser.parse_args()
+    # Init command
+    init_parser = subparsers.add_parser("init", help="Initialize Aether in the current project (coming soon)")
 
-    if args.command == "run":
-        run_task(args.goal, args.max_steps, args.memory)
-    elif args.command == "skills":
-        list_skills()
-    else:
-        parser.print_help()
+    try:
+        args = parser.parse_args()
+
+        if not hasattr(args, "command") or not args.command:
+            parser.print_help()
+            sys.exit(1)
+
+        if args.command == "run":
+            if not args.goal or args.goal.strip() == "":
+                print("Error: Please provide a goal. Example:\n  aether run \"Audit the API routes\"")
+                sys.exit(1)
+            run_task(args.goal, args.max_steps, args.memory)
+        elif args.command == "skills":
+            list_skills()
+        elif args.command == "init":
+            print("Init command coming soon!")
+        else:
+            parser.print_help()
+    except KeyboardInterrupt:
+        print("\n\nOperation cancelled by user.")
+        sys.exit(0)
+    except Exception as e:
+        print(f"\nUnexpected error: {e}")
         sys.exit(1)
 
 

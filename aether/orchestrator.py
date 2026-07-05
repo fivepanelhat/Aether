@@ -33,6 +33,13 @@ class TaskState:
     history: List[str] = field(default_factory=list)
     cultural_considerations: List[str] = field(default_factory=list)
 
+    def summarize(self) -> str:
+        summary = f"Goal: {self.goal}\nPhase: {self.current_phase}\n"
+        if self.plan:
+            summary += "Plan:\n" + "\n".join(f"  - {p}" for p in self.plan) + "\n"
+        summary += f"Loaded Skills: {', '.join(self.loaded_skills) if self.loaded_skills else 'None'}\n"
+        return summary
+
 
 class AetherOrchestrator:
     def __init__(self, memory_path: Optional[str] = None):
@@ -46,17 +53,16 @@ class AetherOrchestrator:
         self.tool_executor = ToolExecutor(self.tool_registry, cache=self.tool_cache)
         self._register_default_tools()
 
-        # === NEW: Dynamic Skill Loading ===
+        # === Dynamic Skill Loading ===
         self.skill_loader = SkillLoader(skills_directory="skills")
         self.skills_registry = self.skill_loader.load_all_skills()
 
-        skill_count = len(self.skills_registry)
-        if skill_count > 0:
-            print(f"[Aether] Initialized with {skill_count} skills loaded.")
+        if self.skills_registry:
+            print(f"[Aether] Loaded {len(self.skills_registry)} skills.")
         else:
-            print("[Aether] Initialized with no skills. Create skills in the 'skills/' folder to extend functionality.")
+            print("[Aether] No skills loaded. You can add skills in the 'skills/' folder.")
 
-        logger.info(f"AetherOrchestrator initialized with {skill_count} skills")
+        logger.info(f"AetherOrchestrator initialized with {len(self.skills_registry)} skills")
 
     def register_skill(self, name: str, metadata: Dict[str, Any]):
         """Manually register a skill (useful for testing or runtime addition)."""
