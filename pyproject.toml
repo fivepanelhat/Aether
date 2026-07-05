@@ -1,7 +1,13 @@
 [project]
 name = "aether"
-version = "0.1.0"
+version = "0.2.0"
 description = "Sovereign Agentic Development System"
 readme = "README.md"
 requires-python = ">=3.10"
 dependencies = []
+
+[project.scripts]
+aether = "aether.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["."]
