@@ -288,16 +288,16 @@ class AetherOrchestrator:
 
     # ==================== Real ReAct Loop (Phase C) ====================
 
-    def run_react_loop(self, goal: str, max_steps: int = 8) -> TaskState:
+    def run_react_loop(self, goal: str, max_steps: int = 8, auto_remediate: bool = False) -> TaskState:
         """
         LLM-driven ReAct loop (Ollama). Each step: the model reasons over the
         goal, state, tools, skills, and recent observations, then chooses ONE
         action. Guardrails + ThreatModeler gate high-risk actions before
         execution. Falls back to the deterministic pipeline if Ollama is
-        unreachable, so edge deployments degrade gracefully.
+        unreachable.
         """
         if not self.use_llm or not self.llm.is_available():
-            logger.warning("LLM unavailable — falling back to deterministic pipeline.")
+            logger.warning("LLM unavailable - falling back to deterministic pipeline.")
             return self.run_pipeline(goal, max_steps=max_steps)
 
         self.start_task(goal)
@@ -323,7 +323,6 @@ class AetherOrchestrator:
                 raw = self.llm.chat(messages)
                 decision = parse_decision(raw, allowed_actions=allowed)
 
-                # Screen model output for injection artefacts before acting
                 suspicious, patterns = self.guardrails.detect_prompt_injection(decision.thought)
                 if suspicious:
                     logger.warning(f"[ReAct] Injection patterns in model thought: {patterns}. Concluding.")
@@ -332,7 +331,9 @@ class AetherOrchestrator:
 
                 if not decision.valid:
                     logger.warning(f"[ReAct] Invalid decision: {decision.error}")
-                    observations.append(f"Step {steps_taken}: your last response was invalid ({decision.error}). Respond with valid JSON.")
+                    observations.append(
+                        f"Step {steps_taken}: your last response was invalid ({decision.error}). Respond with valid JSON."
+                    )
                     continue
 
                 self.state.history.append(f"Thought {steps_taken}: {decision.thought}")
@@ -352,8 +353,11 @@ class AetherOrchestrator:
                     result = self.call_tool(decision.action, **decision.args)
                     obs = result.output if result.success else f"ERROR: {result.error}"
                     observations.append(f"Step {steps_taken} [{decision.action}]: {str(obs)[:800]}")
-                    self.memory.add_entry("tool_result", str(obs)[:2000],
-                                          {"tool": decision.action, "success": result.success})
+                    self.memory.add_entry(
+                        "tool_result",
+                        str(obs)[:2000],
+                        {"tool": decision.action, "success": result.success},
+                    )
 
                 elif decision.action in self.skills_registry:
                     self.load_skill(decision.action)
@@ -363,7 +367,9 @@ class AetherOrchestrator:
                         f"Step {steps_taken} [skill:{decision.action}] instructions:\n{body[:1200]}"
                     )
                     self.state.tool_calls.append({
-                        "step": steps_taken, "type": "skill", "name": decision.action,
+                        "step": steps_taken,
+                        "type": "skill",
+                        "name": decision.action,
                         "result": skill_result,
                         "timestamp": datetime.now(timezone.utc).isoformat(),
                     })

@@ -1,69 +1,80 @@
-# Copyright 2026 Aether Project Contributors
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#     http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
 """
-Simple smoke test to verify Aether installs and runs correctly.
-Run this after `pip install -e .`
+Pytest-native smoke and unit tests for Aether.
+Run: pytest tests/ -v
 """
 
-import subprocess
-import sys
+import os
+import pytest
 
-# Ensure UTF-8 output on Windows
-if sys.platform.startswith("win"):
-    sys.stdout.reconfigure(encoding="utf-8")
-
-def test_aether_cli():
-    print("Running Aether smoke test...\n")
-
-    # Test 1: Check if aether command exists
-    try:
-        result = subprocess.run(
-            [sys.executable, "-m", "aether.cli", "--version"],
-            capture_output=True,
-            text=True,
-            timeout=10
-        )
-        if result.returncode == 0:
-            print("✅ `aether --version` works")
-        else:
-            print("❌ `aether --version` failed")
-            return False
-    except FileNotFoundError:
-        print("❌ `aether` command not found. Did you run `pip install -e .`?")
-        return False
-
-    # Test 2: List skills
-    try:
-        result = subprocess.run(
-            [sys.executable, "-m", "aether.cli", "skills"],
-            capture_output=True,
-            text=True,
-            timeout=15
-        )
-        if "AVAILABLE SKILLS" in result.stdout or "No skills found" in result.stdout:
-            print("✅ `aether skills` works")
-        else:
-            print("❌ `aether skills` output unexpected")
-            return False
-    except Exception as e:
-        print(f"❌ Error running `aether skills`: {e}")
-        return False
-
-    print("\n✅ Smoke test passed. Aether is installed correctly.")
-    return True
+from aether import __version__
+from aether.orchestrator import AetherOrchestrator, _resolve_skills_directory
+from aether.guardrails import Guardrails
+from aether.tools.file_writer import FileWriterTool
+from aether.tools.file_reader import FileReaderTool
 
 
-if __name__ == "__main__":
-    success = test_aether_cli()
-    sys.exit(0 if success else 1)
+def test_version_is_single_sourced():
+    assert __version__, "aether.__version__ must be set"
+
+
+def test_orchestrator_initialises_without_skills(tmp_path, monkeypatch):
+    monkeypatch.chdir(tmp_path)
+    monkeypatch.delenv("AETHER_SKILLS_DIR", raising=False)
+    orch = AetherOrchestrator()
+    assert orch.get_available_skills() == []
+    assert "file_writer" in orch.get_available_tools()
+
+
+def test_skills_directory_resolution_env_var(tmp_path, monkeypatch):
+    skills_dir = tmp_path / "my-skills"
+    skills_dir.mkdir()
+    monkeypatch.setenv("AETHER_SKILLS_DIR", str(skills_dir))
+    assert _resolve_skills_directory() == str(skills_dir)
+
+
+def test_tool_calls_logged_exactly_once(tmp_path, monkeypatch):
+    monkeypatch.chdir(tmp_path)
+    orch = AetherOrchestrator()
+    orch.start_task("test goal")
+    orch.call_tool("directory_lister", directory=str(tmp_path))
+    assert len(orch.state.tool_calls) == 1
+
+
+def test_pipeline_max_steps_zero_does_not_crash(tmp_path, monkeypatch):
+    monkeypatch.chdir(tmp_path)
+    orch = AetherOrchestrator()
+    state = orch.run_pipeline("do nothing", max_steps=0)
+    assert state.current_phase == "pipeline_complete"
+
+
+def test_file_writer_blocks_path_traversal(tmp_path):
+    tool = FileWriterTool(allowed_root=str(tmp_path))
+    result = tool.run(file_path="../../etc/evil.txt", content="x")
+    assert result.success is False
+    assert "outside allowed root" in result.error
+
+
+def test_file_writer_handles_bare_filename(tmp_path, monkeypatch):
+    monkeypatch.chdir(tmp_path)
+    tool = FileWriterTool(allowed_root=str(tmp_path))
+    result = tool.run(file_path="notes.txt", content="kia ora")
+    assert result.success is True
+    assert (tmp_path / "notes.txt").read_text() == "kia ora"
+
+
+def test_file_reader_max_lines_on_short_file(tmp_path):
+    f = tmp_path / "short.txt"
+    f.write_text("one\ntwo\n")
+    result = FileReaderTool().run(file_path=str(f), max_lines=100)
+    assert result.success is True
+    assert result.output == "one\ntwo\n"
+
+
+def test_guardrails_hitl_for_file_writer():
+    g = Guardrails()
+    assert g.enforce_hitl("file_writer") is True
+
+
+def test_guardrails_cultural_sensitivity():
+    g = Guardrails()
+    assert g.assess_cultural_sensitivity("update the marae garden dashboard for whanau") == "high"
