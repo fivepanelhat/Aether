@@ -1,13 +1,23 @@
 [project]
 name = "aether"
-version = "0.2.0"
+version = "0.3.0"
 description = "Sovereign Agentic Development System"
 readme = "README.md"
 requires-python = ">=3.10"
-dependencies = []
+license = {text = "Apache-2.0"}
+authors = [
+    {name = "Aether Project", email = "aether@fivepanelhat.dev"}
+]
+dependencies = [
+    "PyYAML>=6.0"
+]
 
 [project.scripts]
 aether = "aether.cli:main"
 
 [tool.setuptools.packages.find]
 where = ["."]
+include = ["aether*"]
+
+[tool.setuptools.package-data]
+aether = ["*.md", "docs/*", "skills/*"]

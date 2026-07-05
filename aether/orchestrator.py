@@ -9,9 +9,11 @@ from dataclasses import dataclass, field
 from typing import List, Dict, Any, Optional
 from datetime import datetime
 
-from memory import AetherMemory
-from guardrails import Guardrails
-from tools import ToolRegistry, ToolExecutor, ToolCache
+import os
+from .memory import AetherMemory
+from .guardrails import Guardrails
+from .tools import ToolRegistry, ToolExecutor, ToolCache
+from .skills.loader import SkillLoader
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s | %(levelname)s | %(message)s")
 logger = logging.getLogger("AetherOrchestrator")
@@ -44,16 +46,20 @@ class AetherOrchestrator:
         self._register_default_tools()
 
         self.skills_registry: Dict[str, Dict[str, Any]] = {}
-        self._register_default_skills()
+        self.skill_loader = SkillLoader()
+        
+        # Discover skills in the aether/../skills directory
+        skills_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "skills")
+        self.skills_registry = self.skill_loader.discover_skills(skills_dir)
 
         logger.info("AetherOrchestrator initialized")
 
     def _register_default_tools(self):
-        from tools.file_reader import FileReaderTool
-        from tools.codebase_search import CodebaseSearchTool
-        from tools.memory_query import MemoryQueryTool
-        from tools.file_writer import FileWriterTool
-        from tools.directory_lister import DirectoryListerTool
+        from .tools.file_reader import FileReaderTool
+        from .tools.codebase_search import CodebaseSearchTool
+        from .tools.memory_query import MemoryQueryTool
+        from .tools.file_writer import FileWriterTool
+        from .tools.directory_lister import DirectoryListerTool
 
         self.tool_registry.register(FileReaderTool())
         self.tool_registry.register(CodebaseSearchTool())
@@ -63,23 +69,6 @@ class AetherOrchestrator:
         memory_tool = MemoryQueryTool()
         memory_tool.memory = self.memory
         self.tool_registry.register(memory_tool)
-
-    def _register_default_skills(self):
-        default_skills = {
-            "hub-nextjs-component": {"description": "Builds accessible UI components", "tags": ["ui", "component"]},
-            "security-auth-guard": {"description": "Adds auth and role guards to routes", "tags": ["security", "auth"]},
-            "agent-reliability-context": {"description": "Improves agent context and reliability", "tags": ["agent", "context"]},
-            "build-ci-hygiene": {"description": "Fixes build and CI issues", "tags": ["build", "ci"]},
-            "schema-migration-hygiene": {"description": "Handles schema drift and migrations", "tags": ["database", "migration"]},
-            "design-system-unification": {"description": "Unifies design tokens and component styling", "tags": ["design", "ui", "theme", "consistency"]},
-            "release-engineering": {"description": "Manages versioning, builds, testing, and releases", "tags": ["release", "versioning", "ci", "build", "deploy", "tagging"]},
-            "security-route-audit": {"description": "Audits API routes for security vulnerabilities", "tags": ["security", "audit", "routes", "validation", "auth"]},
-            "error-message-sanitization": {"description": "Prevents leaking internal error details to API clients", "tags": ["security", "error-handling", "sanitization", "api"]},
-            "service-role-key-protection": {"description": "Ensures admin operations use createAdminClient()", "tags": ["security", "supabase", "auth", "admin"]},
-            "strict-zod-schema-enforcement": {"description": "Enforces strict Zod validation schemas", "tags": ["security", "validation", "zod", "schema", "api"]},
-        }
-        for name, meta in default_skills.items():
-            self.register_skill(name, meta)
 
     def register_skill(self, name: str, metadata: Dict[str, Any]):
         self.skills_registry[name] = metadata
@@ -335,76 +324,23 @@ class AetherOrchestrator:
     def _execute_skill(self, skill_name: str, goal: str):
         logger.info(f"[Skill Execution] Running: {skill_name}")
 
-        if skill_name == "agent-reliability-context":
-            return self._execute_agent_reliability_skill(goal)
-        elif skill_name == "security-auth-guard":
-            return self._execute_security_auth_skill(goal)
-        elif skill_name == "build-ci-hygiene":
-            return self._execute_build_ci_hygiene_skill(goal)
-        elif skill_name == "schema-migration-hygiene":
-            return self._execute_schema_migration_skill(goal)
-        elif skill_name == "security-route-audit":
-            return self._execute_security_route_audit_skill(goal)
-        elif skill_name == "error-message-sanitization":
-            return self._execute_error_message_sanitization_skill(goal)
-        elif skill_name == "service-role-key-protection":
-            return self._execute_service_role_key_protection_skill(goal)
-        elif skill_name == "strict-zod-schema-enforcement":
-            return self._execute_strict_zod_schema_enforcement_skill(goal)
-        else:
-            return {"skill": skill_name, "applied": True, "notes": ["No specific logic defined yet."]}
-
-    def _execute_agent_reliability_skill(self, goal: str):
-        notes = ["Applied conversation history preservation", "Reviewed guardrails to reduce over-blocking"]
-        if any(kw in goal.lower() for kw in ["context", "follow-up"]):
-            notes.append("Prioritized context retention for multi-turn conversations")
-        return {"skill": "agent-reliability-context", "applied": True, "notes": notes}
-
-    def _execute_security_auth_skill(self, goal: str):
-        notes = []
-        if any(kw in goal.lower() for kw in ["auth", "security", "guard", "role"]):
-            notes.append("Recommended adding requireAuth + role checks on sensitive routes")
-        return {"skill": "security-auth-guard", "applied": True, "notes": notes}
-
-    def _execute_build_ci_hygiene_skill(self, goal: str):
-        return {"skill": "build-ci-hygiene", "applied": True, "notes": [
-            "Checked for module-level env crashes",
-            "Recommended adding production build step to CI"
-        ]}
-
-    def _execute_schema_migration_skill(self, goal: str):
-        return {"skill": "schema-migration-hygiene", "applied": True, "notes": [
-            "Scanned for schema drift",
-            "Recommended adding missing performance indexes"
-        ]}
-
-    def _execute_security_route_audit_skill(self, goal: str):
-        notes = [
-            "Inventoried API routes for sensitivity",
-            "Checked auth, input validation, and error handling"
-        ]
-        return {"skill": "security-route-audit", "applied": True, "notes": notes}
-
-    def _execute_error_message_sanitization_skill(self, goal: str):
-        notes = [
-            "Sanitized internal error details",
-            "Ensured only safe, user-friendly messages are returned"
-        ]
-        return {"skill": "error-message-sanitization", "applied": True, "notes": notes}
-
-    def _execute_service_role_key_protection_skill(self, goal: str):
-        notes = [
-            "Checked for manual service role key usage",
-            "Replaced unsafe patterns with createAdminClient()"
-        ]
-        return {"skill": "service-role-key-protection", "applied": True, "notes": notes}
-
-    def _execute_strict_zod_schema_enforcement_skill(self, goal: str):
-        notes = [
-            "Checked for loose or missing Zod schemas",
-            "Enforced strict validation for API inputs"
-        ]
-        return {"skill": "strict-zod-schema-enforcement", "applied": True, "notes": notes}
+        if skill_name not in self.skills_registry:
+            logger.warning(f"Skill '{skill_name}' not found in registry.")
+            return {"skill": skill_name, "applied": False, "error": "Skill not found in registry"}
+            
+        skill_meta = self.skills_registry[skill_name]
+        
+        # Inject the instructions into the context
+        instructions = skill_meta.get("instructions", "No instructions found.")
+        
+        if self.state:
+            self.state.history.append(f"Loaded instructions for skill '{skill_name}':\n{instructions}")
+        
+        return {
+            "skill": skill_name,
+            "applied": True,
+            "notes": [f"Instructions loaded into context. Agent must follow the instructions for '{skill_name}'."]
+        }
 
     def summarize(self) -> str:
         if not self.state:

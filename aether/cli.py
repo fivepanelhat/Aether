@@ -58,7 +58,11 @@ def list_skills():
         hitl = "Yes" if meta.get("requires_hitl") else "No"
         print(f"  {name}")
         print(f"    Type: {skill_type} | Requires Approval: {hitl}")
-        print(f"    {desc}\n")
+        try:
+            print(f"    {desc}\n")
+        except UnicodeEncodeError:
+            clean_desc = desc.encode("ascii", "ignore").decode("ascii")
+            print(f"    {clean_desc}\n")
 
 
 def main():
