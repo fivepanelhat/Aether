@@ -2,11 +2,11 @@
 
 **Sovereign Agentic Development System**
 
-Aether is a culturally grounded, extensible agentic development orchestrator. It helps founders and small teams plan and execute development work using tools, reusable skills, and strong human oversight — while staying aligned with Te Tiriti o Waitangi and Te Mana Raraunga principles.
+Aether is a culturally grounded, extensible agentic development orchestrator. It helps founders and small teams plan, debug, and execute development work using tools and reusable skills — while maintaining strong human oversight and alignment with Te Tiriti o Waitangi and Te Mana Raraunga principles.
 
 ## Quick Start
 
-### 1. Installation
+### Installation
 
 ```bash
 git clone https://github.com/fivepanelhat/Aether.git
@@ -14,21 +14,22 @@ cd Aether
 pip install -e .
 ```
 
-### 2. Verify Installation
+### Verify Installation
 
 ```bash
 aether --version
 aether skills
 ```
 
-### 3. Run Your First Task
+### Run Your First Task
 
 ```bash
 aether run "Audit the API routes for security issues like error leaking and missing authentication"
 
-# Or run with more reasoning steps:
+# More reasoning steps:
 aether run "Improve conversation history handling in agents" --max-steps 10
 ```
+
 
 - **[Getting Started Guide](docs/GETTING_STARTED.md)**: A complete guide on how to use Aether's ReAct loop and tools.
 - **[CLI Reference](docs/CLI_REFERENCE.md)**: A detailed reference of all available CLI commands.
