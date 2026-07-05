@@ -16,7 +16,7 @@ def test_aether_cli():
     # Test 1: Check if aether command exists
     try:
         result = subprocess.run(
-            ["aether", "--version"],
+            [sys.executable, "-m", "aether.cli", "--version"],
             capture_output=True,
             text=True,
             timeout=10
@@ -33,7 +33,7 @@ def test_aether_cli():
     # Test 2: List skills
     try:
         result = subprocess.run(
-            ["aether", "skills"],
+            [sys.executable, "-m", "aether.cli", "skills"],
             capture_output=True,
             text=True,
             timeout=15
