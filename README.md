@@ -74,23 +74,53 @@ To use the `git-workflow` skill effectively, you should have:
 
 > **Note**: Aether currently expects you to handle git authentication via your local environment (SSH keys or credential manager). Token support can be added later.
 
+### Setting Up GitHub Webhooks (Optional but Recommended)
+
+You can configure GitHub to automatically notify Aether when CI fails.
+
+**Steps:**
+
+1. **Start the webhook server**
+   ```bash
+   python run_webhook.py
+   ```
+
+2. **Set your webhook secret** (in your shell or `.env` file)
+   ```bash
+   export GITHUB_WEBHOOK_SECRET=your-secret-here
+   ```
+
+3. **Expose the server** using [ngrok](https://ngrok.com) or deploy to a server
+   ```bash
+   ngrok http 8000
+   ```
+
+4. **Register the webhook in GitHub**
+   - Go to your repo → Settings → Webhooks → Add webhook
+   - Payload URL: `https://your-url/webhook/github`
+   - Content type: `application/json`
+   - Secret: your `GITHUB_WEBHOOK_SECRET` value
+   - Events: Select **Workflow runs** and **Check runs**
+
 ### Future Integrations
 
-- GitHub App / Webhooks (for automatic triggering on CI failure)
 - Email parsing (for inbox-based remediation)
 - Slack / Discord notifications
-
-These are planned but not yet implemented.
+- GitHub App (for deeper integration without PAT)
 
 ## Project Structure
 
 ```text
 Aether/
-├── aether/           # Core engine (orchestrator, tools, guardrails)
-├── skills/           # Reusable skills (add your own here)
-├── docs/             # Documentation
-├── examples/         # Usage examples
-├── pyproject.toml    # Packaging configuration
+├── aether/
+│   ├── webhooks/         # GitHub webhook handler (FastAPI)
+│   ├── tools/            # Core tools (file_writer, codebase_search, etc.)
+│   └── orchestrator.py   # ReAct loop + skill routing
+├── skills/               # Reusable skills (add your own here)
+├── docs/                 # Documentation
+├── examples/             # Usage examples
+├── run_webhook.py        # Start the webhook server
+├── pyproject.toml        # Packaging configuration
 └── README.md
 ```
 

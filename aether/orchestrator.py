@@ -448,7 +448,16 @@ Loaded Skills: {self.state.loaded_skills}
 Tool Calls: {len(self.state.tool_calls)}
 """
 
+    def trigger_ci_remediation(self, repo: str, branch: str, commit_sha: str):
+        """
+        Public method to trigger CI remediation from outside (e.g. webhook handler).
+        Uses a local import to avoid circular dependency issues.
+        """
+        from aether.webhooks.github_webhook import trigger_remediation
+        trigger_remediation(repo, branch, commit_sha, {})
+
 if __name__ == "__main__":
+
     aether = AetherOrchestrator()
 
     state = aether.run_react_loop(
