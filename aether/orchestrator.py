@@ -50,7 +50,13 @@ class AetherOrchestrator:
         self.skill_loader = SkillLoader(skills_directory="skills")
         self.skills_registry = self.skill_loader.load_all_skills()
 
-        logger.info(f"AetherOrchestrator initialized with {len(self.skills_registry)} skills")
+        skill_count = len(self.skills_registry)
+        if skill_count > 0:
+            print(f"[Aether] Initialized with {skill_count} skills loaded.")
+        else:
+            print("[Aether] Initialized with no skills. Create skills in the 'skills/' folder to extend functionality.")
+
+        logger.info(f"AetherOrchestrator initialized with {skill_count} skills")
 
     def register_skill(self, name: str, metadata: Dict[str, Any]):
         """Manually register a skill (useful for testing or runtime addition)."""

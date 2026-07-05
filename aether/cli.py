@@ -17,10 +17,12 @@ def print_header(text: str):
 
 
 def run_task(goal: str, max_steps: int = 8, memory_path: str = None):
-    print_header("AETHER TASK")
-
+    print("\n" + "=" * 70)
+    print("AETHER".center(70))
+    print("=" * 70)
     print(f"Goal: {goal}")
     print(f"Max Steps: {max_steps}")
+    print("-" * 70)
 
     try:
         aether = AetherOrchestrator(memory_path=memory_path)
