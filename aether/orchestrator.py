@@ -28,8 +28,11 @@ from .guardrails import Guardrails
 from .tools import ToolRegistry, ToolExecutor, ToolCache
 from .skills.loader import SkillLoader
 
-logging.basicConfig(level=logging.INFO, format="%(asctime)s | %(levelname)s | %(message)s")
+from .logging_config import setup_logging
+
+setup_logging()
 logger = logging.getLogger("AetherOrchestrator")
+
 
 
 @dataclass

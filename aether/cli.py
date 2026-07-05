@@ -18,7 +18,10 @@ Aether CLI - Professional Command Line Interface
 
 import argparse
 import sys
+import logging
 from aether.orchestrator import AetherOrchestrator
+from aether.logging_config import setup_logging
+
 
 __version__ = "0.5.0"
 
