@@ -1,7 +1,11 @@
 """
-Dynamic Skill Loader for Aether
+Dynamic Skill Loader for Aether (Refined Phase 1)
 
-Scans the skills/ directory, parses SKILL.md files, and registers them.
+Responsibilities:
+- Scan the skills/ directory
+- Parse and validate SKILL.md files
+- Register skills dynamically
+- Provide good error handling and logging
 """
 
 import os
@@ -22,91 +26,107 @@ class SkillLoader:
         Scan the skills directory and load all valid skills.
         Returns a dictionary of skill_name -> skill_metadata.
         """
-        if not os.path.exists(self.skills_directory):
-            logger.warning(f"Skills directory not found: {self.skills_directory}")
-            return {}
-
         self.loaded_skills = {}
 
-        for item in os.listdir(self.skills_directory):
-            skill_path = os.path.join(self.skills_directory, item)
+        if not os.path.isdir(self.skills_directory):
+            logger.warning(f"Skills directory does not exist: {self.skills_directory}")
+            return self.loaded_skills
+
+        for folder_name in os.listdir(self.skills_directory):
+            skill_path = os.path.join(self.skills_directory, folder_name)
 
             if not os.path.isdir(skill_path):
                 continue
 
             skill_md_path = os.path.join(skill_path, "SKILL.md")
 
-            if not os.path.exists(skill_md_path):
+            if not os.path.isfile(skill_md_path):
                 continue
 
             try:
-                skill_data = self._parse_skill_file(skill_md_path, item)
+                skill_data = self._parse_and_validate_skill(skill_md_path, folder_name)
                 if skill_data:
-                    self.loaded_skills[skill_data["name"]] = skill_data
-                    logger.info(f"Loaded skill: {skill_data['name']}")
+                    name = skill_data["name"]
+                    self.loaded_skills[name] = skill_data
+                    logger.info(f"Loaded skill: {name} (from folder: {folder_name})")
             except Exception as e:
-                logger.error(f"Failed to load skill from {item}: {e}")
+                logger.error(f"Failed to load skill from folder '{folder_name}': {e}")
 
-        logger.info(f"Successfully loaded {len(self.loaded_skills)} skills")
+        logger.info(f"Dynamic Skill Loader finished. Loaded {len(self.loaded_skills)} skills.")
         return self.loaded_skills
 
-    def _parse_skill_file(self, file_path: str, folder_name: str) -> Optional[Dict[str, Any]]:
+    def _parse_and_validate_skill(self, file_path: str, folder_name: str) -> Optional[Dict[str, Any]]:
         """
-        Parse a SKILL.md file and extract metadata from YAML frontmatter.
+        Parse SKILL.md and perform basic validation.
         """
         with open(file_path, "r", encoding="utf-8") as f:
             content = f.read()
 
-        # Split frontmatter and body
-        if not content.startswith("---"):
-            logger.warning(f"No YAML frontmatter found in {file_path}")
+        if not content.strip().startswith("---"):
+            logger.warning(f"Skill file missing YAML frontmatter: {file_path}")
             return None
 
         parts = content.split("---", 2)
         if len(parts) < 3:
-            logger.warning(f"Invalid frontmatter format in {file_path}")
+            logger.warning(f"Invalid YAML frontmatter structure in: {file_path}")
             return None
 
-        frontmatter = parts[1].strip()
+        frontmatter_raw = parts[1].strip()
         body = parts[2].strip()
 
         try:
-            metadata = yaml.safe_load(frontmatter)
+            metadata = yaml.safe_load(frontmatter_raw)
         except yaml.YAMLError as e:
-            logger.error(f"YAML parsing error in {file_path}: {e}")
+            logger.error(f"YAML parsing failed in {file_path}: {e}")
             return None
 
         if not isinstance(metadata, dict):
-            logger.warning(f"Frontmatter is not a valid dictionary in {file_path}")
+            logger.warning(f"Frontmatter is not a dictionary in: {file_path}")
             return None
 
-        # Validate required fields
-        required_fields = ["name", "description"]
-        for field in required_fields:
-            if field not in metadata:
-                logger.warning(f"Missing required field '{field}' in {file_path}")
-                return None
+        # === Validation ===
+        if "name" not in metadata or not metadata["name"]:
+            logger.warning(f"Missing required field 'name' in: {file_path}")
+            return None
 
-        # Build skill data structure
+        if "description" not in metadata or not metadata["description"]:
+            logger.warning(f"Missing required field 'description' in: {file_path}")
+            return None
+
+        name = metadata["name"]
+
+        # Warn if folder name and skill name don't match (but still allow it)
+        if name != folder_name:
+            logger.warning(
+                f"Skill name '{name}' does not match folder name '{folder_name}'. "
+                f"Using skill name from frontmatter."
+            )
+
+        # Type validation / normalization
         skill_data = {
-            "name": metadata["name"],
+            "name": name,
             "description": metadata["description"],
-            "version": metadata.get("version", "0.1.0"),
+            "version": str(metadata.get("version", "0.1.0")),
             "type": metadata.get("type", "general"),
-            "requires_hitl": metadata.get("requires_hitl", False),
+            "requires_hitl": bool(metadata.get("requires_hitl", False)),
             "cultural_sensitivity": metadata.get("cultural_sensitivity", "low"),
-            "tags": metadata.get("tags", []),
+            "tags": metadata.get("tags", []) if isinstance(metadata.get("tags"), list) else [],
             "folder_path": os.path.dirname(file_path),
-            "body": body,                    # The actual instructions
-            "raw_metadata": metadata         # Keep original for debugging
+            "body": body,
+            "raw_metadata": metadata
         }
 
         return skill_data
 
     def get_skill(self, name: str) -> Optional[Dict[str, Any]]:
-        """Retrieve a loaded skill by name."""
+        """Get a loaded skill by name."""
         return self.loaded_skills.get(name)
 
     def list_skill_names(self) -> List[str]:
-        """Return list of loaded skill names."""
+        """Return list of all loaded skill names."""
         return list(self.loaded_skills.keys())
+
+    def reload_skills(self) -> Dict[str, Dict[str, Any]]:
+        """Reload all skills from disk. Useful during development."""
+        logger.info("Reloading all skills from disk...")
+        return self.load_all_skills()
