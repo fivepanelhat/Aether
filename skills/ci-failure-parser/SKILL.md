@@ -1,6 +1,6 @@
 ---
 name: ci-failure-parser
-description: Parses and extracts useful information from CI failures, GitHub Actions logs, test errors, and GitHub issue/PR comments. Helps turn raw failure data into structured, actionable information.
+description: Parses CI logs, GitHub Actions failures, and test errors into structured, actionable information that can be used by remediation skills.
 version: "0.1.0"
 type: workflow
 requires_hitl: false
@@ -11,34 +11,32 @@ tags: [ci, github, parsing, errors, logs]
 # CI / GitHub Failure Parser
 
 ## Overview
-This skill takes raw CI output, GitHub Actions logs, or error messages and extracts the key information needed for debugging (failing tests, stack traces, relevant files, error type, etc.).
+Converts noisy CI output and error logs into clean, structured data that other skills can reliably use.
 
 ## When to Use
-- When a CI pipeline fails.
-- When a GitHub Action reports an error.
-- When processing error notifications from GitHub Issues or Pull Requests.
+- When processing CI failures or GitHub Actions errors.
+- When an error notification contains raw logs or stack traces.
 
 ## Instructions
 
 ### 1. Parse Input
-- Accept raw log output, GitHub webhook payload, or error text.
-- Identify the type of failure (test failure, lint error, build error, deployment failure, etc.).
+- Accept raw logs, GitHub webhook data, or error text.
+- Identify failure type (test failure, build error, lint error, deployment failure, etc.).
 
-### 2. Extract Key Information
-- Failing test name(s)
-- Stack trace / error message
+### 2. Extract Key Details
+- Failing test or command
+- Error message / stack trace
 - Relevant file paths and line numbers
-- Command that failed
-- Environment/context (Node version, OS, etc.)
+- Environment information (if available)
 
-### 3. Structure the Output
-- Return a clean, structured summary that other skills (especially `error-remediation-orchestrator`) can use.
+### 3. Return Structured Output
+- Provide a clean summary that `error-remediation-orchestrator` and other skills can consume.
 
 ## Guardrails & Constraints
-- Focus on extracting factual information rather than guessing the root cause.
-- Be careful with very large log outputs — summarize when appropriate.
+- Focus on factual extraction rather than diagnosis.
+- Handle large logs gracefully by summarizing when needed.
 
 ## Input / Output
 
-**Input**: Raw CI log, GitHub Actions failure, or error text.  
-**Output**: Structured failure report (failing tests, error messages, file locations).
+**Input**: Raw CI log or error output.  
+**Output**: Structured failure report.

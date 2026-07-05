@@ -1,55 +1,48 @@
 ---
 name: git-workflow
-description: Handles safe git operations including creating branches, committing changes, pushing, and opening pull requests. Always respects approval gates on high-risk actions.
-version: "0.1.0"
+description: Manages safe git operations including branch creation, committing changes, pushing, and opening pull requests. Always requires human approval for destructive or high-impact git actions.
+version: "0.2.0"
 type: workflow
 requires_hitl: true
 cultural_sensitivity: low
-tags: [git, workflow, branch, commit, push, pr]
+tags: [git, branch, commit, push, pr, workflow]
 ---
 
 # Git Workflow Manager
 
 ## Overview
-This skill manages the full git lifecycle for code changes in a safe, auditable way. It is designed to be used by other skills (especially remediation skills) when they need to persist fixes.
+This skill provides controlled git operations so other skills (especially remediation skills) can persist code changes safely and consistently.
 
 ## When to Use
-- When a remediation or change needs to be committed to version control.
-- When creating a feature branch for automated fixes.
-- When pushing changes or opening a Pull Request after fixes have been applied.
+- When code changes need to be committed to version control.
+- When creating a feature/fix branch for automated changes.
+- When pushing changes or opening a Pull Request.
 
 ## Instructions
 
-### 1. Branch Creation
-- Always create a new branch for changes using a clear naming convention (e.g. `fix/<short-description>` or `audit/<date>`).
-- Never commit directly to `main` or `master`.
+### Branch Creation
+- Always create a new branch using a clear convention: `fix/<description>` or `audit/<date>`.
+- Never work directly on `main` or `master`.
 
-### 2. Committing Changes
+### Committing Changes
 - Generate a clear, conventional commit message.
-- Include a short summary of what was fixed and why.
+- Include a short summary of the problem and the fix.
 
-### 3. Pushing & Pull Requests
-- Push the branch to the remote repository.
-- Optionally open a Pull Request with a good description.
-- Always include relevant context (e.g. linked issue or error details).
+### Pushing & Pull Requests
+- Push the branch to the remote.
+- Optionally open a Pull Request with a good description and link to the original issue/error.
 
-### 4. Safety & Approval
-- **All git operations that modify the repository require human approval** before execution.
-- Use the orchestrator’s approval system before running `git commit`, `git push`, or creating a PR.
+### Approval Requirements
+- Creating branches is generally low-risk.
+- **Committing, pushing, and opening PRs require explicit human approval** before execution.
 
 ## Guardrails & Constraints
 - Never force push.
 - Never commit directly to protected branches.
-- Always require explicit human approval for `commit`, `push`, and PR creation.
-- Log all git actions clearly.
+- All modifying git operations must go through the orchestrator’s approval system.
+- Log every git action taken.
 
 ## Input / Output
 
-**Input**: Description of changes, files modified, and reason for the change.  
-**Output**: Branch name, commit hash, and PR link (if created).
-
-## Examples
-
-**Example 1:**
-Input: "Fixed error leaking in /api/users route"  
-Output: Created branch `fix/error-leaking-users`, committed changes, opened PR #42.
+**Input**: Summary of changes and reason for the commit.  
+**Output**: Branch name, commit hash, and Pull Request URL (if created).

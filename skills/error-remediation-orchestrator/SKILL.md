@@ -1,7 +1,7 @@
 ---
 name: error-remediation-orchestrator
-description: Coordinates the full process of receiving an error, analyzing it, proposing fixes, applying changes, and using git-workflow to commit the results. Acts as the central coordinator for automated debugging and patching.
-version: "0.1.0"
+description: Orchestrates the full remediation process — receives an error, analyzes it using other skills, proposes fixes, applies changes (with approval), and uses git-workflow to persist the fix.
+version: "0.2.0"
 type: orchestration
 requires_hitl: true
 cultural_sensitivity: low
@@ -11,39 +11,39 @@ tags: [error, debugging, remediation, fix, orchestration]
 # Error Remediation Orchestrator
 
 ## Overview
-This skill orchestrates the end-to-end process of turning an error (from CI, GitHub, email, etc.) into a resolved code change. It coordinates analysis, fix generation, validation, and git operations.
+This is the central coordinator for turning errors (from CI, GitHub, tests, etc.) into resolved code changes. It intelligently uses other skills during the process.
 
 ## When to Use
-- When an error or failure is reported (via GitHub, CI, email, or manual trigger).
-- When you want to automatically debug and propose a fix for a failing test or error.
+- When a CI failure, test error, or GitHub issue is reported.
+- When you want to automatically investigate and propose a fix for a failure.
 
 ## Instructions
 
-### 1. Receive & Parse Error
-- Accept error details (stack trace, failing test, CI log, GitHub issue, etc.).
-- Use supporting skills (e.g. `ci-failure-parser`) to extract relevant information.
+### 1. Receive Error
+- Accept error details (CI log, stack trace, GitHub issue, failing test, etc.).
+- Use `ci-failure-parser` if the input is raw CI output.
 
-### 2. Analyze the Problem
-- Use relevant auditor skills (`security-route-audit`, `build-ci-hygiene`, etc.) to investigate the root cause.
-- Identify the files and code responsible for the error.
+### 2. Analyze Root Cause
+- Use relevant auditor skills (e.g. `security-route-audit`, `build-ci-hygiene`) to investigate.
+- Identify the files and code responsible for the failure.
 
-### 3. Propose Fixes
-- Generate the code changes needed to resolve the issue.
-- Explain the reasoning behind the proposed fix.
+### 3. Propose Fix
+- Generate the necessary code changes.
+- Clearly explain the reasoning behind the proposed solution.
 
-### 4. Apply & Validate
-- Use the `file_writer` tool to apply changes (with approval).
+### 4. Apply Changes (with Approval)
+- Use `file_writer` to apply fixes.
 - Run relevant tests or linting to validate the fix.
 
 ### 5. Persist Changes
-- Use the `git-workflow` skill to create a branch, commit, and push the fix (with approval).
+- Use `git-workflow` to create a branch, commit, and push (with approval).
 
 ## Guardrails & Constraints
-- **Every major step requires human approval** before proceeding (especially applying code changes and git operations).
-- Do not blindly apply fixes without validation.
-- Always provide a clear explanation of the proposed fix to the user.
+- **Human approval is required** before applying code changes and before any git commit/push.
+- Always validate fixes before committing.
+- Be transparent about what was changed and why.
 
 ## Input / Output
 
-**Input**: Error details (stack trace, CI failure, GitHub issue, etc.).  
-**Output**: Proposed fix + branch/PR with the resolution.
+**Input**: Error information (CI failure, stack trace, GitHub issue, etc.).  
+**Output**: Proposed fix + branch/PR containing the resolution.
