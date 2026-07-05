@@ -40,9 +40,10 @@ class SkillLoader:
                          if os.path.isdir(os.path.join(self.skills_directory, f))]
 
         if not skill_folders:
-            logger.warning(
-                f"No skill folders found in '{self.skills_directory}'.\n"
-                "Aether is running with no skills loaded."
+            logger.info(
+                "No skills found in the skills/ directory. "
+                "Aether is running in core mode. "
+                "Add skills to unlock more capabilities."
             )
             return self.loaded_skills
 
