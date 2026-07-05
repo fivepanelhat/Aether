@@ -87,8 +87,22 @@ def list_skills():
         print(f"[Error] {e}")
         sys.exit(1)
 
+def start_webhook_server(host: str = "0.0.0.0", port: int = 8000):
+    """Start the GitHub webhook server."""
+    try:
+        import uvicorn
+        from aether.webhooks.github_webhook import app
 
-def main():
+        print(f"\nStarting Aether GitHub Webhook server on http://{host}:{port}")
+        print("Set GITHUB_WEBHOOK_SECRET environment variable for security.\n")
+
+        uvicorn.run(app, host=host, port=port)
+    except ImportError:
+        print("Error: uvicorn is not installed. Run: pip install uvicorn fastapi")
+        sys.exit(1)
+
+
+
     parser = argparse.ArgumentParser(
         description="Aether - Sovereign Agentic Development System",
         formatter_class=argparse.RawDescriptionHelpFormatter
@@ -114,6 +128,11 @@ def main():
     remediate_parser = subparsers.add_parser("remediate", help="Trigger the error remediation workflow on a specific error or CI failure")
     remediate_parser.add_argument("error", type=str, help="The error or CI failure to remediate")
 
+    # Webhook server command
+    webhook_parser = subparsers.add_parser("webhook", help="Start the GitHub webhook server")
+    webhook_parser.add_argument("--host", type=str, default="0.0.0.0", help="Host to bind (default: 0.0.0.0)")
+    webhook_parser.add_argument("--port", type=int, default=8000, help="Port to listen on (default: 8000)")
+
     try:
         args = parser.parse_args()
 
@@ -136,6 +155,11 @@ def main():
             run_task(goal, getattr(args, "max_steps", 10), None, True)
         elif args.command == "init":
             print("Init command coming soon!")
+        elif args.command == "webhook":
+            start_webhook_server(
+                host=getattr(args, "host", "0.0.0.0"),
+                port=getattr(args, "port", 8000)
+            )
         else:
             parser.print_help()
     except KeyboardInterrupt:

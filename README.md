@@ -74,20 +74,22 @@ To use the `git-workflow` skill effectively, you should have:
 
 > **Note**: Aether currently expects you to handle git authentication via your local environment (SSH keys or credential manager). Token support can be added later.
 
-### Setting Up GitHub Webhooks (Optional but Recommended)
+### GitHub Webhook Integration (CI Failure Auto-Trigger)
 
-You can configure GitHub to automatically notify Aether when CI fails.
-
-**Steps:**
+Aether can automatically start remediation when your CI fails.
 
 1. **Start the webhook server**
    ```bash
    python run_webhook.py
+   # or
+   aether webhook
+   # or on a custom port
+   aether webhook --host 0.0.0.0 --port 9000
    ```
 
 2. **Set your webhook secret** (in your shell or `.env` file)
    ```bash
-   export GITHUB_WEBHOOK_SECRET=your-secret-here
+   export GITHUB_WEBHOOK_SECRET=your-secure-secret
    ```
 
 3. **Expose the server** using [ngrok](https://ngrok.com) or deploy to a server
