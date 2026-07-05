@@ -30,13 +30,23 @@ class SkillLoader:
 
         if not os.path.isdir(self.skills_directory):
             logger.warning(
-                f"Skills directory '{self.skills_directory}' not found. "
-                "Aether will start with no skills loaded. "
-                "Create the folder and add skills to use extended functionality."
+                f"Skills directory '{self.skills_directory}' not found.\n"
+                "Aether will continue with core functionality only.\n"
+                "Create the 'skills/' folder and add skills to unlock extended capabilities."
             )
             return self.loaded_skills
 
-        for folder_name in os.listdir(self.skills_directory):
+        skill_folders = [f for f in os.listdir(self.skills_directory) 
+                         if os.path.isdir(os.path.join(self.skills_directory, f))]
+
+        if not skill_folders:
+            logger.warning(
+                f"No skill folders found in '{self.skills_directory}'.\n"
+                "Aether is running with no skills loaded."
+            )
+            return self.loaded_skills
+
+        for folder_name in skill_folders:
             skill_path = os.path.join(self.skills_directory, folder_name)
 
             if not os.path.isdir(skill_path):
