@@ -1,38 +1,55 @@
 #!/usr/bin/env python3
-# Copyright 2026 Aether Project Contributors
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#     http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
 """
-Aether Orchestrator - Phase B
-With structured logging and improved skill registration.
+Aether Orchestrator - Phase B (hardened)
+
+Fixes over previous revision:
+- Removed duplicate method definitions (register_skill, get_available_skills)
+- Guardrails + ThreatModeler are now wired into the execution path
+- Tool calls are logged exactly once (audit trail is accurate)
+- max_steps=0 no longer raises NameError
+- Skills directory resolved robustly (CWD -> env -> ~/.aether/skills)
 """
 
 import logging
+import os
 from dataclasses import dataclass, field
 from typing import List, Dict, Any, Optional
-from datetime import datetime
+from datetime import datetime, timezone
 
-import os
 from .memory import AetherMemory
 from .guardrails import Guardrails
+from .threat_modeling import ThreatModeler
 from .tools import ToolRegistry, ToolExecutor, ToolCache
+from .tools.base import ToolResult
 from .skills.loader import SkillLoader
+from .llm import OllamaClient, build_react_messages, parse_decision
 
-from .logging_config import setup_logging
-
-setup_logging()
+logging.basicConfig(level=logging.INFO, format="%(asctime)s | %(levelname)s | %(message)s")
 logger = logging.getLogger("AetherOrchestrator")
 
+
+def _resolve_skills_directory(explicit: Optional[str] = None) -> Optional[str]:
+    """
+    Resolve the skills directory in priority order:
+    1. Explicit argument
+    2. AETHER_SKILLS_DIR environment variable
+    3. ./skills relative to the current working directory
+    4. ~/.aether/skills
+    Returns the first existing directory, or None.
+    """
+    candidates = []
+    if explicit:
+        candidates.append(explicit)
+    env_dir = os.environ.get("AETHER_SKILLS_DIR")
+    if env_dir:
+        candidates.append(env_dir)
+    candidates.append(os.path.join(os.getcwd(), "skills"))
+    candidates.append(os.path.join(os.path.expanduser("~"), ".aether", "skills"))
+
+    for candidate in candidates:
+        if candidate and os.path.isdir(candidate):
+            return candidate
+    return None
 
 
 @dataclass
@@ -45,7 +62,7 @@ class TaskState:
     proposed_changes: List[Dict[str, Any]] = field(default_factory=list)
     risks: List[str] = field(default_factory=list)
     current_phase: str = "planning"
-    created_at: str = field(default_factory=lambda: datetime.now().isoformat())
+    created_at: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
     history: List[str] = field(default_factory=list)
     cultural_considerations: List[str] = field(default_factory=list)
 
@@ -58,10 +75,14 @@ class TaskState:
 
 
 class AetherOrchestrator:
-    def __init__(self, memory_path: Optional[str] = None):
+    def __init__(self, memory_path: Optional[str] = None, skills_directory: Optional[str] = None,
+                 llm: Optional[OllamaClient] = None, use_llm: bool = True):
         self.state: Optional[TaskState] = None
         self.memory = AetherMemory(persist_path=memory_path)
         self.guardrails = Guardrails()
+        self.threat_modeler = ThreatModeler()
+        self.llm = llm or OllamaClient()
+        self.use_llm = use_llm
 
         # Tool system
         self.tool_registry = ToolRegistry()
@@ -70,19 +91,21 @@ class AetherOrchestrator:
         self._register_default_tools()
 
         # === Dynamic Skill Loading ===
-        self.skill_loader = SkillLoader(skills_directory="skills")
-        self.skills_registry = self.skill_loader.load_all_skills()
-
-        skill_count = len(self.skills_registry)
-        if skill_count > 0:
-            print(f"[Aether] Initialized successfully with {skill_count} skills loaded.")
+        resolved = _resolve_skills_directory(skills_directory)
+        if resolved:
+            self.skill_loader = SkillLoader(skills_directory=resolved)
+            self.skills_registry = self.skill_loader.load_all_skills()
         else:
-            print("[Aether] Initialized with no skills loaded.")
-            print("         Add skills to the 'skills/' folder to unlock more capabilities.")
+            self.skill_loader = None
+            self.skills_registry = {}
+            logger.warning(
+                "No skills directory found. Searched: explicit arg, $AETHER_SKILLS_DIR, "
+                "./skills, ~/.aether/skills. Running in core mode."
+            )
 
-        self.errors: list[str] = []  # Track errors during a task
+        logger.info(f"AetherOrchestrator initialized with {len(self.skills_registry)} skills")
 
-        logger.info(f"AetherOrchestrator initialized with {skill_count} skills")
+    # ==================== Skill Registry ====================
 
     def register_skill(self, name: str, metadata: Dict[str, Any]):
         """Manually register a skill (useful for testing or runtime addition)."""
@@ -95,17 +118,7 @@ class AetherOrchestrator:
     def get_skill_info(self, name: str) -> Optional[Dict[str, Any]]:
         return self.skills_registry.get(name)
 
-    def _handle_error(self, error: Exception, context: str = "") -> dict:
-        """Centralized error handling with logging and user-friendly messages."""
-        error_msg = str(error)
-        logger.error(f"Error in {context}: {error_msg}", exc_info=True)
-        self.errors.append(f"{context}: {error_msg}")
-        return {
-            "success": False,
-            "error": error_msg,
-            "context": context,
-            "user_message": "An error occurred while processing your request. Please check the logs for details."
-        }
+    # ==================== Tool Registry ====================
 
     def _register_default_tools(self):
         from .tools.file_reader import FileReaderTool
@@ -123,60 +136,32 @@ class AetherOrchestrator:
         memory_tool.memory = self.memory
         self.tool_registry.register(memory_tool)
 
-    def register_skill(self, name: str, metadata: Dict[str, Any]):
-        self.skills_registry[name] = metadata
-
-    def get_available_skills(self) -> List[str]:
-        return list(self.skills_registry.keys())
-
     def get_available_tools(self) -> List[str]:
         return self.tool_registry.list_tool_names()
 
-    def call_tool(self, tool_name: str, **kwargs) -> Any:
+    def call_tool(self, tool_name: str, **kwargs) -> ToolResult:
+        """
+        Execute a tool and record exactly one audit entry.
+        Returns the full ToolResult (callers can inspect .success/.output/.error).
+        """
         result = self.tool_executor.execute(tool_name, **kwargs)
 
         if self.state:
             self.state.tool_calls.append({
                 "tool": tool_name,
                 "success": result.success,
-                "output": result.output if result.success else None,
-                "error": result.error
+                "error": result.error,
+                "cached": bool(result.metadata.get("cached")),
+                "timestamp": datetime.now(timezone.utc).isoformat(),
             })
 
-        if result.success:
-            return result.output
-        else:
-            raise RuntimeError(f"Tool '{tool_name}' failed: {result.error}")
+        return result
 
-    def _select_tools_for_goal(self, goal: str) -> List[str]:
-        goal_lower = goal.lower()
-        selected = []
-
-        if any(kw in goal_lower for kw in ["existing", "pattern", "codebase", "search"]):
-            selected.append("codebase_search")
-        if any(kw in goal_lower for kw in ["memory", "previous", "past"]):
-            selected.append("memory_query")
-        if any(kw in goal_lower for kw in ["create", "write", "generate", "implement"]):
-            selected.append("file_writer")
-
-        return selected
-
-    def start_task(self, goal: str) -> TaskState:
-        self.state = TaskState(goal=goal)
-        self.state.history.append(f"Task started: {goal}")
-        logger.info(f"Task started: {goal}")
-
-        suggested = self._suggest_skills(goal)
-        self.state.suggested_skills = suggested
-
-        if suggested:
-            logger.info(f"Suggested skills: {suggested}")
-
-        return self.state
+    # ==================== Skill Suggestion ====================
 
     def _suggest_skills(self, goal: str) -> List[str]:
         """
-        Dynamic skill prioritization based on multiple factors:
+        Dynamic skill prioritization based on:
         - Keyword/tag matching
         - Skill type priority
         - Cultural sensitivity & HITL requirements
@@ -187,7 +172,7 @@ class AetherOrchestrator:
 
         for skill_name, meta in self.skills_registry.items():
             if self.state and skill_name in self.state.loaded_skills:
-                continue  # Skip already loaded skills
+                continue
 
             score = 0
             tags = meta.get("tags", [])
@@ -195,22 +180,18 @@ class AetherOrchestrator:
             requires_hitl = meta.get("requires_hitl", False)
             cultural_sensitivity = meta.get("cultural_sensitivity", "low")
 
-            # 1. Tag / Keyword matching (base score)
             for tag in tags:
                 if tag in goal_lower:
                     score += 3
 
-            # 2. Boost high-impact skill types
             if skill_type in ["security", "orchestration"]:
                 score += 4
             elif skill_type in ["workflow", "hygiene"]:
                 score += 2
 
-            # 3. Prioritize skills that require HITL (they are often critical)
             if requires_hitl:
                 score += 2
 
-            # 4. Slightly boost culturally sensitive skills when relevant
             if cultural_sensitivity in ["medium", "high"]:
                 if any(kw in goal_lower for kw in ["cultural", "maori", "whanau", "community"]):
                     score += 3
@@ -218,11 +199,27 @@ class AetherOrchestrator:
             if score > 0:
                 scored_skills.append((skill_name, score))
 
-        # Sort by score descending (highest priority first)
         scored_skills.sort(key=lambda x: x[1], reverse=True)
-
-        # Return only skill names, sorted by priority
         return [skill[0] for skill in scored_skills]
+
+    def start_task(self, goal: str) -> TaskState:
+        self.state = TaskState(goal=goal)
+        self.state.history.append(f"Task started: {goal}")
+        logger.info(f"Task started: {goal}")
+
+        # Cultural sensitivity assessment at task start (wired guardrail)
+        sensitivity = self.guardrails.assess_cultural_sensitivity(goal)
+        if sensitivity != "low":
+            note = f"Cultural sensitivity assessed as '{sensitivity}' for this goal."
+            self.state.cultural_considerations.append(note)
+            logger.info(note)
+
+        suggested = self._suggest_skills(goal)
+        self.state.suggested_skills = suggested
+        if suggested:
+            logger.info(f"Suggested skills: {suggested}")
+
+        return self.state
 
     def load_skill(self, skill_name: str):
         if self.state and skill_name in self.skills_registry:
@@ -231,81 +228,154 @@ class AetherOrchestrator:
                 self.state.history.append(f"Loaded skill: {skill_name}")
                 logger.info(f"Loaded skill: {skill_name}")
 
-    # ==================== Final Strengthened ReAct Loop ====================
+    # ==================== Pipeline Loop ====================
+    # NOTE: This is a deterministic, rule-based pipeline. It will become a true
+    # ReAct loop once LLM inference (Ollama) is wired into _generate_thought /
+    # _decide_next_action in Phase C. Named honestly until then.
 
-    def run_react_loop(self, goal: str, max_steps: int = 5, auto_remediate: bool = False) -> TaskState:
+    def run_pipeline(self, goal: str, max_steps: int = 8) -> TaskState:
         """
-        Final robust ReAct loop.
-        Includes tools, skills, approval gates, error handling, and result tracking.
+        Deterministic task pipeline with tools, skills, guardrail-backed
+        approval gates, error handling, and accurate audit logging.
         """
-        self.errors = []  # Reset errors for new task
-        state = self.start_task(goal)
+        self.start_task(goal)
+        logger.info(f"Starting pipeline for goal: {goal}")
 
-        if auto_remediate:
-            auto_msg = "AUTO-REMEDIATION ENABLED: The agent is authorized and expected to create git branches, apply fixes, run tests, and output summaries for any issues found."
-            state.history.append(auto_msg)
-            state.goal += f" ({auto_msg})"
-
-        logger.info(f"Starting ReAct loop for goal: {goal}")
-
+        steps_taken = 0
         for step in range(max_steps):
+            steps_taken = step + 1
             try:
                 thought = self._generate_thought()
                 action = self._decide_next_action(thought, goal)
 
                 if action == "conclude":
-                    logger.info("[ReAct] Task complete or max steps reached.")
+                    logger.info("[Pipeline] Task complete.")
                     break
 
-                # Approval Gate
-                if self._requires_approval(action):
-                    logger.warning(f"[ReAct] '{action}' requires human approval. Stopping.")
+                # Approval gate — now backed by Guardrails + ThreatModeler
+                if self._requires_approval(action, context=goal):
+                    logger.warning(f"[Pipeline] '{action}' requires human approval. Stopping.")
                     self.state.history.append(f"Pending approval for: {action}")
                     break
 
-                # Execute Tool
                 if action in self.tool_registry.list_tool_names():
-                    try:
-                        result = self.call_tool(action, query=goal)
-                        self.state.tool_calls.append({
-                            "step": step + 1,
-                            "type": "tool",
-                            "name": action,
-                            "success": getattr(result, "success", True)
-                        })
-                    except Exception as e:
-                        error_result = self._handle_error(e, f"tool:{action}")
-                        self.state.tool_calls.append({
-                            "step": step + 1,
-                            "type": "tool",
-                            "name": action,
-                            "success": False,
-                            "error": error_result.get("user_message")
-                        })
-                        logger.warning(f"Tool '{action}' failed. Continuing with reduced capability.")
+                    # call_tool records the audit entry — do not append again here
+                    self.call_tool(action, query=goal)
 
-                # Execute Skill
                 elif action in self.skills_registry:
                     self.load_skill(action)
                     skill_result = self._execute_skill(action, goal)
                     self.state.tool_calls.append({
-                        "step": step + 1,
+                        "step": steps_taken,
                         "type": "skill",
                         "name": action,
-                        "result": skill_result
+                        "result": skill_result,
+                        "timestamp": datetime.now(timezone.utc).isoformat(),
                     })
 
             except Exception as e:
-                logger.error(f"[ReAct] Error at step {step + 1}: {e}")
+                logger.error(f"[Pipeline] Error at step {steps_taken}: {e}")
                 self.state.tool_calls.append({
-                    "step": step + 1,
+                    "step": steps_taken,
                     "type": "error",
-                    "message": str(e)
+                    "message": str(e),
                 })
                 break
 
+        self.state.current_phase = "pipeline_complete"
+        logger.info(f"Pipeline finished after {steps_taken} steps")
+        return self.state
+
+    # ==================== Real ReAct Loop (Phase C) ====================
+
+    def run_react_loop(self, goal: str, max_steps: int = 8) -> TaskState:
+        """
+        LLM-driven ReAct loop (Ollama). Each step: the model reasons over the
+        goal, state, tools, skills, and recent observations, then chooses ONE
+        action. Guardrails + ThreatModeler gate high-risk actions before
+        execution. Falls back to the deterministic pipeline if Ollama is
+        unreachable, so edge deployments degrade gracefully.
+        """
+        if not self.use_llm or not self.llm.is_available():
+            logger.warning("LLM unavailable — falling back to deterministic pipeline.")
+            return self.run_pipeline(goal, max_steps=max_steps)
+
+        self.start_task(goal)
+        logger.info(f"Starting ReAct loop (model: {self.llm.model}) for goal: {goal}")
+
+        observations: List[str] = []
+        allowed = self.get_available_tools() + self.get_available_skills() + ["conclude"]
+        skill_descriptions = "\n".join(
+            f"- {name}: {meta.get('description', '')}" for name, meta in self.skills_registry.items()
+        ) or "No skills loaded."
+
+        steps_taken = 0
+        for step in range(max_steps):
+            steps_taken = step + 1
+            try:
+                messages = build_react_messages(
+                    goal=goal,
+                    state_summary=self.state.summarize(),
+                    tool_descriptions=self.tool_registry.get_tool_descriptions(),
+                    skill_descriptions=skill_descriptions,
+                    observations=observations,
+                )
+                raw = self.llm.chat(messages)
+                decision = parse_decision(raw, allowed_actions=allowed)
+
+                # Screen model output for injection artefacts before acting
+                suspicious, patterns = self.guardrails.detect_prompt_injection(decision.thought)
+                if suspicious:
+                    logger.warning(f"[ReAct] Injection patterns in model thought: {patterns}. Concluding.")
+                    self.state.history.append(f"Halted: injection patterns detected {patterns}")
+                    break
+
+                if not decision.valid:
+                    logger.warning(f"[ReAct] Invalid decision: {decision.error}")
+                    observations.append(f"Step {steps_taken}: your last response was invalid ({decision.error}). Respond with valid JSON.")
+                    continue
+
+                self.state.history.append(f"Thought {steps_taken}: {decision.thought}")
+                self.memory.add_entry("thought", decision.thought, {"step": steps_taken, "goal": goal})
+                logger.info(f"[ReAct] Step {steps_taken} thought: {decision.thought[:120]}")
+
+                if decision.action == "conclude":
+                    logger.info("[ReAct] Model concluded the task.")
+                    break
+
+                if self._requires_approval(decision.action, context=goal):
+                    logger.warning(f"[ReAct] '{decision.action}' requires human approval. Stopping.")
+                    self.state.history.append(f"Pending approval for: {decision.action}")
+                    break
+
+                if decision.action in self.tool_registry.list_tool_names():
+                    result = self.call_tool(decision.action, **decision.args)
+                    obs = result.output if result.success else f"ERROR: {result.error}"
+                    observations.append(f"Step {steps_taken} [{decision.action}]: {str(obs)[:800]}")
+                    self.memory.add_entry("tool_result", str(obs)[:2000],
+                                          {"tool": decision.action, "success": result.success})
+
+                elif decision.action in self.skills_registry:
+                    self.load_skill(decision.action)
+                    skill_result = self._execute_skill(decision.action, goal)
+                    body = self.skills_registry[decision.action].get("body", "")
+                    observations.append(
+                        f"Step {steps_taken} [skill:{decision.action}] instructions:\n{body[:1200]}"
+                    )
+                    self.state.tool_calls.append({
+                        "step": steps_taken, "type": "skill", "name": decision.action,
+                        "result": skill_result,
+                        "timestamp": datetime.now(timezone.utc).isoformat(),
+                    })
+
+            except Exception as e:
+                logger.error(f"[ReAct] Error at step {steps_taken}: {e}")
+                self.state.tool_calls.append({"step": steps_taken, "type": "error", "message": str(e)})
+                break
+
         self.state.current_phase = "react_complete"
-        logger.info(f"ReAct loop finished after {step + 1} steps")
+        self.memory.add_entry("task_complete", goal, {"steps": steps_taken, "phase": "react_complete"})
+        logger.info(f"ReAct loop finished after {steps_taken} steps")
         return self.state
 
     def _decide_next_action(self, thought: str, goal: str) -> str:
@@ -314,14 +384,12 @@ class AetherOrchestrator:
         if tool_calls_count >= 7:
             return "conclude"
 
-        # Dynamic skill prioritization
         suggested_skills = self._suggest_skills(goal)
         if suggested_skills and not self.state.loaded_skills:
             return suggested_skills[0]
 
         available_tools = self.tool_registry.list_tool_names()
 
-        # Information gathering tools first
         if "codebase_search" in available_tools and tool_calls_count < 2:
             return "codebase_search"
 
@@ -331,7 +399,6 @@ class AetherOrchestrator:
         if "directory_lister" in available_tools and tool_calls_count < 4:
             return "directory_lister"
 
-        # Execution tools
         if any(kw in goal.lower() for kw in ["create", "write", "implement", "generate", "build"]):
             if "file_writer" in available_tools:
                 return "file_writer"
@@ -341,20 +408,22 @@ class AetherOrchestrator:
     def _generate_thought(self) -> str:
         return f"Actions taken so far: {len(self.state.tool_calls)}"
 
-    # ==================== Enhanced Safe Execution Layer ====================
+    # ==================== Safe Execution Layer ====================
 
-    def _requires_approval(self, action: str) -> bool:
-        high_risk = {"file_writer", "git_commit", "git_push", "deploy", "delete_data"}
-        return action in high_risk
+    def _requires_approval(self, action: str, context: str = "") -> bool:
+        """
+        Single source of truth: Guardrails owns the approval policy,
+        ThreatModeler provides a second, independent signal.
+        """
+        if self.guardrails.enforce_hitl(action, context):
+            return True
+        threat_model = self.threat_modeler.analyze_action(action, context)
+        return threat_model.requires_hitl
 
     def request_approval(self, action: str, details: str = "") -> bool:
-        """
-        Interactive approval prompt.
-        In a real CLI this would pause and wait for user input.
-        """
-        print("\n" + "="*70)
+        print("\n" + "=" * 70)
         print("AETHER — HUMAN APPROVAL REQUIRED")
-        print("="*70)
+        print("=" * 70)
         print(f"Action: {action}")
         if details:
             print(f"Details: {details}")
@@ -364,7 +433,7 @@ class AetherOrchestrator:
 
     def execute_action_safely(self, action: str, **kwargs) -> dict:
         """Execute high-risk actions only after approval."""
-        if self._requires_approval(action):
+        if self._requires_approval(action, context=str(kwargs)):
             approved = self.request_approval(action, str(kwargs))
             if not approved:
                 logger.warning(f"User denied execution of: {action}")
@@ -372,14 +441,17 @@ class AetherOrchestrator:
                     self.state.history.append(f"User rejected action: {action}")
                 return {"executed": False, "reason": "User rejected action"}
 
-        try:
-            result = self.call_tool(action, **kwargs)
+        result = self.call_tool(action, **kwargs)
+        if result.success:
             if self.state:
                 self.state.history.append(f"Executed safely: {action}")
-            return {"executed": True, "result": result}
-        except Exception as e:
-            logger.error(f"Execution failed: {e}")
-            return {"executed": False, "error": str(e)}
+            # Invalidate search cache after any write so results stay fresh
+            if action == "file_writer":
+                self.tool_cache.invalidate("codebase_search")
+            return {"executed": True, "result": result.output}
+
+        logger.error(f"Execution failed: {result.error}")
+        return {"executed": False, "error": result.error}
 
     def safe_write_file(self, file_path: str, content: str, mode: str = "write") -> dict:
         """Safe wrapper for writing files with approval gate."""
@@ -390,76 +462,23 @@ class AetherOrchestrator:
             mode=mode
         )
 
-    # ==================== Skill Execution (All Skills) ====================
-
-    def _execute_error_remediation_orchestrator(self, goal: str):
-        """Coordinates error analysis and remediation."""
-        notes = []
-        notes.append("Starting error remediation process")
-        notes.append("Using ci-failure-parser and relevant auditor skills")
-        notes.append("Will request approval before applying fixes and git operations")
-        return {
-            "skill": "error-remediation-orchestrator",
-            "applied": True,
-            "notes": notes
-        }
-
-    def _execute_git_workflow(self, goal: str):
-        """Handles git operations with approval gates."""
-        return {
-            "skill": "git-workflow",
-            "applied": True,
-            "notes": [
-                "Git workflow skill invoked",
-                "Branch creation, commit, and push require human approval"
-            ]
-        }
-
-    def _execute_ci_failure_parser(self, goal: str):
-        """Parses CI and GitHub failure logs."""
-        return {
-            "skill": "ci-failure-parser",
-            "applied": True,
-            "notes": ["Parsing CI/GitHub error output into structured format"]
-        }
-
-    def _execute_notification_responder(self, goal: str):
-        """Generates responses for GitHub, email, etc."""
-        return {
-            "skill": "notification-responder",
-            "applied": True,
-            "notes": ["Generating clear status update or approval request"]
-        }
+    # ==================== Skill Execution ====================
 
     def _execute_skill(self, skill_name: str, goal: str):
-        """
-        Dynamic skill execution with support for the new remediation skills.
-        """
         logger.info(f"[Skill Execution] Running: {skill_name}")
 
-        # Core remediation skills
-        if skill_name == "error-remediation-orchestrator":
-            return self._execute_error_remediation_orchestrator(goal)
-        elif skill_name == "git-workflow":
-            return self._execute_git_workflow(goal)
-        elif skill_name == "ci-failure-parser":
-            return self._execute_ci_failure_parser(goal)
-        elif skill_name == "notification-responder":
-            return self._execute_notification_responder(goal)
-
-        # Dynamic fallback for all other skills
         if skill_name not in self.skills_registry:
             logger.warning(f"Skill '{skill_name}' not found in registry.")
             return {"skill": skill_name, "applied": False, "error": "Skill not found in registry"}
-            
+
         skill_meta = self.skills_registry[skill_name]
-        
-        # Inject the instructions into the context
         instructions = skill_meta.get("body", "No instructions found.")
-        
+
         if self.state:
-            self.state.history.append(f"Loaded instructions for skill '{skill_name}':\n{instructions}")
-        
+            self.state.history.append(
+                f"Loaded instructions for skill '{skill_name}':\n{instructions}"
+            )
+
         return {
             "skill": skill_name,
             "applied": True,
@@ -479,20 +498,10 @@ Loaded Skills: {self.state.loaded_skills}
 Tool Calls: {len(self.state.tool_calls)}
 """
 
-    def trigger_ci_remediation(self, repo: str, branch: str, commit_sha: str):
-        """
-        Public method to trigger CI remediation from outside (e.g. webhook handler).
-        Uses a local import to avoid circular dependency issues.
-        """
-        from aether.webhooks.github_webhook import trigger_remediation
-        trigger_remediation(repo, branch, commit_sha, {})
 
 if __name__ == "__main__":
-
     aether = AetherOrchestrator()
-
-    state = aether.run_react_loop(
+    state = aether.run_pipeline(
         "Explore the current codebase and suggest improvements for the agent system"
     )
-
     print(aether.summarize())

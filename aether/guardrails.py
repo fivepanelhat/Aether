@@ -1,16 +1,3 @@
-# Copyright 2026 Aether Project Contributors
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#     http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
 """
 Aether Guardrails Module (Strengthened)
 
@@ -160,12 +147,45 @@ class Guardrails:
             return "medium"
         return "low"
 
-    # ==================== Input Sanitization (Basic) ====================
+    # ==================== Input Handling (boundary-safe) ====================
+    #
+    # Principle: never mutate user or agent content — it corrupts legitimate
+    # code, te reo, and skill bodies. Instead, escape at the exact boundary
+    # where the text is used (shell, SQL, prompt), and *detect* injection
+    # attempts so they can be flagged for HITL review rather than silently
+    # rewritten.
+
+    INJECTION_PATTERNS = [
+        "ignore previous instructions",
+        "ignore all previous",
+        "disregard your instructions",
+        "you are now",
+        "system prompt",
+        "bypass approval",
+        "skip approval",
+        "reveal your prompt",
+        "developer mode",
+    ]
+
+    def escape_for_shell(self, text: str) -> str:
+        """Safely quote text for use as a single shell argument. Content is
+        preserved exactly; the shell treats it as inert data."""
+        import shlex
+        return shlex.quote(text)
+
+    def detect_prompt_injection(self, text: str) -> Tuple[bool, List[str]]:
+        """Heuristic prompt-injection detection. Returns (suspicious, matched
+        patterns). Suspicious input should be routed to HITL, not mutated."""
+        text_lower = text.lower()
+        matches = [p for p in self.INJECTION_PATTERNS if p in text_lower]
+        return (len(matches) > 0, matches)
 
     def sanitize_input(self, text: str) -> str:
-        """Basic input sanitization. Can be expanded later."""
-        # Remove potential command injection characters (very basic)
-        dangerous_chars = [";", "`", "$", "|", "&"]
-        for char in dangerous_chars:
-            text = text.replace(char, "")
+        """DEPRECATED: kept for backwards compatibility. No longer strips
+        characters (that corrupted legitimate content). Use escape_for_shell()
+        at execution boundaries and detect_prompt_injection() for screening."""
+        import logging as _logging
+        _logging.getLogger("AetherGuardrails").warning(
+            "sanitize_input is deprecated; use escape_for_shell / detect_prompt_injection"
+        )
         return text.strip()

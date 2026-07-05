@@ -1,16 +1,3 @@
-# Copyright 2026 Aether Project Contributors
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#     http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
 """
 Memory Query Tool
 """
@@ -36,7 +23,7 @@ class MemoryQueryTool(Tool):
             return ToolResult(success=False, error="Memory system not connected.")
 
         try:
-            recent = self.memory.get_recent_history(limit=20)
+            hits = self.memory.search(query, limit=limit)
             results = [
                 {
                     "timestamp": entry.timestamp,
@@ -44,9 +31,8 @@ class MemoryQueryTool(Tool):
                     "content": entry.content,
                     "metadata": entry.metadata
                 }
-                for entry in recent
-                if query.lower() in entry.content.lower()
-            ][:limit]
+                for entry in hits
+            ]
 
             return ToolResult(success=True, output=results)
         except Exception as e:
