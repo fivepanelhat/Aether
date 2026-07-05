@@ -13,30 +13,33 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """
-Aether CLI
+Aether CLI - Professional Command Line Interface
 """
 
 import argparse
 import sys
 from aether.orchestrator import AetherOrchestrator
 
-__version__ = "0.1.0"
+__version__ = "0.5.0"
 
 
 def print_header(text: str):
-    print("\n" + "=" * 70)
-    print(text.center(70))
-    print("=" * 70)
+    print("\n" + "=" * 72)
+    print(text.center(72))
+    print("=" * 72)
 
 
 def run_task(goal: str, max_steps: int = 8, memory_path: str = None, auto_remediate: bool = False):
-    print("\n" + "=" * 70)
-    print("AETHER".center(70))
-    print("=" * 70)
+    if not goal or goal.strip() == "":
+        print("Error: Please provide a goal.\nExample: aether run \"Audit the API routes for security issues\"")
+        sys.exit(1)
+
+    print_header("AETHER")
+
     print(f"Goal: {goal}")
     print(f"Max Steps: {max_steps}")
     print(f"Auto-Remediate: {auto_remediate}")
-    print("-" * 70)
+    print("-" * 72)
 
     try:
         aether = AetherOrchestrator(memory_path=memory_path)
@@ -48,19 +51,22 @@ def run_task(goal: str, max_steps: int = 8, memory_path: str = None, auto_remedi
         if hasattr(state, "skill_execution_results") and state.skill_execution_results:
             print("\n[Skills Used]")
             for result in state.skill_execution_results:
-                print(f"  - {result.get('skill')}")
+                print(f"  \u2022 {result.get('skill')}")
 
         print("\n[Recent Activity]")
         for entry in state.history[-8:]:
             print(f"  {entry}")
 
+    except KeyboardInterrupt:
+        print("\n\nOperation cancelled by user.")
+        sys.exit(0)
     except Exception as e:
         print(f"\n[Error] {e}")
         sys.exit(1)
 
-    print("\n" + "=" * 70)
-    print("Task finished.")
-    print("=" * 70 + "\n")
+    print("\n" + "=" * 72)
+    print("Task completed.")
+    print("=" * 72 + "\n")
 
 
 def list_skills():
@@ -69,13 +75,15 @@ def list_skills():
         print_header("AVAILABLE SKILLS")
 
         skills = aether.get_available_skills()
+
         if not skills:
-            print("No skills found. Make sure the 'skills/' directory exists.")
+            print("No skills found.")
+            print("Create skills in the 'skills/' directory to extend Aether's capabilities.")
             return
 
         for name in skills:
             info = aether.get_skill_info(name) or {}
-            desc = info.get("description", "No description")
+            desc = info.get("description", "No description available")
             print(f"  {name}")
             try:
                 print(f"    {desc}\n")
@@ -86,6 +94,7 @@ def list_skills():
     except Exception as e:
         print(f"[Error] {e}")
         sys.exit(1)
+
 
 def start_webhook_server(host: str = "0.0.0.0", port: int = 8000):
     """Start the GitHub webhook server."""
@@ -102,35 +111,86 @@ def start_webhook_server(host: str = "0.0.0.0", port: int = 8000):
         sys.exit(1)
 
 
-
+def main():
     parser = argparse.ArgumentParser(
         description="Aether - Sovereign Agentic Development System",
-        formatter_class=argparse.RawDescriptionHelpFormatter
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog="""
+Examples:
+  aether run "Audit the API routes for security issues"
+  aether run "Improve context handling in agents" --max-steps 10
+  aether remediate "CI failed on main with test error in user.test.ts"
+  aether skills
+  aether webhook --port 9000
+        """
     )
-    parser.add_argument("--version", action="version", version=f"%(prog)s {__version__}")
 
-    subparsers = parser.add_subparsers(dest="command")
+    parser.add_argument(
+        "--version",
+        action="version",
+        version=f"%(prog)s {__version__}",
+        help="Show Aether version"
+    )
 
-    # Run command
-    run_parser = subparsers.add_parser("run", help="Run a task using the ReAct loop")
-    run_parser.add_argument("goal", type=str, help="The goal or task to work on")
-    run_parser.add_argument("--max-steps", type=int, default=8, help="Maximum reasoning steps")
-    run_parser.add_argument("--memory", type=str, default=None, help="Path to memory file")
-    run_parser.add_argument("--auto-remediate", action="store_true", help="Authorize Aether to automatically fix issues, create branches, and run tests")
+    subparsers = parser.add_subparsers(dest="command", help="Available commands")
 
-    # Skills command
-    subparsers.add_parser("skills", help="List available skills")
+    # === Run Command ===
+    run_parser = subparsers.add_parser(
+        "run",
+        help="Run a task using the ReAct reasoning loop"
+    )
+    run_parser.add_argument(
+        "goal",
+        type=str,
+        help="The goal or task you want Aether to work on"
+    )
+    run_parser.add_argument(
+        "--max-steps",
+        type=int,
+        default=8,
+        help="Maximum number of reasoning steps (default: 8)"
+    )
+    run_parser.add_argument(
+        "--memory",
+        type=str,
+        default=None,
+        help="Path to persist memory across runs"
+    )
+    run_parser.add_argument(
+        "--auto-remediate",
+        action="store_true",
+        help="Authorize Aether to automatically fix issues, create branches, and run tests"
+    )
 
-    # Init command
-    init_parser = subparsers.add_parser("init", help="Initialize Aether in the current project (coming soon)")
+    # === Skills Command ===
+    subparsers.add_parser(
+        "skills",
+        help="List all available skills"
+    )
 
-    # Remediate command
-    remediate_parser = subparsers.add_parser("remediate", help="Trigger the error remediation workflow on a specific error or CI failure")
-    remediate_parser.add_argument("error", type=str, help="The error or CI failure to remediate")
+    # === Init Command ===
+    subparsers.add_parser(
+        "init",
+        help="Initialize Aether in the current project (coming soon)"
+    )
 
-    # Webhook server command
-    webhook_parser = subparsers.add_parser("webhook", help="Start the GitHub webhook server")
-    webhook_parser.add_argument("--host", type=str, default="0.0.0.0", help="Host to bind (default: 0.0.0.0)")
+    # === Remediate Command ===
+    remediate_parser = subparsers.add_parser(
+        "remediate",
+        help="Trigger the error remediation workflow on a CI failure or error"
+    )
+    remediate_parser.add_argument(
+        "error",
+        type=str,
+        help="The error or CI failure to remediate"
+    )
+
+    # === Webhook Command ===
+    webhook_parser = subparsers.add_parser(
+        "webhook",
+        help="Start the GitHub webhook server"
+    )
+    webhook_parser.add_argument("--host", default="0.0.0.0", help="Host to bind (default: 0.0.0.0)")
     webhook_parser.add_argument("--port", type=int, default=8000, help="Port to listen on (default: 8000)")
 
     try:
@@ -141,20 +201,17 @@ def start_webhook_server(host: str = "0.0.0.0", port: int = 8000):
             sys.exit(1)
 
         if args.command == "run":
-            if not args.goal or args.goal.strip() == "":
-                print("Error: Please provide a goal. Example:\n  aether run \"Audit the API routes\"")
-                sys.exit(1)
             run_task(args.goal, args.max_steps, args.memory, getattr(args, "auto_remediate", False))
         elif args.command == "skills":
             list_skills()
-        elif args.command == "remediate":
-            if not getattr(args, "error", "") or args.error.strip() == "":
-                print("Error: Please provide an error. Example:\n  aether remediate \"CI failed on main branch\"")
-                sys.exit(1)
-            goal = f"Remediate the following error using error-remediation-orchestrator: {args.error}"
-            run_task(goal, getattr(args, "max_steps", 10), None, True)
         elif args.command == "init":
             print("Init command coming soon!")
+        elif args.command == "remediate":
+            if not getattr(args, "error", "") or args.error.strip() == "":
+                print("Error: Please provide an error.\nExample: aether remediate \"CI failed on main branch\"")
+                sys.exit(1)
+            goal = f"Remediate the following error using error-remediation-orchestrator: {args.error}"
+            run_task(goal, max_steps=10, auto_remediate=True)
         elif args.command == "webhook":
             start_webhook_server(
                 host=getattr(args, "host", "0.0.0.0"),
@@ -162,6 +219,8 @@ def start_webhook_server(host: str = "0.0.0.0", port: int = 8000):
             )
         else:
             parser.print_help()
+            sys.exit(1)
+
     except KeyboardInterrupt:
         print("\n\nOperation cancelled by user.")
         sys.exit(0)
