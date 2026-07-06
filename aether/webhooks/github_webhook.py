@@ -77,8 +77,8 @@ def trigger_ci_remediation_with_retry(failure_info: dict):
 
         logger.info(f"Triggering remediation (attempt) for: {goal}")
 
-        state = aether.run_react_loop(goal=goal, max_steps=8)
-        logger.info(f"Remediation completed successfully.")
+        aether.run_react_loop(goal=goal, max_steps=8)
+        logger.info("Remediation completed successfully.")
 
     except Exception as e:
         logger.warning(f"Remediation attempt failed: {e}")

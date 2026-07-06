@@ -61,7 +61,6 @@ class ThreatModeler:
         threats: List[Threat] = []
 
         action_lower = action.lower()
-        context_lower = context.lower()
 
         # === Spoofing ===
         if any(kw in action_lower for kw in ["auth", "login", "identity", "impersonate"]):

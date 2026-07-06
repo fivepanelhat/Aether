@@ -15,7 +15,7 @@
 Tool Executor with Caching Support
 """
 
-from .base import Tool, ToolResult
+from .base import ToolResult
 from .cache import ToolCache
 from typing import Optional
 

@@ -18,7 +18,6 @@ Aether CLI - Professional Command Line Interface
 
 import argparse
 import sys
-import logging
 from aether.orchestrator import AetherOrchestrator
 from aether.logging_config import setup_logging
 
@@ -121,6 +120,8 @@ def start_webhook_server(host: str = "0.0.0.0", port: int = 8000):
 
 
 def main():
+    # Was imported but never called — CLI runs had no configured logging
+    setup_logging()
     parser = argparse.ArgumentParser(
         description="Aether - Sovereign Agentic Development System",
         formatter_class=argparse.RawDescriptionHelpFormatter,

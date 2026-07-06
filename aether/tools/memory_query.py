@@ -3,7 +3,6 @@ Memory Query Tool
 """
 
 from .base import Tool, ToolResult
-from typing import Optional
 
 
 class MemoryQueryTool(Tool):
