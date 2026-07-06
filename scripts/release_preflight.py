@@ -94,8 +94,8 @@ def main() -> int:
     is_public = check_visibility(remote_url)
 
     # --- 2. Sensitive files ---
-    untracked = [l for l in sh(["git", "ls-files", "--others", "--exclude-standard"]).splitlines() if l]
-    staged = [l for l in sh(["git", "diff", "--cached", "--name-only"]).splitlines() if l]
+    untracked = [line for line in sh(["git", "ls-files", "--others", "--exclude-standard"]).splitlines() if line]
+    staged = [line for line in sh(["git", "diff", "--cached", "--name-only"]).splitlines() if line]
     candidates = set(untracked) | set(staged)
     sensitive_hits = sorted(
         f for f in candidates
@@ -149,12 +149,12 @@ def main() -> int:
     # --- 6. Clean tree ---
     # Check for UNSTAGED changes only; staged changes are fine (about to be committed)
     status_lines = sh(["git", "status", "--porcelain"]).splitlines()
-    unstaged = [l for l in status_lines if l and len(l) > 1 and l[1] != ' ' and not l.startswith("??")]
+    unstaged = [line for line in status_lines if line and len(line) > 1 and line[1] != ' ' and not line.startswith("??")]
     unacknowledged = [f for f in untracked if f not in args.allow_untracked]
     if unstaged:
         print(f"{FAIL} Unstaged modifications present:")
-        for l in unstaged[:10]:
-            print(f"         {l}")
+        for line in unstaged[:10]:
+            print(f"         {line}")
         failures += 1
     elif unacknowledged:
         print(f"{FAIL} Untracked files not acknowledged (pass --allow-untracked for each intended file):")
