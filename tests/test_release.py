@@ -5,9 +5,8 @@ No Ollama required — the LLM is tested via an injected fake transport.
 """
 
 import json
-import pytest
 
-from aether.llm import OllamaClient, parse_decision, build_react_messages
+from aether.llm import OllamaClient, parse_decision
 from aether.memory import AetherMemory
 from aether.guardrails import Guardrails
 from aether.orchestrator import AetherOrchestrator

@@ -150,7 +150,7 @@ class ThreatModeler:
 
     def generate_threat_report(self, model: ThreatModel) -> str:
         """Generate a human-readable threat report."""
-        report = f"\n=== Threat Model Report ===\n"
+        report = "\n=== Threat Model Report ===\n"
         report += f"Action: {model.action}\n"
         report += f"Overall Risk: {model.overall_risk.upper()}\n"
         report += f"Requires Human Approval: {model.requires_hitl}\n\n"

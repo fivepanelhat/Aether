@@ -3,8 +3,6 @@ Pytest-native smoke and unit tests for Aether.
 Run: pytest tests/ -v
 """
 
-import os
-import pytest
 
 from aether import __version__
 from aether.orchestrator import AetherOrchestrator, _resolve_skills_directory
