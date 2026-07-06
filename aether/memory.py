@@ -103,11 +103,15 @@ class AetherMemory:
     def search(self, keyword: str, limit: int = 10, entry_type: Optional[str] = None) -> List[MemoryEntry]:
         """Simple keyword recall — case-insensitive substring over content."""
         kw = keyword.lower()
-        hits = [
-            e for e in reversed(self.entries)
-            if kw in e.content.lower() and (entry_type is None or e.type == entry_type)
-        ]
-        return hits[:limit]
+        hits: List[MemoryEntry] = []
+        # Newest-first, stop as soon as we have `limit` hits instead of
+        # scanning the entire memory every query.
+        for e in reversed(self.entries):
+            if kw in e.content.lower() and (entry_type is None or e.type == entry_type):
+                hits.append(e)
+                if len(hits) >= limit:
+                    break
+        return hits
 
     # ---------------- maintenance ----------------
 
