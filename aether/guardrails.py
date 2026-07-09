@@ -125,8 +125,13 @@ class Guardrails:
     # ==================== Action-Level Checks ====================
 
     def should_block_action(self, action: str, context: str = "") -> bool:
-        """Returns True if the action should be blocked entirely."""
+        """Returns True if the action should be blocked entirely (no HITL path).
+
+        Currently reserved for future hard-deny policy. High/critical actions
+        go through HITL via enforce_hitl() rather than silent block.
+        """
         assessment = self.assess_risk(action, context)
+        # Hard-block only if we ever mark something critical without an approval path.
         return assessment.risk_level == "critical" and not assessment.requires_hitl
 
     def enforce_hitl(self, action: str, context: str = "") -> bool:

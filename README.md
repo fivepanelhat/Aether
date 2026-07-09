@@ -74,9 +74,16 @@ Aether can automatically start remediation when your CI fails.
    aether webhook --host 0.0.0.0 --port 9000
    ```
 
-2. **Set your webhook secret** (in your shell or `.env` file)
+2. **Set your webhook secret** (required — verification fails closed without it)
    ```bash
    export GITHUB_WEBHOOK_SECRET=your-secure-secret
+   # Optional local-dev only bypass (never in production):
+   # export AETHER_WEBHOOK_INSECURE=1
+   ```
+
+   Install webhook dependencies if needed:
+   ```bash
+   pip install -e ".[webhook]"
    ```
 
 3. **Expose the server** using [ngrok](https://ngrok.com) or deploy to a server

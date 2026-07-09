@@ -31,6 +31,14 @@ class CodebaseSearchTool(Tool):
         "max_results": "Maximum results to return"
     }
 
+    # Skip heavy / binary-ish extensions to keep search fast and useful
+    _SKIP_EXT = {
+        ".pyc", ".pyo", ".so", ".dll", ".exe", ".bin", ".o", ".a",
+        ".png", ".jpg", ".jpeg", ".gif", ".webp", ".ico", ".pdf",
+        ".zip", ".gz", ".tar", ".whl", ".egg",
+    }
+    _MAX_FILE_BYTES = 1_000_000
+
     def run(
         self,
         query: str,
@@ -39,25 +47,37 @@ class CodebaseSearchTool(Tool):
         max_results: int = 20
     ) -> ToolResult:
         try:
+            if not query:
+                return ToolResult(success=False, error="query must be a non-empty string")
+
+            max_results = max(1, int(max_results))
             matches = []
+            query_lower = query.lower()
+            skip_dirs = {".git", "__pycache__", "node_modules", ".venv", "venv", "dist", "build", ".tox"}
+
             for root, dirs, files in os.walk(directory):
-                dirs[:] = [d for d in dirs if d not in {".git", "__pycache__", "node_modules"}]
+                dirs[:] = [d for d in dirs if d not in skip_dirs]
                 for filename in files:
                     if file_pattern and not fnmatch.fnmatch(filename, file_pattern):
                         continue
+                    _, ext = os.path.splitext(filename)
+                    if ext.lower() in self._SKIP_EXT:
+                        continue
                     filepath = os.path.join(root, filename)
                     try:
+                        if os.path.getsize(filepath) > self._MAX_FILE_BYTES:
+                            continue
                         with open(filepath, "r", encoding="utf-8", errors="ignore") as f:
                             for line_num, line in enumerate(f, 1):
-                                if query.lower() in line.lower():
+                                if query_lower in line.lower():
                                     matches.append({
                                         "file": filepath,
                                         "line": line_num,
-                                        "content": line.strip()
+                                        "content": line.strip()[:500],
                                     })
                                     if len(matches) >= max_results:
                                         break
-                    except Exception:
+                    except (OSError, UnicodeError):
                         continue
                     if len(matches) >= max_results:
                         break

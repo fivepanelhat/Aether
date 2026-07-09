@@ -16,17 +16,37 @@ logger = logging.getLogger("AetherGitHubWebhook")
 app = FastAPI(title="Aether GitHub Webhook Handler")
 
 GITHUB_WEBHOOK_SECRET = os.getenv("GITHUB_WEBHOOK_SECRET", "")
+# Opt-in only: allow unsigned webhooks for local dev. Never enable in production.
+ALLOW_INSECURE = os.getenv("AETHER_WEBHOOK_INSECURE", "").lower() in ("1", "true", "yes")
 
 # Retry configuration — override via environment variables
 MAX_RETRIES = int(os.getenv("WEBHOOK_MAX_RETRIES", "4"))
-MIN_WAIT    = int(os.getenv("WEBHOOK_MIN_WAIT", "2"))
-MAX_WAIT    = int(os.getenv("WEBHOOK_MAX_WAIT", "30"))
+MIN_WAIT = int(os.getenv("WEBHOOK_MIN_WAIT", "2"))
+MAX_WAIT = int(os.getenv("WEBHOOK_MAX_WAIT", "30"))
 
 
 def verify_signature(payload: bytes, signature: str) -> bool:
+    """
+    Validate GitHub X-Hub-Signature-256.
+
+    Fails closed when GITHUB_WEBHOOK_SECRET is unset, unless
+    AETHER_WEBHOOK_INSECURE=1 is explicitly set for local development.
+    """
     if not GITHUB_WEBHOOK_SECRET:
-        logger.warning("GITHUB_WEBHOOK_SECRET not set. Skipping signature verification.")
-        return True
+        if ALLOW_INSECURE:
+            logger.warning(
+                "GITHUB_WEBHOOK_SECRET not set and AETHER_WEBHOOK_INSECURE=1 — "
+                "skipping signature verification (dev only)."
+            )
+            return True
+        logger.error(
+            "GITHUB_WEBHOOK_SECRET not set. Refusing webhook. "
+            "Set the secret, or AETHER_WEBHOOK_INSECURE=1 for local dev only."
+        )
+        return False
+
+    if not signature:
+        return False
 
     mac = hmac.new(GITHUB_WEBHOOK_SECRET.encode(), msg=payload, digestmod=hashlib.sha256)
     expected = f"sha256={mac.hexdigest()}"
@@ -50,7 +70,7 @@ def _extract_failure_info(data: dict, event: str) -> dict | None:
         if cr.get("conclusion") == "failure":
             return {
                 "repo": data.get("repository", {}).get("full_name"),
-                "branch": cr.get("head_branch"),
+                "branch": cr.get("check_suite", {}).get("head_branch") or cr.get("head_branch"),
                 "commit_sha": cr.get("head_sha"),
                 "check_name": cr.get("name"),
                 "html_url": cr.get("html_url"),
@@ -62,7 +82,7 @@ def _extract_failure_info(data: dict, event: str) -> dict | None:
     stop=stop_after_attempt(MAX_RETRIES),
     wait=wait_exponential(multiplier=1, min=MIN_WAIT, max=MAX_WAIT),
     retry=retry_if_exception_type(Exception),
-    reraise=True
+    reraise=True,
 )
 def trigger_ci_remediation_with_retry(failure_info: dict):
     """Retry wrapper around the remediation trigger."""
@@ -70,14 +90,17 @@ def trigger_ci_remediation_with_retry(failure_info: dict):
         aether = AetherOrchestrator()
 
         goal = (
-            f"CI failed in {failure_info['repo']} on branch {failure_info['branch']} "
+            f"CI failed in {failure_info.get('repo', 'unknown')} on branch "
+            f"{failure_info.get('branch', 'unknown')} "
             f"(commit {failure_info.get('commit_sha', 'unknown')}). "
             f"Please investigate and propose a fix."
         )
 
         logger.info(f"Triggering remediation (attempt) for: {goal}")
 
-        aether.run_react_loop(goal=goal, max_steps=8)
+        # Webhooks are unattended: use auto_remediate so high-risk steps are
+        # authorized for this run (still path-sandboxed; no interactive prompt).
+        aether.run_react_loop(goal=goal, max_steps=8, auto_remediate=True)
         logger.info("Remediation completed successfully.")
 
     except Exception as e:
@@ -99,9 +122,7 @@ async def github_webhook(request: Request, background_tasks: BackgroundTasks):
     failure_info = _extract_failure_info(data, event)
 
     if failure_info:
-        logger.info(f"CI failure detected → {failure_info['repo']}@{failure_info['branch']}")
-
-        # Run remediation with retry logic in the background
+        logger.info(f"CI failure detected → {failure_info.get('repo')}@{failure_info.get('branch')}")
         background_tasks.add_task(trigger_ci_remediation_with_retry, failure_info)
 
     return {"status": "received"}

@@ -98,6 +98,36 @@ def test_react_loop_gates_high_risk_action(tmp_path, monkeypatch):
     assert not (tmp_path / "out.txt").exists()
 
 
+def test_react_loop_auto_remediate_allows_file_writer(tmp_path, monkeypatch):
+    monkeypatch.chdir(tmp_path)
+    client = make_scripted_client([
+        {"thought": "write the file", "action": "file_writer",
+         "args": {"file_path": "out.txt", "content": "fixed"}},
+        {"thought": "done", "action": "conclude", "args": {}},
+    ])
+    orch = AetherOrchestrator(llm=client)
+    state = orch.run_react_loop("create a file", max_steps=5, auto_remediate=True)
+
+    assert any("Auto-remediate authorized: file_writer" in h for h in state.history)
+    assert (tmp_path / "out.txt").read_text() == "fixed"
+    assert state.current_phase == "react_complete"
+
+
+def test_react_loop_can_search_without_hitl_halt(tmp_path, monkeypatch):
+    monkeypatch.chdir(tmp_path)
+    (tmp_path / "app.py").write_text("def login(): pass\n")
+    client = make_scripted_client([
+        {"thought": "search for login", "action": "codebase_search",
+         "args": {"query": "login", "directory": str(tmp_path)}},
+        {"thought": "done", "action": "conclude", "args": {}},
+    ])
+    orch = AetherOrchestrator(llm=client)
+    state = orch.run_react_loop("find login", max_steps=5)
+    tool_entries = [t for t in state.tool_calls if t.get("tool") == "codebase_search"]
+    assert len(tool_entries) == 1 and tool_entries[0]["success"]
+    assert not any("Pending approval" in h for h in state.history)
+
+
 def test_react_loop_falls_back_to_pipeline_when_llm_down(tmp_path, monkeypatch):
     monkeypatch.chdir(tmp_path)
     client = OllamaClient(transport=lambda *a: (_ for _ in ()).throw(ConnectionError))
@@ -116,6 +146,51 @@ def test_react_loop_halts_on_injection_in_model_output(tmp_path, monkeypatch):
     orch = AetherOrchestrator(llm=client)
     state = orch.run_react_loop("explore", max_steps=3)
     assert any("injection patterns" in h.lower() for h in state.history)
+
+
+def test_cli_run_task_handles_errors_attr(tmp_path, monkeypatch):
+    """Regression: successful run must not AttributeError on aether.errors."""
+    monkeypatch.chdir(tmp_path)
+    from aether.cli import run_task
+
+    client = make_scripted_client([
+        {"thought": "done", "action": "conclude", "args": {}},
+    ])
+
+    # Patch orchestrator construction to inject scripted LLM
+    import aether.cli as cli_mod
+
+    real_orch = AetherOrchestrator
+
+    def factory(*args, **kwargs):
+        return real_orch(llm=client, **{k: v for k, v in kwargs.items() if k != "llm"})
+
+    monkeypatch.setattr(cli_mod, "AetherOrchestrator", factory)
+    # Should complete without raising
+    run_task("noop goal", max_steps=2, auto_remediate=False)
+
+
+def test_webhook_signature_fails_closed_without_secret(monkeypatch):
+    monkeypatch.delenv("GITHUB_WEBHOOK_SECRET", raising=False)
+    monkeypatch.delenv("AETHER_WEBHOOK_INSECURE", raising=False)
+    import aether.webhooks.github_webhook as wh
+    monkeypatch.setattr(wh, "GITHUB_WEBHOOK_SECRET", "")
+    monkeypatch.setattr(wh, "ALLOW_INSECURE", False)
+    assert wh.verify_signature(b"{}", "sha256=abc") is False
+
+
+def test_webhook_signature_valid_hmac(monkeypatch):
+    import hashlib
+    import hmac
+    import aether.webhooks.github_webhook as wh
+
+    secret = "test-secret"
+    payload = b'{"ok": true}'
+    monkeypatch.setattr(wh, "GITHUB_WEBHOOK_SECRET", secret)
+    monkeypatch.setattr(wh, "ALLOW_INSECURE", False)
+    sig = "sha256=" + hmac.new(secret.encode(), payload, hashlib.sha256).hexdigest()
+    assert wh.verify_signature(payload, sig) is True
+    assert wh.verify_signature(payload, "sha256=deadbeef") is False
 
 
 # ---------------- Memory: JSONL append-only ----------------

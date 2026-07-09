@@ -15,13 +15,25 @@
 Formal Threat Modeling for Aether
 
 Uses a lightweight STRIDE-based model adapted for agentic systems.
+
+Read-only inspection tools are classified for awareness but do not force HITL;
+mutating / privileged actions remain high or critical risk and require approval.
 """
 
 from dataclasses import dataclass, field
-from typing import List, Dict, Any, Optional
+from typing import List, Dict, Any, Optional, Set
 import logging
 
 logger = logging.getLogger("AetherThreatModeling")
+
+# Tools / actions that inspect state only — never force human approval by themselves.
+READ_ONLY_ACTIONS: Set[str] = {
+    "file_reader",
+    "codebase_search",
+    "memory_query",
+    "directory_lister",
+    "conclude",
+}
 
 
 @dataclass
@@ -50,7 +62,7 @@ class ThreatModeler:
             "Repudiation",
             "Information Disclosure",
             "Denial of Service",
-            "Elevation of Privilege"
+            "Elevation of Privilege",
         ]
 
     def analyze_action(self, action: str, context: str = "", metadata: Optional[Dict[str, Any]] = None) -> ThreatModel:
@@ -59,8 +71,8 @@ class ThreatModeler:
         """
         metadata = metadata or {}
         threats: List[Threat] = []
-
-        action_lower = action.lower()
+        action_lower = action.lower().strip()
+        is_read_only = action_lower in READ_ONLY_ACTIONS
 
         # === Spoofing ===
         if any(kw in action_lower for kw in ["auth", "login", "identity", "impersonate"]):
@@ -69,47 +81,49 @@ class ThreatModeler:
                 description="Potential for identity spoofing or unauthorized impersonation.",
                 severity="high",
                 affected_component="Authentication",
-                mitigation="Enforce strong authentication and role validation on all sensitive actions."
+                mitigation="Enforce strong authentication and role validation on all sensitive actions.",
             ))
 
-        # === Tampering ===
-        if any(kw in action_lower for kw in ["write", "modify", "update", "edit", "file_writer"]):
+        # === Tampering (mutating tools only) ===
+        if any(kw in action_lower for kw in ["write", "modify", "update", "edit", "file_writer", "git_commit", "git_push", "deploy"]):
             threats.append(Threat(
                 category="Tampering",
                 description="Risk of unauthorized modification of code, data, or configuration.",
                 severity="high",
                 affected_component="File System / Codebase",
-                mitigation="Require human approval for all file modification actions. Use version control."
+                mitigation="Require human approval for all file modification actions. Use version control.",
             ))
 
         # === Repudiation ===
-        if any(kw in action_lower for kw in ["delete", "remove", "audit", "log"]):
+        if any(kw in action_lower for kw in ["delete", "remove", "destroy"]):
             threats.append(Threat(
                 category="Repudiation",
-                description="Actions may not be properly logged or attributed, enabling denial of responsibility.",
-                severity="medium",
+                description="Destructive actions may not be properly attributed without audit logging.",
+                severity="high",
                 affected_component="Logging & Audit Trail",
-                mitigation="Ensure all high-impact actions are logged with actor, timestamp, and context."
+                mitigation="Ensure all high-impact actions are logged with actor, timestamp, and context.",
             ))
 
         # === Information Disclosure ===
-        if any(kw in action_lower for kw in ["read", "export", "query", "memory", "search"]):
+        # Flag awareness for reads, but keep severity medium so HITL is not forced
+        # for ordinary inspection tools (sandboxing is the primary control).
+        if any(kw in action_lower for kw in ["read", "export", "query", "memory", "search", "file_reader", "codebase_search"]):
             threats.append(Threat(
                 category="Information Disclosure",
                 description="Risk of exposing sensitive data, code, or internal system information.",
-                severity="high",
+                severity="low" if is_read_only else "medium",
                 affected_component="Data Access Layer",
-                mitigation="Apply strict access controls and sanitize outputs. Never leak raw errors."
+                mitigation="Apply path sandboxing and never leak raw secrets into logs or prompts.",
             ))
 
         # === Denial of Service ===
-        if any(kw in action_lower for kw in ["deploy", "build", "heavy", "expensive", "loop"]):
+        if any(kw in action_lower for kw in ["deploy", "build", "heavy", "expensive"]):
             threats.append(Threat(
                 category="Denial of Service",
                 description="Action could consume excessive resources or cause system instability.",
                 severity="medium",
                 affected_component="Execution Environment",
-                mitigation="Implement rate limiting, timeouts, and resource usage monitoring."
+                mitigation="Implement rate limiting, timeouts, and resource usage monitoring.",
             ))
 
         # === Elevation of Privilege ===
@@ -119,10 +133,9 @@ class ThreatModeler:
                 description="Risk of unauthorized privilege escalation or misuse of elevated access.",
                 severity="critical",
                 affected_component="Access Control",
-                mitigation="Never allow direct use of service role keys. Always go through controlled admin clients with approval gates."
+                mitigation="Never allow direct use of service role keys. Always go through controlled admin clients with approval gates.",
             ))
 
-        # Determine overall risk
         severity_order = {"low": 0, "medium": 1, "high": 2, "critical": 3}
         max_severity = max((severity_order.get(t.severity, 0) for t in threats), default=0)
 
@@ -134,15 +147,21 @@ class ThreatModeler:
         elif max_severity == 1:
             overall_risk = "medium"
 
-        requires_hitl = overall_risk in ["high", "critical"] or any(
-            t.category == "Elevation of Privilege" for t in threats
-        )
+        # Read-only tools never force HITL from the threat model alone.
+        if is_read_only:
+            requires_hitl = False
+            if overall_risk in ("high", "critical"):
+                overall_risk = "medium"
+        else:
+            requires_hitl = overall_risk in ("high", "critical") or any(
+                t.category == "Elevation of Privilege" for t in threats
+            )
 
         model = ThreatModel(
             action=action,
             threats=threats,
             overall_risk=overall_risk,
-            requires_hitl=requires_hitl
+            requires_hitl=requires_hitl,
         )
 
         logger.info(f"Threat model for '{action}': {overall_risk} risk, HITL={requires_hitl}")

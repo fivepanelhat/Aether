@@ -18,11 +18,9 @@ Aether CLI - Professional Command Line Interface
 
 import argparse
 import sys
+from aether import __version__
 from aether.orchestrator import AetherOrchestrator
 from aether.logging_config import setup_logging
-
-
-__version__ = "0.6.0"
 
 
 def print_header(text: str):
@@ -40,8 +38,11 @@ def run_task(goal: str, max_steps: int = 8, memory_path: str = None, auto_remedi
 
     print(f"Goal: {goal}")
     print(f"Max Steps: {max_steps}")
+    if auto_remediate:
+        print("Auto-remediate: ON (high-risk actions authorized for this run)")
     print("-" * 72)
-    print("Note: High-risk actions (writing files, git operations) require approval.\n")
+    print("Note: High-risk actions (writing files, git operations) require approval "
+          "unless --auto-remediate is set.\n")
 
     try:
         aether = AetherOrchestrator(memory_path=memory_path)
@@ -59,9 +60,10 @@ def run_task(goal: str, max_steps: int = 8, memory_path: str = None, auto_remedi
         for entry in state.history[-8:]:
             print(f"  {entry}")
 
-        if aether.errors:
+        errors = getattr(aether, "errors", None) or []
+        if errors:
             print("\n[Errors Encountered]")
-            for err in aether.errors:
+            for err in errors:
                 print(f"  \u2022 {err}")
 
     except KeyboardInterrupt:
@@ -89,7 +91,7 @@ def list_skills():
             print("Create skills in the 'skills/' directory to extend Aether's capabilities.")
             return
 
-        for name in skills:
+        for name in sorted(skills):
             info = aether.get_skill_info(name) or {}
             desc = info.get("description", "No description available")
             print(f"  {name}")
@@ -111,16 +113,16 @@ def start_webhook_server(host: str = "0.0.0.0", port: int = 8000):
         from aether.webhooks.github_webhook import app
 
         print(f"\nStarting Aether GitHub Webhook server on http://{host}:{port}")
-        print("Set GITHUB_WEBHOOK_SECRET environment variable for security.\n")
+        print("Set GITHUB_WEBHOOK_SECRET for signature verification.")
+        print("Dev only: AETHER_WEBHOOK_INSECURE=1 skips signature checks.\n")
 
         uvicorn.run(app, host=host, port=port)
     except ImportError:
-        print("Error: uvicorn is not installed. Run: pip install uvicorn fastapi")
+        print("Error: webhook dependencies missing. Run: pip install -e \".[webhook]\"")
         sys.exit(1)
 
 
 def main():
-    # Was imported but never called — CLI runs had no configured logging
     setup_logging()
     parser = argparse.ArgumentParser(
         description="Aether - Sovereign Agentic Development System",
@@ -169,7 +171,7 @@ Examples:
     run_parser.add_argument(
         "--auto-remediate",
         action="store_true",
-        help="Authorize Aether to automatically fix issues, create branches, and run tests"
+        help="Authorize high-risk actions (file writes) for this run without interactive halt"
     )
 
     # === Skills Command ===
@@ -198,7 +200,7 @@ Examples:
     # === Webhook Command ===
     webhook_parser = subparsers.add_parser(
         "webhook",
-        help="Start the GitHub webhook server"
+        help="Start the GitHub webhook server (requires: pip install -e \".[webhook]\")"
     )
     webhook_parser.add_argument("--host", default="0.0.0.0", help="Host to bind (default: 0.0.0.0)")
     webhook_parser.add_argument("--port", type=int, default=8000, help="Port to listen on (default: 8000)")
@@ -206,7 +208,7 @@ Examples:
     try:
         args = parser.parse_args()
 
-        if not hasattr(args, "command") or not args.command:
+        if not getattr(args, "command", None):
             parser.print_help()
             sys.exit(1)
 
@@ -241,4 +243,3 @@ Examples:
 
 if __name__ == "__main__":
     main()
-

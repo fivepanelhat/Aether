@@ -23,22 +23,42 @@ class DirectoryListerTool(Tool):
     name = "directory_lister"
     description = "List files and directories in a given path. Useful for project exploration."
     input_schema = {
-        "path": "Directory to list (default: current directory)",
-        "max_depth": "Recursion depth (default: 1)"
+        "path": "Directory to list (default: current directory). Alias: directory",
+        "max_depth": "Recursion depth (default: 1)",
     }
 
-    def run(self, path: str = ".", max_depth: int = 1, **kwargs) -> ToolResult:
+    def run(self, path: str = ".", max_depth: int = 1, directory: str = None, **kwargs) -> ToolResult:
+        # Accept both "path" and "directory" (LLM / pipeline often pass directory=)
+        target = directory if directory is not None else path
+        if target is None or target == "":
+            target = "."
+
         try:
-            if not os.path.exists(path):
-                return ToolResult(success=False, error=f"Path does not exist: {path}")
+            max_depth = int(max_depth) if max_depth is not None else 1
+            if max_depth < 0:
+                max_depth = 0
+
+            if not os.path.exists(target):
+                return ToolResult(success=False, error=f"Path does not exist: {target}")
+
+            if not os.path.isdir(target):
+                return ToolResult(success=False, error=f"Not a directory: {target}")
 
             result_lines = []
-            for root, dirs, files in os.walk(path):
-                level = root.replace(path, "").count(os.sep)
+            # Normalize for depth calculation across OS path styles
+            base = os.path.abspath(target)
+            for root, dirs, files in os.walk(base):
+                level = os.path.relpath(root, base).count(os.sep)
+                if root == base:
+                    level = 0
                 if level > max_depth:
+                    dirs.clear()
                     continue
                 indent = "  " * level
-                result_lines.append(f"{indent}{os.path.basename(root)}/")
+                result_lines.append(f"{indent}{os.path.basename(root) or root}/")
+                if level >= max_depth:
+                    dirs.clear()
+                    continue
                 sub_indent = "  " * (level + 1)
                 for file in files:
                     result_lines.append(f"{sub_indent}{file}")

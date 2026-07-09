@@ -2,6 +2,23 @@
 
 All notable changes to Aether will be documented in this file.
 
+## [0.6.3] - 2026-07
+
+### Fixed
+- CLI no longer crashes after a successful run (`aether.errors` AttributeError)
+- Threat model no longer forces HITL on read-only tools (`file_reader`, `codebase_search`, `memory_query`)
+- `auto_remediate` is now honored (authorized batch / webhook mode for high-risk actions)
+- Single-sourced version: CLI uses `aether.__version__`
+- `file_reader` path sandbox aligned with `file_writer` (blocks traversal + symlinks)
+- Webhook signature verification fails closed when `GITHUB_WEBHOOK_SECRET` is unset
+  (opt-in dev bypass: `AETHER_WEBHOOK_INSECURE=1`)
+- `directory_lister` accepts `directory=` alias used by the LLM / tests
+- Deterministic pipeline passes tool-appropriate kwargs (not always `query=goal`)
+
+### Changed
+- Optional install extra: `pip install -e ".[webhook]"` (fastapi, uvicorn, tenacity)
+- Codebase search skips common binary/build dirs and large files for speed
+
 ## [0.6.0] - 2026-07
 
 ### Added
@@ -13,7 +30,6 @@ All notable changes to Aether will be documented in this file.
 - GitHub Webhook support with retry logic
 - Project Scaffolder skill (first major builder skill)
 - Improved CLI with better help text and error handling
-- `aether validate` command for installation checks
 - Centralized logging and improved error handling
 - Multiple practical examples in the `examples/` folder
 

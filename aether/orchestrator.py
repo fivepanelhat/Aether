@@ -78,6 +78,8 @@ class AetherOrchestrator:
     def __init__(self, memory_path: Optional[str] = None, skills_directory: Optional[str] = None,
                  llm: Optional[OllamaClient] = None, use_llm: bool = True):
         self.state: Optional[TaskState] = None
+        self.errors: List[str] = []
+        self.auto_remediate: bool = False
         self.memory = AetherMemory(persist_path=memory_path)
         self.guardrails = Guardrails()
         self.threat_modeler = ThreatModeler()
@@ -252,15 +254,13 @@ class AetherOrchestrator:
                     logger.info("[Pipeline] Task complete.")
                     break
 
-                # Approval gate — now backed by Guardrails + ThreatModeler
-                if self._requires_approval(action, context=goal):
-                    logger.warning(f"[Pipeline] '{action}' requires human approval. Stopping.")
-                    self.state.history.append(f"Pending approval for: {action}")
+                # Approval gate — Guardrails + ThreatModeler; auto_remediate may proceed
+                if not self._approve_if_needed(action, context=goal):
                     break
 
                 if action in self.tool_registry.list_tool_names():
                     # call_tool records the audit entry — do not append again here
-                    self.call_tool(action, query=goal)
+                    self.call_tool(action, **self._default_tool_kwargs(action, goal))
 
                 elif action in self.skills_registry:
                     self.load_skill(action)
@@ -275,6 +275,7 @@ class AetherOrchestrator:
 
             except Exception as e:
                 logger.error(f"[Pipeline] Error at step {steps_taken}: {e}")
+                self.errors.append(str(e))
                 self.state.tool_calls.append({
                     "step": steps_taken,
                     "type": "error",
@@ -295,19 +296,35 @@ class AetherOrchestrator:
         action. Guardrails + ThreatModeler gate high-risk actions before
         execution. Falls back to the deterministic pipeline if Ollama is
         unreachable.
+
+        auto_remediate: when True, high-risk actions (e.g. file_writer) proceed
+        without interactive approval (authorized batch / webhook mode). Default
+        False preserves the safe halt-for-approval behaviour.
         """
+        self.auto_remediate = bool(auto_remediate)
+
         if not self.use_llm or not self.llm.is_available():
             logger.warning("LLM unavailable - falling back to deterministic pipeline.")
             return self.run_pipeline(goal, max_steps=max_steps)
 
         self.start_task(goal)
-        logger.info(f"Starting ReAct loop (model: {self.llm.model}) for goal: {goal}")
+        logger.info(
+            f"Starting ReAct loop (model: {self.llm.model}, auto_remediate={self.auto_remediate}) "
+            f"for goal: {goal}"
+        )
 
         observations: List[str] = []
         allowed = self.get_available_tools() + self.get_available_skills() + ["conclude"]
         skill_descriptions = "\n".join(
             f"- {name}: {meta.get('description', '')}" for name, meta in self.skills_registry.items()
         ) or "No skills loaded."
+
+        # Screen user goal once for injection patterns (not only model thoughts)
+        goal_suspicious, goal_patterns = self.guardrails.detect_prompt_injection(goal)
+        if goal_suspicious:
+            logger.warning(f"[ReAct] Injection patterns in goal: {goal_patterns}")
+            self.state.history.append(f"Goal flagged for injection patterns: {goal_patterns}")
+            self.state.risks.append(f"prompt_injection:{','.join(goal_patterns)}")
 
         steps_taken = 0
         for step in range(max_steps):
@@ -344,13 +361,15 @@ class AetherOrchestrator:
                     logger.info("[ReAct] Model concluded the task.")
                     break
 
-                if self._requires_approval(decision.action, context=goal):
-                    logger.warning(f"[ReAct] '{decision.action}' requires human approval. Stopping.")
-                    self.state.history.append(f"Pending approval for: {decision.action}")
+                if not self._approve_if_needed(decision.action, context=goal):
                     break
 
                 if decision.action in self.tool_registry.list_tool_names():
-                    result = self.call_tool(decision.action, **decision.args)
+                    tool_args = decision.args or {}
+                    # Fill missing required-ish kwargs from goal when model omits them
+                    if not tool_args:
+                        tool_args = self._default_tool_kwargs(decision.action, goal)
+                    result = self.call_tool(decision.action, **tool_args)
                     obs = result.output if result.success else f"ERROR: {result.error}"
                     observations.append(f"Step {steps_taken} [{decision.action}]: {str(obs)[:800]}")
                     self.memory.add_entry(
@@ -358,6 +377,8 @@ class AetherOrchestrator:
                         str(obs)[:2000],
                         {"tool": decision.action, "success": result.success},
                     )
+                    if not result.success:
+                        self.errors.append(f"{decision.action}: {result.error}")
 
                 elif decision.action in self.skills_registry:
                     self.load_skill(decision.action)
@@ -376,6 +397,7 @@ class AetherOrchestrator:
 
             except Exception as e:
                 logger.error(f"[ReAct] Error at step {steps_taken}: {e}")
+                self.errors.append(str(e))
                 self.state.tool_calls.append({"step": steps_taken, "type": "error", "message": str(e)})
                 break
 
@@ -416,6 +438,20 @@ class AetherOrchestrator:
 
     # ==================== Safe Execution Layer ====================
 
+    def _default_tool_kwargs(self, action: str, goal: str) -> Dict[str, Any]:
+        """Sensible kwargs when the model/pipeline omits tool arguments."""
+        if action == "codebase_search":
+            return {"query": goal, "directory": "."}
+        if action == "memory_query":
+            return {"query": goal}
+        if action == "directory_lister":
+            return {"path": "."}
+        if action == "file_reader":
+            return {}
+        if action == "file_writer":
+            return {}
+        return {}
+
     def _requires_approval(self, action: str, context: str = "") -> bool:
         """
         Single source of truth: Guardrails owns the approval policy,
@@ -425,6 +461,45 @@ class AetherOrchestrator:
             return True
         threat_model = self.threat_modeler.analyze_action(action, context)
         return threat_model.requires_hitl
+
+    def _approve_if_needed(self, action: str, context: str = "") -> bool:
+        """
+        Return True if the action may proceed.
+
+        - Low-risk actions: proceed.
+        - High-risk + auto_remediate: proceed (authorized batch mode).
+        - High-risk + interactive TTY: prompt via request_approval.
+        - High-risk + non-interactive (default): halt with pending approval.
+        """
+        if not self._requires_approval(action, context=context):
+            return True
+
+        if self.auto_remediate:
+            logger.warning(f"[HITL] '{action}' authorized via auto_remediate=True")
+            if self.state:
+                self.state.history.append(f"Auto-remediate authorized: {action}")
+            return True
+
+        # Interactive approval only when stdin is a TTY (avoids hanging webhooks/tests)
+        try:
+            import sys
+            if sys.stdin is not None and sys.stdin.isatty():
+                approved = self.request_approval(action, details=context[:500] if context else "")
+                if approved:
+                    if self.state:
+                        self.state.history.append(f"User approved action: {action}")
+                    return True
+                logger.warning(f"User denied execution of: {action}")
+                if self.state:
+                    self.state.history.append(f"User rejected action: {action}")
+                return False
+        except Exception as e:
+            logger.debug(f"Interactive approval unavailable: {e}")
+
+        logger.warning(f"'{action}' requires human approval. Stopping.")
+        if self.state:
+            self.state.history.append(f"Pending approval for: {action}")
+        return False
 
     def request_approval(self, action: str, details: str = "") -> bool:
         print("\n" + "=" * 70)
@@ -439,13 +514,8 @@ class AetherOrchestrator:
 
     def execute_action_safely(self, action: str, **kwargs) -> dict:
         """Execute high-risk actions only after approval."""
-        if self._requires_approval(action, context=str(kwargs)):
-            approved = self.request_approval(action, str(kwargs))
-            if not approved:
-                logger.warning(f"User denied execution of: {action}")
-                if self.state:
-                    self.state.history.append(f"User rejected action: {action}")
-                return {"executed": False, "reason": "User rejected action"}
+        if not self._approve_if_needed(action, context=str(kwargs)):
+            return {"executed": False, "reason": "Approval required or denied"}
 
         result = self.call_tool(action, **kwargs)
         if result.success:
@@ -457,6 +527,7 @@ class AetherOrchestrator:
             return {"executed": True, "result": result.output}
 
         logger.error(f"Execution failed: {result.error}")
+        self.errors.append(f"{action}: {result.error}")
         return {"executed": False, "error": result.error}
 
     def safe_write_file(self, file_path: str, content: str, mode: str = "write") -> dict:

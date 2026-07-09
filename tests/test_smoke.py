@@ -3,16 +3,19 @@ Pytest-native smoke and unit tests for Aether.
 Run: pytest tests/ -v
 """
 
-
 from aether import __version__
 from aether.orchestrator import AetherOrchestrator, _resolve_skills_directory
 from aether.guardrails import Guardrails
+from aether.threat_modeling import ThreatModeler
 from aether.tools.file_writer import FileWriterTool
 from aether.tools.file_reader import FileReaderTool
+from aether.tools.directory_lister import DirectoryListerTool
 
 
 def test_version_is_single_sourced():
     assert __version__, "aether.__version__ must be set"
+    import aether.cli as cli_mod
+    assert cli_mod.__version__ == __version__
 
 
 def test_orchestrator_initialises_without_skills(tmp_path, monkeypatch):
@@ -21,6 +24,7 @@ def test_orchestrator_initialises_without_skills(tmp_path, monkeypatch):
     orch = AetherOrchestrator()
     assert orch.get_available_skills() == []
     assert "file_writer" in orch.get_available_tools()
+    assert isinstance(orch.errors, list)
 
 
 def test_skills_directory_resolution_env_var(tmp_path, monkeypatch):
@@ -63,9 +67,23 @@ def test_file_writer_handles_bare_filename(tmp_path, monkeypatch):
 def test_file_reader_max_lines_on_short_file(tmp_path):
     f = tmp_path / "short.txt"
     f.write_text("one\ntwo\n")
-    result = FileReaderTool().run(file_path=str(f), max_lines=100)
+    result = FileReaderTool(allowed_root=str(tmp_path)).run(file_path=str(f), max_lines=100)
     assert result.success is True
     assert result.output == "one\ntwo\n"
+
+
+def test_file_reader_blocks_path_traversal(tmp_path):
+    tool = FileReaderTool(allowed_root=str(tmp_path))
+    result = tool.run(file_path="../../etc/passwd")
+    assert result.success is False
+    assert "outside allowed root" in result.error
+
+
+def test_directory_lister_accepts_directory_alias(tmp_path):
+    (tmp_path / "a.txt").write_text("x")
+    result = DirectoryListerTool().run(directory=str(tmp_path), max_depth=1)
+    assert result.success is True
+    assert "a.txt" in result.output
 
 
 def test_guardrails_hitl_for_file_writer():
@@ -76,3 +94,18 @@ def test_guardrails_hitl_for_file_writer():
 def test_guardrails_cultural_sensitivity():
     g = Guardrails()
     assert g.assess_cultural_sensitivity("update the marae garden dashboard for whanau") == "high"
+
+
+def test_read_tools_do_not_require_hitl_from_threat_model():
+    tm = ThreatModeler()
+    for action in ("file_reader", "codebase_search", "memory_query", "directory_lister"):
+        model = tm.analyze_action(action)
+        assert model.requires_hitl is False, f"{action} should not force HITL"
+
+
+def test_orchestrator_allows_read_tools_without_approval(tmp_path, monkeypatch):
+    monkeypatch.chdir(tmp_path)
+    orch = AetherOrchestrator(use_llm=False)
+    for action in ("file_reader", "codebase_search", "memory_query", "directory_lister"):
+        assert orch._requires_approval(action) is False, f"{action} unexpectedly requires approval"
+    assert orch._requires_approval("file_writer") is True

@@ -16,8 +16,11 @@ Tool Registry
 Central place to register, discover, and retrieve tools.
 """
 
+import logging
 from typing import Dict, List, Optional
 from .base import Tool
+
+logger = logging.getLogger("AetherToolRegistry")
 
 
 class ToolRegistry:
@@ -29,7 +32,7 @@ class ToolRegistry:
         if tool.name in self._tools:
             raise ValueError(f"Tool '{tool.name}' is already registered.")
         self._tools[tool.name] = tool
-        print(f"[ToolRegistry] Registered tool: {tool.name}")
+        logger.debug("Registered tool: %s", tool.name)
 
     def get(self, name: str) -> Optional[Tool]:
         """Get a tool by name."""

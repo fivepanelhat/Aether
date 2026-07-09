@@ -2,7 +2,7 @@
 Aether - Sovereign Agentic Development System
 """
 
-__version__ = "0.6.2"
+__version__ = "0.6.3"
 
 
 
