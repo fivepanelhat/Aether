@@ -21,6 +21,11 @@ dev = [
     "pytest>=8.0",
     "ruff>=0.4",
 ]
+webhook = [
+    "fastapi>=0.110",
+    "uvicorn>=0.29",
+    "tenacity>=8.2",
+]
 
 [project.scripts]
 aether = "aether.cli:main"

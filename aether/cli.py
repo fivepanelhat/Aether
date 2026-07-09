@@ -115,7 +115,7 @@ def start_webhook_server(host: str = "0.0.0.0", port: int = 8000):
 
         uvicorn.run(app, host=host, port=port)
     except ImportError:
-        print("Error: uvicorn is not installed. Run: pip install uvicorn fastapi")
+        print("Error: webhook dependencies are not installed. Run: pip install 'aether[webhook]'")
         sys.exit(1)
 
 

@@ -65,8 +65,9 @@ To use the `git-workflow` skill effectively, you should have:
 
 Aether can automatically start remediation when your CI fails.
 
-1. **Start the webhook server**
+1. **Install the webhook extras and start the server**
    ```bash
+   pip install -e ".[webhook]"
    python run_webhook.py
    # or
    aether webhook
