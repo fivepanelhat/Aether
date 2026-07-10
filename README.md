@@ -3,13 +3,82 @@
 ![Banner](assets/social_preview.png)
 
 
-
 **Sovereign Agentic Development System**
 
 Aether is a culturally grounded, extensible agentic development orchestrator. It helps you plan, debug, scaffold, and execute development work using tools and reusable skills — while keeping you in control through strong human oversight.
 
 **Coastal Alpine Tech Limited** - Companion orchestrator for the Kiwi Edge AI Stack.  
 **Canonical edge target:** Raspberry Pi 5 **(16GB)** with **Hailo-10H NPU** (40 TOPS). Local LLM via Ollama (`qwen2.5-coder` / Gemma 4 class models).
+
+## Architecture Overview
+
+Aether is the **sovereign agentic development orchestrator** for the stack: ReAct loop over local tools and markdown skills, with HITL gates and optional Ollama (`qwen2.5-coder` / Gemma-class models) on developer or edge hardware.
+
+![Aether architecture — liquid glass overview](assets/architecture_overview.png)
+
+### System map
+
+```mermaid
+%%{init: {
+  "theme": "dark",
+  "themeVariables": {
+    "fontSize": "16px",
+    "fontFamily": "Inter, ui-sans-serif, system-ui, sans-serif",
+    "primaryColor": "#0ea5e9",
+    "primaryTextColor": "#f8fafc",
+    "primaryBorderColor": "#38bdf8",
+    "lineColor": "#67e8f9",
+    "secondaryColor": "#1e293b",
+    "tertiaryColor": "#0f172a",
+    "clusterBkg": "#0b1220cc",
+    "clusterBorder": "#38bdf880",
+    "titleColor": "#e2e8f0"
+  },
+  "flowchart": {
+    "nodeSpacing": 40,
+    "rankSpacing": 48,
+    "padding": 20,
+    "htmlLabels": true,
+    "curve": "basis"
+  }
+}}%%
+flowchart TB
+
+    classDef sense fill:#052e16,stroke:#4ade80,stroke-width:2px,color:#f0fdf4
+    classDef edge fill:#0c4a6e,stroke:#38bdf8,stroke-width:2px,color:#f0f9ff
+    classDef core fill:#134e4a,stroke:#2dd4bf,stroke-width:2px,color:#f0fdfa
+    classDef act fill:#422006,stroke:#fbbf24,stroke-width:2px,color:#fffbeb
+    classDef store fill:#1e1b4b,stroke:#a5b4fc,stroke-width:2px,color:#eef2ff
+    classDef ai fill:#3b0764,stroke:#e879f9,stroke-width:2px,color:#fdf4ff
+    classDef app fill:#1e1b4b,stroke:#c4b5fd,stroke-width:2px,color:#eef2ff
+
+    G["Goal / CI signal"] --> ORCH["AetherOrchestrator"]
+    ORCH --> LLM["Ollama client<br/>JSON action contract"]
+    ORCH --> SK["Skill loader<br/>skills/*/SKILL.md"]
+    ORCH --> TL["Tools<br/>read · search · write · memory"]
+    ORCH --> GR["Guardrails + threat model<br/>HITL gates"]
+    LLM --> DEC["Validated decision"]
+    DEC --> GR
+    GR -->|approved| TL
+    GR -->|halt / approve| HITL["Human approval"]
+    TL --> MEM["JSONL memory"]
+    SK --> ORCH
+
+    class G,HITL act
+    class ORCH,SK,TL core
+    class LLM,DEC ai
+    class GR store
+    class MEM store
+```
+
+| Layer | Components | Role |
+| :--- | :--- | :--- |
+| **Loop** | ReAct + tools | One action per step |
+| **Skills** | Markdown packs | Domain procedures |
+| **Safety** | Guardrails + HITL | Writes gated by default |
+| **LLM** | Ollama local | Offline-capable |
+
+*Full detail: [docs/ARCHITECTURE.md](./docs/ARCHITECTURE.md) · [docs/GETTING_STARTED.md](./docs/GETTING_STARTED.md)*
 
 ## Quick Start
 
