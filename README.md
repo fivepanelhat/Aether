@@ -1,16 +1,20 @@
 # Aether
 
-**Sovereign Agentic Development System**
+[![License](https://img.shields.io/badge/License-Apache%202.0-blue?style=flat-square)](LICENSE)  
+[![Python: 3.10+](https://img.shields.io/badge/Python-3.10%2B-blue?style=flat-square)](https://www.python.org/)  
+[![Version](https://img.shields.io/badge/version-0.6.3-informational?style=flat-square)](CHANGELOG.md)  
+[![Hardware Target](https://img.shields.io/badge/Hardware-Raspberry%20Pi%205%2016GB-C11A5B?style=flat-square&logo=raspberry-pi&logoColor=white)]()  
+[![NPU Acceleration](https://img.shields.io/badge/NPU-Hailo--10H%20Accelerated-005A9C?style=flat-square)]()  
+[![Sovereignty](https://img.shields.io/badge/Sovereignty-NZ%20Data%20Bound-00247D?style=flat-square)]()  
+[![CI](https://github.com/fivepanelhat/Aether/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/fivepanelhat/Aether/actions/workflows/ci.yml)  
+[![Dependabot](https://img.shields.io/badge/Dependencies-Monitored-brightgreen?style=flat-square&logo=dependabot)]()  
+[![Sustainability](https://img.shields.io/badge/EECA%20NZ-Carbon%20Tracked-green?style=flat-square)]()
 
-[![Python: 3.10+](https://img.shields.io/badge/Python-3.10%2B-blue.svg)](https://www.python.org/)
-[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
-[![Version](https://img.shields.io/badge/version-0.6.3-informational.svg)](CHANGELOG.md)
-[![Hardware Target](https://img.shields.io/badge/Hardware-Raspberry%20Pi%205%2016GB-C11A5B?style=flat-square&logo=raspberry-pi&logoColor=white)]()
-[![NPU Acceleration](https://img.shields.io/badge/NPU-Hailo--10H%20Accelerated-005A9C?style=flat-square)]()
+**Sovereign Agentic Development System**
 
 Aether is a culturally grounded, extensible agentic development orchestrator. It helps you plan, debug, scaffold, and execute development work using tools and reusable skills — while keeping you in control through strong human oversight.
 
-**Coastal Alpine Tech Limited** · Companion orchestrator for the Kiwi Edge AI Stack.  
+**Coastal Alpine Tech Limited** - Companion orchestrator for the Kiwi Edge AI Stack.  
 **Canonical edge target:** Raspberry Pi 5 **(16GB)** with **Hailo-10H NPU** (40 TOPS). Local LLM via Ollama (`qwen2.5-coder` / Gemma 4 class models).
 
 ## Quick Start
@@ -24,7 +28,6 @@ aether --help
 aether skills
 aether run "Audit the API routes for security issues"
 ```
-
 
 - **[Getting Started Guide](docs/GETTING_STARTED.md)**: A complete guide on how to use Aether's ReAct loop and tools.
 - **[CLI Reference](docs/CLI_REFERENCE.md)**: A detailed reference of all available CLI commands.
