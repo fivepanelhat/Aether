@@ -1,5 +1,8 @@
 # Aether
 
+![Banner](assets/social_preview.png)
+
+
 
 **Sovereign Agentic Development System**
 
