@@ -66,10 +66,14 @@ class SkillLoader:
             if not os.path.isdir(skill_path):
                 continue
 
+            # Prefer SKILL.md; accept skill.md for case-sensitive Linux trees
             skill_md_path = os.path.join(skill_path, "SKILL.md")
-
             if not os.path.isfile(skill_md_path):
-                continue
+                alt = os.path.join(skill_path, "skill.md")
+                if os.path.isfile(alt):
+                    skill_md_path = alt
+                else:
+                    continue
 
             try:
                 skill_data = self._parse_and_validate_skill(skill_md_path, folder_name)

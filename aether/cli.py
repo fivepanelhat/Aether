@@ -128,6 +128,12 @@ def start_webhook_server(host: str = "0.0.0.0", port: int = 8000):
 
 
 def main():
+    try:
+        from aether.paths import ensure_utf8_stdio
+
+        ensure_utf8_stdio()
+    except Exception:
+        pass
     setup_logging()
     parser = argparse.ArgumentParser(
         description="Aether - Sovereign Agentic Development System",

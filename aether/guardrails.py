@@ -173,9 +173,18 @@ class Guardrails:
     ]
 
     def escape_for_shell(self, text: str) -> str:
-        """Safely quote text for use as a single shell argument. Content is
-        preserved exactly; the shell treats it as inert data."""
+        """Safely quote text for use as a single shell argument.
+
+        - POSIX: ``shlex.quote`` (single-quoted)
+        - Windows: ``subprocess.list2cmdline`` (CreateProcess / cmd-safe)
+        Content is preserved; the shell treats it as inert data.
+        """
+        import os
         import shlex
+        import subprocess
+
+        if os.name == "nt":
+            return subprocess.list2cmdline([text])
         return shlex.quote(text)
 
     def detect_prompt_injection(self, text: str) -> Tuple[bool, List[str]]:

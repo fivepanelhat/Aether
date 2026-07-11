@@ -11,8 +11,9 @@ from aether.tools.file_writer import FileWriterTool
 from aether.tools.file_reader import FileReaderTool
 from aether.tools.directory_lister import DirectoryListerTool
 from aether.tools.codebase_search import CodebaseSearchTool
-from aether.paths import bundled_skills_dir
+from aether.paths import bundled_skills_dir, is_within_allowed_root
 from aether.init_cmd import run_init
+import os
 
 
 def test_version_is_single_sourced():
@@ -34,13 +35,14 @@ def test_orchestrator_initialises_without_skills(tmp_path, monkeypatch):
 
 def test_orchestrator_loads_bundled_skills_by_default(tmp_path, monkeypatch):
     """Outside a project skills/ folder, packaged bundled_skills still load."""
+    from pathlib import Path
+
     monkeypatch.chdir(tmp_path)
     monkeypatch.delenv("AETHER_SKILLS_DIR", raising=False)
-    # Isolate from a pre-existing ~/.aether/skills on the developer machine
+    # Isolate from a pre-existing ~/.aether/skills (Linux HOME + Windows USERPROFILE)
     fake_home = tmp_path / "home"
     fake_home.mkdir()
-    monkeypatch.setenv("USERPROFILE", str(fake_home))  # Windows
-    monkeypatch.setenv("HOME", str(fake_home))
+    monkeypatch.setattr(Path, "home", classmethod(lambda cls: fake_home))
     orch = AetherOrchestrator()
     skills = orch.get_available_skills()
     assert len(skills) >= 10
@@ -51,7 +53,7 @@ def test_skills_directory_resolution_env_var(tmp_path, monkeypatch):
     skills_dir = tmp_path / "my-skills"
     skills_dir.mkdir()
     monkeypatch.setenv("AETHER_SKILLS_DIR", str(skills_dir))
-    assert _resolve_skills_directory() == str(skills_dir)
+    assert _resolve_skills_directory() == str(skills_dir.resolve())
 
 
 def test_tool_calls_logged_exactly_once(tmp_path, monkeypatch):
@@ -181,6 +183,54 @@ def test_directory_lister_blocks_path_traversal(tmp_path):
     assert "outside allowed root" in result.error
 
 
+def test_is_within_allowed_root_portable(tmp_path):
+    """Sandbox checks work with mixed separators and sibling path tricks."""
+    root = tmp_path / "proj"
+    root.mkdir()
+    inside = root / "src" / "a.py"
+    inside.parent.mkdir()
+    inside.write_text("x\n", encoding="utf-8")
+    sibling = tmp_path / "proj_evil"
+    sibling.mkdir()
+
+    assert is_within_allowed_root(str(inside), str(root)) is True
+    assert is_within_allowed_root(str(root), str(root)) is True
+    assert is_within_allowed_root(str(sibling), str(root)) is False
+    assert is_within_allowed_root(str(tmp_path), str(root)) is False
+
+    # Forward slashes work on Windows too
+    forward = str(inside).replace("\\", "/")
+    assert is_within_allowed_root(forward, str(root)) is True
+
+    # Relative traversal out of root must fail when resolved against CWD
+    monkey_cwd = root
+    old = os.getcwd()
+    try:
+        os.chdir(monkey_cwd)
+        assert is_within_allowed_root("..", str(root)) is False
+        assert is_within_allowed_root("src", str(root)) is True
+    finally:
+        os.chdir(old)
+
+
+def test_path_tools_accept_forward_slashes(tmp_path):
+    """Tools accept POSIX-style paths on Windows and Linux."""
+    (tmp_path / "nested").mkdir()
+    f = tmp_path / "nested" / "note.txt"
+    f.write_text("kia ora\n", encoding="utf-8")
+    rel = "nested/note.txt"
+    reader = FileReaderTool(allowed_root=str(tmp_path))
+    # resolve relative to allowed_root via chdir
+    old = os.getcwd()
+    try:
+        os.chdir(tmp_path)
+        result = reader.run(file_path=rel)
+        assert result.success is True
+        assert "kia ora" in result.output
+    finally:
+        os.chdir(old)
+
+
 def test_codebase_search_works_inside_root(tmp_path):
     (tmp_path / "app.py").write_text("def login(): pass\n")
     tool = CodebaseSearchTool(allowed_root=str(tmp_path))
@@ -196,12 +246,12 @@ def test_bundled_skills_dir_present():
 
 
 def test_aether_init_copies_skills(tmp_path, monkeypatch):
+    from pathlib import Path
+
     monkeypatch.chdir(tmp_path)
     fake_home = tmp_path / "home"
     fake_home.mkdir()
-    monkeypatch.setenv("USERPROFILE", str(fake_home))
-    monkeypatch.setenv("HOME", str(fake_home))
-    # Point Path.home() via expanduser is hard; patch user_skills_dir target by HOME
+    monkeypatch.setattr(Path, "home", classmethod(lambda cls: fake_home))
     from aether import paths as paths_mod
     monkeypatch.setattr(paths_mod, "user_skills_dir", lambda: fake_home / ".aether" / "skills")
 

@@ -344,11 +344,18 @@ def test_memory_compact(tmp_path):
 # ---------------- Sanitization: boundary escaping ----------------
 
 def test_escape_for_shell_preserves_content():
+    import os
+
     g = Guardrails()
     dangerous = "echo hi; rm -rf / && $HOME | cat `whoami`"
     escaped = g.escape_for_shell(dangerous)
-    # Content preserved inside quotes, rendered inert as a single argument
-    assert "rm -rf" in escaped and escaped.startswith("'")
+    # Content preserved; quoting is platform-specific
+    assert "rm -rf" in escaped
+    if os.name == "nt":
+        # Windows list2cmdline: double-quoted when needed
+        assert escaped.startswith('"') or " " not in dangerous
+    else:
+        assert escaped.startswith("'")
 
 
 def test_sanitize_input_no_longer_mutates():

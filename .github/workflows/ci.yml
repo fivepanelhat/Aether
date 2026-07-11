@@ -11,10 +11,12 @@ permissions:
 
 jobs:
   test:
-    runs-on: ubuntu-latest
     strategy:
+      fail-fast: false
       matrix:
+        os: [ubuntu-latest, windows-latest]
         python-version: ["3.10", "3.12"]
+    runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
 
@@ -32,7 +34,13 @@ jobs:
         run: pytest tests/ -v
 
       - name: CLI smoke test (from outside repo root)
+        shell: bash
+        env:
+          AETHER_SKILLS_DIR: ${{ github.workspace }}/skills
         run: |
-          cd /tmp
+          # Portable temp dir: $RUNNER_TEMP on GHA, /tmp or %TEMP% locally
+          TMPDIR="${RUNNER_TEMP:-${TMPDIR:-/tmp}}"
+          mkdir -p "$TMPDIR/aether-smoke"
+          cd "$TMPDIR/aether-smoke"
           aether --version
-          AETHER_SKILLS_DIR=$GITHUB_WORKSPACE/skills aether skills
+          aether skills

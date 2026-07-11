@@ -2,6 +2,15 @@
 
 All notable changes to Aether will be documented in this file.
 
+## [0.6.7] - 2026-07
+
+### Changed (cross-platform)
+- Path sandbox uses `commonpath` + Windows `normcase` (mixed `/`\\`, case-insensitive drives).
+- `escape_for_shell` uses `subprocess.list2cmdline` on Windows and `shlex.quote` on POSIX.
+- Logging/CLI force UTF-8 stdio where supported; log files open with `encoding=utf-8`.
+- Skill loader accepts `SKILL.md` or `skill.md` (Linux case-sensitive trees).
+- CI matrix: **ubuntu-latest** and **windows-latest** × Python 3.10 / 3.12; portable CLI smoke.
+
 ## [0.6.6] - 2026-07
 
 ### Added

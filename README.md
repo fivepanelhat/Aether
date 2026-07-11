@@ -97,7 +97,7 @@ aether run "Audit the API routes for security issues"
 
 Skills ship inside the package (`aether/bundled_skills`) so `pip install` works without a git checkout. `aether init` copies them to the user/project locations. Discovery order: `AETHER_SKILLS_DIR` → `./skills` → `~/.aether/skills` → packaged skills.
 
-All file tools (read/write/search/list) are sandboxed to the process working directory (allowed root).
+All file tools (read/write/search/list) are sandboxed to the process working directory (allowed root). Paths are handled portably on **Linux and Windows** (mixed separators, case-insensitive roots on Windows, UTF-8 console/logs).
 
 - **[Getting Started Guide](docs/GETTING_STARTED.md)**: A complete guide on how to use Aether's ReAct loop and tools.
 - **[CLI Reference](docs/CLI_REFERENCE.md)**: A detailed reference of all available CLI commands.
@@ -273,7 +273,7 @@ Status badges for this repository (CI, security, license, and stack metadata):
 
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue?style=flat-square)](LICENSE)  
 [![Python: 3.10+](https://img.shields.io/badge/Python-3.10%2B-blue?style=flat-square)](https://www.python.org/)  
-[![Version](https://img.shields.io/badge/version-0.6.6-informational?style=flat-square)](CHANGELOG.md)  
+[![Version](https://img.shields.io/badge/version-0.6.7-informational?style=flat-square)](CHANGELOG.md)  
 [![Hardware Target](https://img.shields.io/badge/Hardware-Raspberry%20Pi%205%2016GB-C11A5B?style=flat-square&logo=raspberry-pi&logoColor=white)]()  
 [![NPU Acceleration](https://img.shields.io/badge/NPU-Hailo--10H%20Accelerated-005A9C?style=flat-square)]()  
 [![Sovereignty](https://img.shields.io/badge/Sovereignty-NZ%20Data%20Bound-00247D?style=flat-square)]()  

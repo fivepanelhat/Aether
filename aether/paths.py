@@ -115,8 +115,56 @@ def copy_skills_tree(src: Path, dest: Path, force: bool = False) -> dict:
     }
 
 
+def _norm_for_compare(p: str) -> str:
+    """Normalize path for equality/containment checks (case-fold on Windows)."""
+    p = os.path.realpath(os.path.abspath(p))
+    # Strip trailing separators so "C:\\proj\\" and "C:\\proj" compare equal
+    p = os.path.normpath(p)
+    if os.name == "nt":
+        p = os.path.normcase(p)
+    return p
+
+
 def is_within_allowed_root(path: str, allowed_root: str) -> bool:
-    """True if path resolves inside allowed_root (realpath, no traversal)."""
-    root = os.path.realpath(allowed_root)
-    resolved = os.path.realpath(os.path.abspath(path))
-    return resolved == root or resolved.startswith(root + os.sep)
+    """
+    True if ``path`` resolves inside ``allowed_root`` (no traversal).
+
+    Portable across Linux and Windows:
+    - Uses ``os.path.commonpath`` (handles drive letters / different roots)
+    - Case-insensitive comparison on Windows (``normcase``)
+    - Works with mixed ``/`` and ``\\`` separators
+    """
+    try:
+        root = _norm_for_compare(allowed_root)
+        resolved = _norm_for_compare(path)
+    except (OSError, ValueError):
+        return False
+
+    try:
+        common = os.path.commonpath([root, resolved])
+    except ValueError:
+        # Different drives on Windows (e.g. C:\\ vs D:\\)
+        return False
+
+    if os.name == "nt":
+        common = os.path.normcase(os.path.normpath(common))
+    else:
+        common = os.path.normpath(common)
+
+    return common == root
+
+
+def ensure_utf8_stdio() -> None:
+    """Best-effort UTF-8 stdout/stderr on Windows consoles (no-op if unsupported)."""
+    import sys
+
+    for stream_name in ("stdout", "stderr"):
+        stream = getattr(sys, stream_name, None)
+        if stream is None:
+            continue
+        reconfigure = getattr(stream, "reconfigure", None)
+        if callable(reconfigure):
+            try:
+                reconfigure(encoding="utf-8", errors="replace")
+            except Exception:
+                pass

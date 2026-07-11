@@ -23,7 +23,15 @@ from typing import Optional
 def setup_logging(level: int = logging.INFO, log_file: Optional[str] = None):
     """
     Configure logging for Aether with consistent formatting.
+    UTF-8 console/file handlers work on both Linux and Windows.
     """
+    try:
+        from aether.paths import ensure_utf8_stdio
+
+        ensure_utf8_stdio()
+    except Exception:
+        pass
+
     formatter = logging.Formatter(
         fmt="%(asctime)s | %(levelname)-8s | %(name)s | %(message)s",
         datefmt="%Y-%m-%d %H:%M:%S"
@@ -39,9 +47,9 @@ def setup_logging(level: int = logging.INFO, log_file: Optional[str] = None):
     root_logger.handlers.clear()
     root_logger.addHandler(console_handler)
 
-    # Optional file logging
+    # Optional file logging (explicit UTF-8 for Windows default code pages)
     if log_file:
-        file_handler = logging.FileHandler(log_file)
+        file_handler = logging.FileHandler(log_file, encoding="utf-8")
         file_handler.setFormatter(formatter)
         root_logger.addHandler(file_handler)
 
