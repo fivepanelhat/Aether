@@ -65,12 +65,22 @@ class TaskState:
     created_at: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
     history: List[str] = field(default_factory=list)
     cultural_considerations: List[str] = field(default_factory=list)
+    # Structured skill applications for CLI / audit (instructions injected into ReAct context)
+    skill_execution_results: List[Dict[str, Any]] = field(default_factory=list)
+    # Active skill instruction bodies the model must follow on subsequent steps
+    active_skill_instructions: List[str] = field(default_factory=list)
 
     def summarize(self) -> str:
         summary = f"Goal: {self.goal}\nPhase: {self.current_phase}\n"
         if self.plan:
             summary += "Plan:\n" + "\n".join(f"  - {p}" for p in self.plan) + "\n"
         summary += f"Loaded Skills: {', '.join(self.loaded_skills) if self.loaded_skills else 'None'}\n"
+        if self.active_skill_instructions:
+            summary += (
+                "\n--- BINDING SKILL PLAYBOOKS (must follow) ---\n"
+                + "\n\n".join(self.active_skill_instructions)
+                + "\n--- END PLAYBOOKS ---\n"
+            )
         return summary
 
 
@@ -263,7 +273,6 @@ class AetherOrchestrator:
                     self.call_tool(action, **self._default_tool_kwargs(action, goal))
 
                 elif action in self.skills_registry:
-                    self.load_skill(action)
                     skill_result = self._execute_skill(action, goal)
                     self.state.tool_calls.append({
                         "step": steps_taken,
@@ -381,12 +390,21 @@ class AetherOrchestrator:
                         self.errors.append(f"{decision.action}: {result.error}")
 
                 elif decision.action in self.skills_registry:
-                    self.load_skill(decision.action)
                     skill_result = self._execute_skill(decision.action, goal)
-                    body = self.skills_registry[decision.action].get("body", "")
-                    observations.append(
-                        f"Step {steps_taken} [skill:{decision.action}] instructions:\n{body[:1200]}"
-                    )
+                    if skill_result.get("applied"):
+                        # Full playbook lives in state.summarize() via active_skill_instructions;
+                        # observation records application for the recent-obs window.
+                        observations.append(
+                            f"Step {steps_taken} [skill:{decision.action}]: playbook APPLIED. "
+                            f"Follow ACTIVE SKILL PLAYBOOK '{decision.action}' in CURRENT STATE on all later steps. "
+                            f"hitl={skill_result.get('requires_hitl')}, "
+                            f"cultural={skill_result.get('cultural_sensitivity')}."
+                        )
+                    else:
+                        observations.append(
+                            f"Step {steps_taken} [skill:{decision.action}]: FAILED — "
+                            f"{skill_result.get('error', 'unknown')}"
+                        )
                     self.state.tool_calls.append({
                         "step": steps_taken,
                         "type": "skill",
@@ -452,15 +470,30 @@ class AetherOrchestrator:
             return {}
         return {}
 
+    def _skill_requires_hitl(self, action: str) -> bool:
+        """True when a registered skill declares HITL or high cultural sensitivity."""
+        meta = self.skills_registry.get(action)
+        if not meta:
+            return False
+        if meta.get("requires_hitl"):
+            return True
+        if str(meta.get("cultural_sensitivity", "low")).lower() == "high":
+            return True
+        return False
+
     def _requires_approval(self, action: str, context: str = "") -> bool:
         """
-        Single source of truth: Guardrails owns the approval policy,
-        ThreatModeler provides a second, independent signal.
+        Approval policy:
+        - Guardrails (tool/keyword risk)
+        - ThreatModeler (independent second signal)
+        - Skill frontmatter: requires_hitl or cultural_sensitivity=high
         """
         if self.guardrails.enforce_hitl(action, context):
             return True
         threat_model = self.threat_modeler.analyze_action(action, context)
-        return threat_model.requires_hitl
+        if threat_model.requires_hitl:
+            return True
+        return self._skill_requires_hitl(action)
 
     def _approve_if_needed(self, action: str, context: str = "") -> bool:
         """
@@ -541,26 +574,81 @@ class AetherOrchestrator:
 
     # ==================== Skill Execution ====================
 
-    def _execute_skill(self, skill_name: str, goal: str):
-        logger.info(f"[Skill Execution] Running: {skill_name}")
+    def _skill_instruction_block(self, skill_name: str, body: str, max_chars: int = 3500) -> str:
+        """Format skill body so the next ReAct turns treat it as binding playbook text."""
+        clipped = body if len(body) <= max_chars else body[:max_chars] + "\n…[truncated]"
+        return (
+            f"### ACTIVE SKILL PLAYBOOK: {skill_name}\n"
+            f"You MUST follow these instructions for remaining steps until the goal is met.\n"
+            f"Prefer tools that implement the steps; do not skip HITL or cultural gates.\n\n"
+            f"{clipped}"
+        )
+
+    def _execute_skill(self, skill_name: str, goal: str) -> Dict[str, Any]:
+        """
+        Apply a skill by injecting its SKILL.md body into task context.
+
+        Skills are markdown playbooks (not sandboxed code). Application means:
+        1. Register the skill as loaded
+        2. Push a binding instruction block into active_skill_instructions (feeds summarize + ReAct)
+        3. Record a structured skill_execution_results entry for CLI/audit
+        """
+        logger.info(f"[Skill Execution] Applying playbook: {skill_name}")
 
         if skill_name not in self.skills_registry:
             logger.warning(f"Skill '{skill_name}' not found in registry.")
-            return {"skill": skill_name, "applied": False, "error": "Skill not found in registry"}
+            result = {
+                "skill": skill_name,
+                "applied": False,
+                "error": "Skill not found in registry",
+            }
+            if self.state:
+                self.state.skill_execution_results.append(result)
+            return result
 
         skill_meta = self.skills_registry[skill_name]
-        instructions = skill_meta.get("body", "No instructions found.")
+        instructions = skill_meta.get("body") or "No instructions found."
+        block = self._skill_instruction_block(skill_name, instructions)
 
-        if self.state:
-            self.state.history.append(
-                f"Loaded instructions for skill '{skill_name}':\n{instructions}"
-            )
-
-        return {
+        result = {
             "skill": skill_name,
             "applied": True,
-            "notes": [f"Instructions loaded into context. Agent must follow the instructions for '{skill_name}'."]
+            "requires_hitl": bool(skill_meta.get("requires_hitl")),
+            "cultural_sensitivity": skill_meta.get("cultural_sensitivity", "low"),
+            "version": skill_meta.get("version", "0.1.0"),
+            "instruction_chars": len(instructions),
+            "notes": [
+                f"Playbook for '{skill_name}' injected into active skill context "
+                f"(goal: {goal[:120]}{'…' if len(goal) > 120 else ''})."
+            ],
         }
+
+        if self.state:
+            if skill_name not in self.state.loaded_skills:
+                self.state.loaded_skills.append(skill_name)
+            # Keep latest full block per skill (replace prior injection for same name)
+            prefix = f"### ACTIVE SKILL PLAYBOOK: {skill_name}\n"
+            self.state.active_skill_instructions = [
+                b for b in self.state.active_skill_instructions if not b.startswith(prefix)
+            ]
+            self.state.active_skill_instructions.append(block)
+            self.state.history.append(
+                f"Applied skill playbook '{skill_name}' "
+                f"({result['instruction_chars']} chars; "
+                f"hitl={result['requires_hitl']}; "
+                f"cultural={result['cultural_sensitivity']})"
+            )
+            self.state.skill_execution_results.append(result)
+            self.memory.add_entry(
+                "skill_applied",
+                skill_name,
+                {
+                    "requires_hitl": result["requires_hitl"],
+                    "cultural_sensitivity": result["cultural_sensitivity"],
+                },
+            )
+
+        return result
 
     def summarize(self) -> str:
         if not self.state:

@@ -18,6 +18,9 @@ app = FastAPI(title="Aether GitHub Webhook Handler")
 GITHUB_WEBHOOK_SECRET = os.getenv("GITHUB_WEBHOOK_SECRET", "")
 # Opt-in only: allow unsigned webhooks for local dev. Never enable in production.
 ALLOW_INSECURE = os.getenv("AETHER_WEBHOOK_INSECURE", "").lower() in ("1", "true", "yes")
+# Opt-in only: authorize high-risk tool actions (e.g. file_writer) from webhooks.
+# Default is propose-only (investigate + plan; halt on HITL actions).
+AUTO_REMEDIATE = os.getenv("AETHER_WEBHOOK_AUTO_REMEDIATE", "").lower() in ("1", "true", "yes")
 
 # Retry configuration — override via environment variables
 MAX_RETRIES = int(os.getenv("WEBHOOK_MAX_RETRIES", "4"))
@@ -85,22 +88,42 @@ def _extract_failure_info(data: dict, event: str) -> dict | None:
     reraise=True,
 )
 def trigger_ci_remediation_with_retry(failure_info: dict):
-    """Retry wrapper around the remediation trigger."""
+    """Retry wrapper around the remediation trigger.
+
+    Default: propose-only (auto_remediate=False). High-risk actions halt with
+    pending approval. Set AETHER_WEBHOOK_AUTO_REMEDIATE=1 only when writes are
+    intentionally authorized for unattended remediation.
+    """
     try:
         aether = AetherOrchestrator()
 
-        goal = (
-            f"CI failed in {failure_info.get('repo', 'unknown')} on branch "
-            f"{failure_info.get('branch', 'unknown')} "
-            f"(commit {failure_info.get('commit_sha', 'unknown')}). "
-            f"Please investigate and propose a fix."
+        if AUTO_REMEDIATE:
+            goal = (
+                f"CI failed in {failure_info.get('repo', 'unknown')} on branch "
+                f"{failure_info.get('branch', 'unknown')} "
+                f"(commit {failure_info.get('commit_sha', 'unknown')}). "
+                f"Investigate and apply a minimal fix if safe. URL: "
+                f"{failure_info.get('html_url', 'n/a')}"
+            )
+        else:
+            goal = (
+                f"CI failed in {failure_info.get('repo', 'unknown')} on branch "
+                f"{failure_info.get('branch', 'unknown')} "
+                f"(commit {failure_info.get('commit_sha', 'unknown')}). "
+                f"Investigate with read-only tools and propose a concrete fix plan. "
+                f"Do not write files or mutate git state. URL: "
+                f"{failure_info.get('html_url', 'n/a')}"
+            )
+
+        logger.info(
+            f"Triggering remediation (auto_remediate={AUTO_REMEDIATE}) for: {goal}"
         )
 
-        logger.info(f"Triggering remediation (attempt) for: {goal}")
-
-        # Webhooks are unattended: use auto_remediate so high-risk steps are
-        # authorized for this run (still path-sandboxed; no interactive prompt).
-        aether.run_react_loop(goal=goal, max_steps=8, auto_remediate=True)
+        aether.run_react_loop(
+            goal=goal,
+            max_steps=8,
+            auto_remediate=AUTO_REMEDIATE,
+        )
         logger.info("Remediation completed successfully.")
 
     except Exception as e:

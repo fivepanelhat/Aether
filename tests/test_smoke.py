@@ -109,3 +109,62 @@ def test_orchestrator_allows_read_tools_without_approval(tmp_path, monkeypatch):
     for action in ("file_reader", "codebase_search", "memory_query", "directory_lister"):
         assert orch._requires_approval(action) is False, f"{action} unexpectedly requires approval"
     assert orch._requires_approval("file_writer") is True
+
+
+def test_skill_requires_hitl_from_frontmatter(tmp_path, monkeypatch):
+    monkeypatch.chdir(tmp_path)
+    orch = AetherOrchestrator(use_llm=False)
+    orch.register_skill(
+        "sensitive-playbook",
+        {
+            "name": "sensitive-playbook",
+            "description": "needs human",
+            "requires_hitl": True,
+            "cultural_sensitivity": "low",
+            "body": "# Do carefully\nStep 1: review",
+        },
+    )
+    assert orch._requires_approval("sensitive-playbook") is True
+    assert orch._requires_approval("directory_lister") is False
+
+
+def test_skill_high_cultural_sensitivity_requires_approval(tmp_path, monkeypatch):
+    monkeypatch.chdir(tmp_path)
+    orch = AetherOrchestrator(use_llm=False)
+    orch.register_skill(
+        "sovereignty-check",
+        {
+            "name": "sovereignty-check",
+            "description": "data sovereignty",
+            "requires_hitl": False,
+            "cultural_sensitivity": "high",
+            "body": "Respect Te Mana Raraunga",
+        },
+    )
+    assert orch._requires_approval("sovereignty-check") is True
+
+
+def test_execute_skill_injects_playbook_into_state(tmp_path, monkeypatch):
+    monkeypatch.chdir(tmp_path)
+    orch = AetherOrchestrator(use_llm=False)
+    orch.register_skill(
+        "demo-skill",
+        {
+            "name": "demo-skill",
+            "description": "demo",
+            "requires_hitl": False,
+            "cultural_sensitivity": "low",
+            "version": "1.2.0",
+            "body": "## Steps\n1. search\n2. report",
+        },
+    )
+    orch.start_task("demo goal")
+    result = orch._execute_skill("demo-skill", "demo goal")
+    assert result["applied"] is True
+    assert "demo-skill" in orch.state.loaded_skills
+    assert len(orch.state.skill_execution_results) == 1
+    assert orch.state.skill_execution_results[0]["skill"] == "demo-skill"
+    assert any("ACTIVE SKILL PLAYBOOK: demo-skill" in b for b in orch.state.active_skill_instructions)
+    summary = orch.state.summarize()
+    assert "BINDING SKILL PLAYBOOKS" in summary
+    assert "1. search" in summary

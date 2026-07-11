@@ -31,8 +31,10 @@ Report privately via GitHub Security Advisory or maintainers. Do not file public
 
 ## Built-in controls
 
-- `ThreatModeler` gates high-risk actions to HITL.
-- Security skills: route audit, error-message sanitisation, schema enforcement.
+- `ThreatModeler` + `Guardrails` gate high-risk **tools** to HITL.
+- **Skill frontmatter** `requires_hitl: true` or `cultural_sensitivity: high` also requires HITL before the skill playbook is applied.
+- GitHub webhooks are **propose-only** by default (`auto_remediate=False`). Set `AETHER_WEBHOOK_AUTO_REMEDIATE=1` only when unattended writes are intentional.
+- Security skills: route audit, error-message sanitisation, schema enforcement, notifications triage, Te Mana Raraunga sovereignty.
 - See `examples/security_hardening.py` and `docs/SKILLS_CATALOG.md`.
 
 ## Quality gates

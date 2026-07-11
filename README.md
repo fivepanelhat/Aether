@@ -75,7 +75,7 @@ flowchart TB
 | :--- | :--- | :--- |
 | **Loop** | ReAct + tools | One action per step |
 | **Skills** | Markdown packs | Domain procedures |
-| **Safety** | Guardrails + HITL | Writes gated by default |
+| **Safety** | Guardrails + skill HITL | Writes + `requires_hitl` / high-cultural skills gated by default |
 | **LLM** | Ollama local | Offline-capable |
 
 *Full detail: [docs/ARCHITECTURE.md](./docs/ARCHITECTURE.md) · [docs/GETTING_STARTED.md](./docs/GETTING_STARTED.md)*
@@ -165,7 +165,7 @@ To use the `git-workflow` skill effectively, you should have:
 
 ### GitHub Webhook Integration (CI Failure Auto-Trigger)
 
-Aether can automatically start remediation when your CI fails.
+Aether can start investigation when your CI fails. **Default is propose-only** (read tools + plan; high-risk writes halt for HITL). Opt in to unattended writes with `AETHER_WEBHOOK_AUTO_REMEDIATE=1`.
 
 1. **Start the webhook server**
    ```bash
@@ -181,6 +181,8 @@ Aether can automatically start remediation when your CI fails.
    export GITHUB_WEBHOOK_SECRET=your-secure-secret
    # Optional local-dev only bypass (never in production):
    # export AETHER_WEBHOOK_INSECURE=1
+   # Optional: authorize high-risk tool actions from webhooks (default off):
+   # export AETHER_WEBHOOK_AUTO_REMEDIATE=1
    ```
 
    Install webhook dependencies if needed:
@@ -264,7 +266,7 @@ Status badges for this repository (CI, security, license, and stack metadata):
 
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue?style=flat-square)](LICENSE)  
 [![Python: 3.10+](https://img.shields.io/badge/Python-3.10%2B-blue?style=flat-square)](https://www.python.org/)  
-[![Version](https://img.shields.io/badge/version-0.6.4-informational?style=flat-square)](CHANGELOG.md)  
+[![Version](https://img.shields.io/badge/version-0.6.5-informational?style=flat-square)](CHANGELOG.md)  
 [![Hardware Target](https://img.shields.io/badge/Hardware-Raspberry%20Pi%205%2016GB-C11A5B?style=flat-square&logo=raspberry-pi&logoColor=white)]()  
 [![NPU Acceleration](https://img.shields.io/badge/NPU-Hailo--10H%20Accelerated-005A9C?style=flat-square)]()  
 [![Sovereignty](https://img.shields.io/badge/Sovereignty-NZ%20Data%20Bound-00247D?style=flat-square)]()  

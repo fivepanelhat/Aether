@@ -114,7 +114,11 @@ def start_webhook_server(host: str = "0.0.0.0", port: int = 8000):
 
         print(f"\nStarting Aether GitHub Webhook server on http://{host}:{port}")
         print("Set GITHUB_WEBHOOK_SECRET for signature verification.")
-        print("Dev only: AETHER_WEBHOOK_INSECURE=1 skips signature checks.\n")
+        print("Dev only: AETHER_WEBHOOK_INSECURE=1 skips signature checks.")
+        print(
+            "Default is propose-only. "
+            "Set AETHER_WEBHOOK_AUTO_REMEDIATE=1 to authorize high-risk writes.\n"
+        )
 
         uvicorn.run(app, host=host, port=port)
     except ImportError:

@@ -2,6 +2,20 @@
 
 All notable changes to Aether will be documented in this file.
 
+## [0.6.5] - 2026-07
+
+### Security
+- **Skill HITL enforced**: skills with `requires_hitl: true` or `cultural_sensitivity: high` require approval (same path as `file_writer`).
+- **Webhook propose-only by default**: CI remediation no longer sets `auto_remediate=True`. Opt in with `AETHER_WEBHOOK_AUTO_REMEDIATE=1`.
+
+### Added
+- `TaskState.skill_execution_results` and `active_skill_instructions` for audit + CLI.
+- Skill application injects a binding playbook block into task state (visible in `summarize()` / ReAct CURRENT STATE).
+
+### Changed
+- `_execute_skill` records structured application metadata (version, HITL, cultural sensitivity).
+- Webhook CLI banner documents propose-only vs auto-remediate env flag.
+
 ## [0.6.4] - 2026-07
 
 ### Added (skills)

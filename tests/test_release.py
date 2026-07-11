@@ -98,6 +98,74 @@ def test_react_loop_gates_high_risk_action(tmp_path, monkeypatch):
     assert not (tmp_path / "out.txt").exists()
 
 
+def test_react_loop_gates_hitl_skill(tmp_path, monkeypatch):
+    monkeypatch.chdir(tmp_path)
+    client = make_scripted_client([
+        {"thought": "load the sensitive skill", "action": "hitl-skill", "args": {}},
+    ])
+    orch = AetherOrchestrator(llm=client)
+    orch.register_skill(
+        "hitl-skill",
+        {
+            "name": "hitl-skill",
+            "description": "needs approval",
+            "requires_hitl": True,
+            "cultural_sensitivity": "low",
+            "body": "Do not proceed without a human.",
+        },
+    )
+    state = orch.run_react_loop("use sensitive skill", max_steps=3)
+    assert any("Pending approval for: hitl-skill" in h for h in state.history)
+    assert state.skill_execution_results == []
+    assert "hitl-skill" not in state.loaded_skills
+
+
+def test_react_loop_applies_skill_playbook_when_approved(tmp_path, monkeypatch):
+    monkeypatch.chdir(tmp_path)
+    client = make_scripted_client([
+        {"thought": "load playbook", "action": "guide-skill", "args": {}},
+        {"thought": "done with playbook", "action": "conclude", "args": {}},
+    ])
+    orch = AetherOrchestrator(llm=client)
+    orch.register_skill(
+        "guide-skill",
+        {
+            "name": "guide-skill",
+            "description": "read-only guide",
+            "requires_hitl": False,
+            "cultural_sensitivity": "low",
+            "body": "Always list the directory first.",
+        },
+    )
+    state = orch.run_react_loop("follow guide", max_steps=5)
+    assert any(r.get("skill") == "guide-skill" and r.get("applied") for r in state.skill_execution_results)
+    assert any("ACTIVE SKILL PLAYBOOK: guide-skill" in b for b in state.active_skill_instructions)
+    assert "Always list the directory first" in state.summarize()
+    assert state.current_phase == "react_complete"
+
+
+def test_react_loop_hitl_skill_allowed_with_auto_remediate(tmp_path, monkeypatch):
+    monkeypatch.chdir(tmp_path)
+    client = make_scripted_client([
+        {"thought": "load skill", "action": "hitl-skill", "args": {}},
+        {"thought": "done", "action": "conclude", "args": {}},
+    ])
+    orch = AetherOrchestrator(llm=client)
+    orch.register_skill(
+        "hitl-skill",
+        {
+            "name": "hitl-skill",
+            "description": "needs approval",
+            "requires_hitl": True,
+            "body": "Authorized batch mode steps.",
+        },
+    )
+    state = orch.run_react_loop("batch skill", max_steps=5, auto_remediate=True)
+    assert any("Auto-remediate authorized: hitl-skill" in h for h in state.history)
+    assert any(r.get("applied") for r in state.skill_execution_results)
+    assert state.current_phase == "react_complete"
+
+
 def test_react_loop_auto_remediate_allows_file_writer(tmp_path, monkeypatch):
     monkeypatch.chdir(tmp_path)
     client = make_scripted_client([
@@ -177,6 +245,38 @@ def test_webhook_signature_fails_closed_without_secret(monkeypatch):
     monkeypatch.setattr(wh, "GITHUB_WEBHOOK_SECRET", "")
     monkeypatch.setattr(wh, "ALLOW_INSECURE", False)
     assert wh.verify_signature(b"{}", "sha256=abc") is False
+
+
+def test_webhook_auto_remediate_defaults_off(monkeypatch):
+    """Propose-only is the safe default for unattended webhooks."""
+    monkeypatch.delenv("AETHER_WEBHOOK_AUTO_REMEDIATE", raising=False)
+    import importlib
+    import aether.webhooks.github_webhook as wh
+    importlib.reload(wh)
+    assert wh.AUTO_REMEDIATE is False
+
+
+def test_webhook_remediation_passes_auto_flag(tmp_path, monkeypatch):
+    """trigger uses AUTO_REMEDIATE env; default False reaches run_react_loop."""
+    import aether.webhooks.github_webhook as wh
+
+    seen = {}
+
+    class FakeOrch:
+        def run_react_loop(self, goal, max_steps=8, auto_remediate=False):
+            seen["goal"] = goal
+            seen["auto_remediate"] = auto_remediate
+            seen["max_steps"] = max_steps
+
+    monkeypatch.setattr(wh, "AetherOrchestrator", FakeOrch)
+    monkeypatch.setattr(wh, "AUTO_REMEDIATE", False)
+    # Disable tenacity retries for a clean single call
+    wh.trigger_ci_remediation_with_retry.retry.wait = lambda *a, **k: 0  # type: ignore[attr-defined]
+    wh.trigger_ci_remediation_with_retry(
+        {"repo": "org/r", "branch": "main", "commit_sha": "abc", "html_url": "https://example"}
+    )
+    assert seen["auto_remediate"] is False
+    assert "propose" in seen["goal"].lower() or "Do not write" in seen["goal"]
 
 
 def test_webhook_signature_valid_hmac(monkeypatch):
