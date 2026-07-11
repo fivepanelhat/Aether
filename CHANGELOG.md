@@ -2,6 +2,12 @@
 
 All notable changes to Aether will be documented in this file.
 
+## [0.6.8] - 2026-07
+
+### Fixed
+- Webhook module imports without FastAPI/tenacity (optional extras); CI no longer fails on `ModuleNotFoundError: fastapi`.
+- CI installs `.[dev,webhook]`; CLI smoke falls back to `python -m aether.cli`.
+
 ## [0.6.7] - 2026-07
 
 ### Changed (cross-platform)

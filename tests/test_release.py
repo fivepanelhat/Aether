@@ -268,10 +268,11 @@ def test_webhook_remediation_passes_auto_flag(tmp_path, monkeypatch):
             seen["auto_remediate"] = auto_remediate
             seen["max_steps"] = max_steps
 
-    monkeypatch.setattr(wh, "AetherOrchestrator", FakeOrch)
     monkeypatch.setattr(wh, "AUTO_REMEDIATE", False)
-    # Disable tenacity retries for a clean single call
-    wh.trigger_ci_remediation_with_retry.retry.wait = lambda *a, **k: 0  # type: ignore[attr-defined]
+    # Patch where the orchestrator is imported inside _trigger_ci_remediation
+    import aether.orchestrator as orch_mod
+
+    monkeypatch.setattr(orch_mod, "AetherOrchestrator", FakeOrch)
     wh.trigger_ci_remediation_with_retry(
         {"repo": "org/r", "branch": "main", "commit_sha": "abc", "html_url": "https://example"}
     )

@@ -273,7 +273,7 @@ Status badges for this repository (CI, security, license, and stack metadata):
 
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue?style=flat-square)](LICENSE)  
 [![Python: 3.10+](https://img.shields.io/badge/Python-3.10%2B-blue?style=flat-square)](https://www.python.org/)  
-[![Version](https://img.shields.io/badge/version-0.6.7-informational?style=flat-square)](CHANGELOG.md)  
+[![Version](https://img.shields.io/badge/version-0.6.8-informational?style=flat-square)](CHANGELOG.md)  
 [![Hardware Target](https://img.shields.io/badge/Hardware-Raspberry%20Pi%205%2016GB-C11A5B?style=flat-square&logo=raspberry-pi&logoColor=white)]()  
 [![NPU Acceleration](https://img.shields.io/badge/NPU-Hailo--10H%20Accelerated-005A9C?style=flat-square)]()  
 [![Sovereignty](https://img.shields.io/badge/Sovereignty-NZ%20Data%20Bound-00247D?style=flat-square)]()  

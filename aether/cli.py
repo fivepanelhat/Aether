@@ -111,20 +111,22 @@ def start_webhook_server(host: str = "0.0.0.0", port: int = 8000):
     """Start the GitHub webhook server."""
     try:
         import uvicorn
-        from aether.webhooks.github_webhook import app
-
-        print(f"\nStarting Aether GitHub Webhook server on http://{host}:{port}")
-        print("Set GITHUB_WEBHOOK_SECRET for signature verification.")
-        print("Dev only: AETHER_WEBHOOK_INSECURE=1 skips signature checks.")
-        print(
-            "Default is propose-only. "
-            "Set AETHER_WEBHOOK_AUTO_REMEDIATE=1 to authorize high-risk writes.\n"
-        )
-
-        uvicorn.run(app, host=host, port=port)
+        from aether.webhooks.github_webhook import app, create_app
     except ImportError:
-        print("Error: webhook dependencies missing. Run: pip install -e \".[webhook]\"")
+        print('Error: webhook dependencies missing. Run: pip install -e ".[webhook]"')
         sys.exit(1)
+
+    application = app if app is not None else create_app()
+
+    print(f"\nStarting Aether GitHub Webhook server on http://{host}:{port}")
+    print("Set GITHUB_WEBHOOK_SECRET for signature verification.")
+    print("Dev only: AETHER_WEBHOOK_INSECURE=1 skips signature checks.")
+    print(
+        "Default is propose-only. "
+        "Set AETHER_WEBHOOK_AUTO_REMEDIATE=1 to authorize high-risk writes.\n"
+    )
+
+    uvicorn.run(application, host=host, port=port)
 
 
 def main():

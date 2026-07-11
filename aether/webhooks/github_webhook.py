@@ -1,19 +1,20 @@
 """
-GitHub Webhook Handler for Aether (with Retry Logic)
+GitHub Webhook Handler for Aether (with optional Retry Logic).
+
+FastAPI / tenacity are optional extras (``pip install -e ".[webhook]"``).
+Core helpers (``verify_signature``, remediation trigger) import without them
+so unit tests and core CI do not require the webhook stack.
 """
 
-import os
-import hmac
-import hashlib
-from fastapi import FastAPI, Request, HTTPException, BackgroundTasks
-from tenacity import retry, stop_after_attempt, wait_exponential, retry_if_exception_type
-import logging
+from __future__ import annotations
 
-from aether.orchestrator import AetherOrchestrator
+import hashlib
+import hmac
+import logging
+import os
+from typing import Any, Callable, Optional
 
 logger = logging.getLogger("AetherGitHubWebhook")
-
-app = FastAPI(title="Aether GitHub Webhook Handler")
 
 GITHUB_WEBHOOK_SECRET = os.getenv("GITHUB_WEBHOOK_SECRET", "")
 # Opt-in only: allow unsigned webhooks for local dev. Never enable in production.
@@ -56,7 +57,7 @@ def verify_signature(payload: bytes, signature: str) -> bool:
     return hmac.compare_digest(expected, signature)
 
 
-def _extract_failure_info(data: dict, event: str) -> dict | None:
+def _extract_failure_info(data: dict, event: str) -> Optional[dict]:
     """Extract relevant failure information from GitHub events."""
     if event == "workflow_run":
         wr = data.get("workflow_run", {})
@@ -81,71 +82,109 @@ def _extract_failure_info(data: dict, event: str) -> dict | None:
     return None
 
 
-@retry(
-    stop=stop_after_attempt(MAX_RETRIES),
-    wait=wait_exponential(multiplier=1, min=MIN_WAIT, max=MAX_WAIT),
-    retry=retry_if_exception_type(Exception),
-    reraise=True,
-)
-def trigger_ci_remediation_with_retry(failure_info: dict):
-    """Retry wrapper around the remediation trigger.
+def _trigger_ci_remediation(failure_info: dict) -> None:
+    """Run one remediation attempt (propose-only unless AUTO_REMEDIATE)."""
+    from aether.orchestrator import AetherOrchestrator
 
-    Default: propose-only (auto_remediate=False). High-risk actions halt with
-    pending approval. Set AETHER_WEBHOOK_AUTO_REMEDIATE=1 only when writes are
-    intentionally authorized for unattended remediation.
-    """
+    aether = AetherOrchestrator()
+
+    if AUTO_REMEDIATE:
+        goal = (
+            f"CI failed in {failure_info.get('repo', 'unknown')} on branch "
+            f"{failure_info.get('branch', 'unknown')} "
+            f"(commit {failure_info.get('commit_sha', 'unknown')}). "
+            f"Investigate and apply a minimal fix if safe. URL: "
+            f"{failure_info.get('html_url', 'n/a')}"
+        )
+    else:
+        goal = (
+            f"CI failed in {failure_info.get('repo', 'unknown')} on branch "
+            f"{failure_info.get('branch', 'unknown')} "
+            f"(commit {failure_info.get('commit_sha', 'unknown')}). "
+            f"Investigate with read-only tools and propose a concrete fix plan. "
+            f"Do not write files or mutate git state. URL: "
+            f"{failure_info.get('html_url', 'n/a')}"
+        )
+
+    logger.info(f"Triggering remediation (auto_remediate={AUTO_REMEDIATE}) for: {goal}")
+
+    aether.run_react_loop(
+        goal=goal,
+        max_steps=8,
+        auto_remediate=AUTO_REMEDIATE,
+    )
+    logger.info("Remediation completed successfully.")
+
+
+def _with_optional_retry(fn: Callable[..., Any]) -> Callable[..., Any]:
+    """Wrap with tenacity when installed; otherwise return bare function."""
     try:
-        aether = AetherOrchestrator()
-
-        if AUTO_REMEDIATE:
-            goal = (
-                f"CI failed in {failure_info.get('repo', 'unknown')} on branch "
-                f"{failure_info.get('branch', 'unknown')} "
-                f"(commit {failure_info.get('commit_sha', 'unknown')}). "
-                f"Investigate and apply a minimal fix if safe. URL: "
-                f"{failure_info.get('html_url', 'n/a')}"
-            )
-        else:
-            goal = (
-                f"CI failed in {failure_info.get('repo', 'unknown')} on branch "
-                f"{failure_info.get('branch', 'unknown')} "
-                f"(commit {failure_info.get('commit_sha', 'unknown')}). "
-                f"Investigate with read-only tools and propose a concrete fix plan. "
-                f"Do not write files or mutate git state. URL: "
-                f"{failure_info.get('html_url', 'n/a')}"
-            )
-
-        logger.info(
-            f"Triggering remediation (auto_remediate={AUTO_REMEDIATE}) for: {goal}"
+        from tenacity import (
+            retry,
+            retry_if_exception_type,
+            stop_after_attempt,
+            wait_exponential,
         )
+    except ImportError:
+        return fn
 
-        aether.run_react_loop(
-            goal=goal,
-            max_steps=8,
-            auto_remediate=AUTO_REMEDIATE,
-        )
-        logger.info("Remediation completed successfully.")
+    return retry(
+        stop=stop_after_attempt(MAX_RETRIES),
+        wait=wait_exponential(multiplier=1, min=MIN_WAIT, max=MAX_WAIT),
+        retry=retry_if_exception_type(Exception),
+        reraise=True,
+    )(fn)
 
+
+@_with_optional_retry
+def trigger_ci_remediation_with_retry(failure_info: dict) -> None:
+    """Retry wrapper around the remediation trigger (tenacity optional)."""
+    try:
+        _trigger_ci_remediation(failure_info)
     except Exception as e:
         logger.warning(f"Remediation attempt failed: {e}")
-        raise  # Let tenacity handle the retry
+        raise
 
 
-@app.post("/webhook/github")
-async def github_webhook(request: Request, background_tasks: BackgroundTasks):
-    signature = request.headers.get("X-Hub-Signature-256", "")
-    payload = await request.body()
+def create_app():
+    """Build the FastAPI app. Requires ``pip install -e ".[webhook]"``."""
+    try:
+        from fastapi import BackgroundTasks, FastAPI, HTTPException, Request
+    except ImportError as e:
+        raise ImportError(
+            "Webhook server requires optional deps. "
+            'Install with: pip install -e ".[webhook]"'
+        ) from e
 
-    if not verify_signature(payload, signature):
-        raise HTTPException(status_code=401, detail="Invalid signature")
+    application = FastAPI(title="Aether GitHub Webhook Handler")
 
-    event = request.headers.get("X-GitHub-Event", "")
-    data = await request.json()
+    @application.post("/webhook/github")
+    async def github_webhook(request: Request, background_tasks: BackgroundTasks):
+        signature = request.headers.get("X-Hub-Signature-256", "")
+        payload = await request.body()
 
-    failure_info = _extract_failure_info(data, event)
+        if not verify_signature(payload, signature):
+            raise HTTPException(status_code=401, detail="Invalid signature")
 
-    if failure_info:
-        logger.info(f"CI failure detected → {failure_info.get('repo')}@{failure_info.get('branch')}")
-        background_tasks.add_task(trigger_ci_remediation_with_retry, failure_info)
+        event = request.headers.get("X-GitHub-Event", "")
+        data = await request.json()
 
-    return {"status": "received"}
+        failure_info = _extract_failure_info(data, event)
+
+        if failure_info:
+            logger.info(
+                f"CI failure detected → {failure_info.get('repo')}@{failure_info.get('branch')}"
+            )
+            background_tasks.add_task(trigger_ci_remediation_with_retry, failure_info)
+
+        return {"status": "received"}
+
+    return application
+
+
+# Lazy module-level app for uvicorn: ``aether.webhooks.github_webhook:app``
+# Only constructed when FastAPI is installed; pure helpers always importable.
+try:
+    app = create_app()
+except ImportError:
+    app = None  # type: ignore[assignment]

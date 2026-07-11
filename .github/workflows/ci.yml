@@ -25,7 +25,8 @@ jobs:
           python-version: ${{ matrix.python-version }}
 
       - name: Install
-        run: pip install -e ".[dev]"
+        # dev = pytest/ruff; webhook optional but installed so server path is exercised in CI
+        run: pip install -e ".[dev,webhook]"
 
       - name: Lint
         run: ruff check aether/
@@ -38,9 +39,15 @@ jobs:
         env:
           AETHER_SKILLS_DIR: ${{ github.workspace }}/skills
         run: |
-          # Portable temp dir: $RUNNER_TEMP on GHA, /tmp or %TEMP% locally
+          # Portable temp dir: $RUNNER_TEMP on GHA
           TMPDIR="${RUNNER_TEMP:-${TMPDIR:-/tmp}}"
           mkdir -p "$TMPDIR/aether-smoke"
           cd "$TMPDIR/aether-smoke"
-          aether --version
-          aether skills
+          # Prefer console script; fall back to module form (PATH quirks)
+          if command -v aether >/dev/null 2>&1; then
+            aether --version
+            aether skills | head -n 40
+          else
+            python -m aether.cli --version
+            python -m aether.cli skills | head -n 40
+          fi
