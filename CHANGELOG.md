@@ -2,6 +2,17 @@
 
 All notable changes to Aether will be documented in this file.
 
+## [0.6.4] - 2026-07
+
+### Added (skills)
+- **`kiwi-edge-architecture`** — Kiwi Edge system map (field → fabric → Core → Weaver → portals → Ollama/Hailo → trust).
+- **`security-notifications-triage`** — Dependabot / GHSA / CodeQL / audit response playbook.
+- **`te-mana-raraunga-sovereignty`** — Te Mana Raraunga 2018 data-sovereignty constraints.
+- Full **Skills Catalog** refresh (`docs/SKILLS_CATALOG.md`) + README Skills section.
+
+### Changed
+- `build-ci-hygiene` → v0.2.0 (least-privilege Actions permissions + Dependabot).
+
 ## [0.6.3] - 2026-07
 
 ### Fixed

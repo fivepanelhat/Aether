@@ -1,65 +1,83 @@
 # Aether Skills Catalog
 
-This document lists all current skills available in Aether, along with when to use them.
+All skills under `skills/*/SKILL.md` are auto-discovered by the dynamic Skill Loader.  
+**Stack companion context (2026-07):** Aether supports the Kiwi Edge AI architecture (RPi 5 16GB + Hailo-10H, Coastal-Alpine-Core, Weaver, portals, firmware) with HITL-first safety.
 
-## High-Value Skills
+Run `python -m aether.cli skills` (or `aether skills` when installed) to list loaded skills and descriptions.
 
-### security-auth-guard
-**Type**: Security  
-**Priority**: Very High  
-**Description**: Adds authentication and role-based access guards to sensitive API routes.  
-**Use When**: Auditing or hardening API security, especially routes using service role keys.
+---
 
-### agent-reliability-context
-**Type**: Orchestration  
-**Priority**: Very High  
-**Description**: Improves agent behavior around conversation history, context retention, and guardrail tuning.  
-**Use When**: Working with multi-turn agents or fixing unreliable agent responses.
+## Architecture & sovereignty (new)
 
-### build-ci-hygiene
-**Type**: Hygiene  
-**Priority**: High  
-**Description**: Prevents module-level environment crashes and ensures reliable CI builds.  
-**Use When**: Fixing build failures or improving CI pipelines.
+### kiwi-edge-architecture
+**Type**: Orchestration · **Priority**: Very High · **Version**: 1.0.0  
+**Description**: Full Kiwi Edge system map — field → fabric → Core SDK → Weaver → portals → Ollama/Hailo → trust plane.  
+**Use when**: Working on coastal-alpine-stack, Core, Weaver, portals, firmware, or architecture docs/blurbs.
 
-### schema-migration-hygiene
-**Type**: Hygiene  
-**Priority**: High  
-**Description**: Detects schema drift and recommends safe database migrations and indexes.  
-**Use When**: Adding new database features or fixing missing columns/indexes.
+### security-notifications-triage
+**Type**: Security · **Priority**: Very High · **Version**: 1.0.0 · **HITL**: yes  
+**Description**: Triage Dependabot/GHSA/CodeQL/pip-audit findings; apply estate patch patterns (workflow permissions, dep floors, SECURITY.md).  
+**Use when**: Security notifications, org-wide hardening sprints, advisory response.
 
-### design-system-unification
-**Type**: Component  
-**Priority**: High  
-**Description**: Helps unify inconsistent design tokens, theming, and component styling across an application.  
-**Use When**: Fixing visual inconsistencies or establishing design standards.
+### te-mana-raraunga-sovereignty
+**Type**: Security · **Priority**: Very High · **Version**: 1.0.0 · **HITL**: yes · **Cultural sensitivity**: high  
+**Description**: Enforce Te Mana Raraunga 2018 data-sovereignty constraints (local custody, no silent cloud exfil).  
+**Use when**: Data flows, multi-tenant RAG, compliance/portfolio docs, whenua-linked domains.
 
-### release-engineering
-**Type**: Workflow  
-**Priority**: High  
-**Description**: Standardizes versioning, building, testing, tagging, and releasing software.  
-**Use When**: Preparing releases or setting up release processes.
+---
 
-### security-route-audit
-**Type**: Security  
-**Priority**: Very High  
-**Description**: Provides a structured process for auditing API routes for security issues.  
-**Use When**: Performing security reviews or hardening sprints.
+## Security
 
-### error-message-sanitization
-**Type**: Security  
-**Priority**: Very High  
-**Description**: Prevents leaking internal error details to API clients.  
-**Use When**: Reviewing or fixing error handling in API routes.
+| Skill | Priority | Description |
+| ----- | -------- | ----------- |
+| `security-auth-guard` | Very High | Auth + RBAC on sensitive API routes |
+| `security-route-audit` | Very High | Structured API route security audit |
+| `error-message-sanitization` | Very High | Block raw error/stack leaks to clients |
+| `service-role-key-protection` | Very High | Force `createAdminClient()` patterns |
+| `strict-zod-schema-enforcement` | High | Replace `z.any()` with strict Zod |
+| `release-preflight` | Very High | Block bad tags, secret sweeps, version skew (HITL) |
 
-### service-role-key-protection
-**Type**: Security  
-**Priority**: Very High  
-**Description**: Enforces the use of `createAdminClient()` instead of raw service role keys.  
-**Use When**: Auditing or refactoring admin-level Supabase usage.
+---
 
-### strict-zod-schema-enforcement
-**Type**: Security  
-**Priority**: High  
-**Description**: Replaces loose validation (`z.any()`) with strict, well-typed Zod schemas.  
-**Use When**: Hardening input validation on API routes.
+## Error remediation & CI
+
+| Skill | Priority | Description |
+| ----- | -------- | ----------- |
+| `error-remediation-orchestrator` | Very High | End-to-end analyze → fix → git (HITL) |
+| `ci-failure-parser` | High | Structure CI / Actions logs for remediation |
+| `notification-responder` | High | Status updates and approval asks |
+| `git-workflow` | High | Branch / commit / push / PR with HITL |
+| `build-ci-hygiene` | High | Lazy env, full production builds, least-privilege CI |
+
+---
+
+## Product & platform
+
+| Skill | Priority | Description |
+| ----- | -------- | ----------- |
+| `agent-reliability-context` | Very High | Multi-turn history, tools, guardrail tuning |
+| `hub-nextjs-component` | High | Whānau hub UI — a11y, Te Tiriti-aware |
+| `design-system-unification` | High | Tokens, theme, visual consistency |
+| `schema-migration-hygiene` | High | Safe DB migrations + indexes (HITL) |
+| `project-scaffolder` | High | Scaffold new projects with stack norms |
+| `release-engineering` | High | Version, build, test, tag, release |
+| `skill-creator` | Medium | Author and iterate new skills |
+
+---
+
+## Suggested stacks
+
+| Goal | Skill sequence |
+| ---- | -------------- |
+| Harden a portal API | `security-route-audit` → `security-auth-guard` → `strict-zod-schema-enforcement` → `error-message-sanitization` |
+| Fix CI on main | `ci-failure-parser` → `error-remediation-orchestrator` → `git-workflow` |
+| Touch Core / stack architecture | `kiwi-edge-architecture` → `te-mana-raraunga-sovereignty` → `security-notifications-triage` |
+| Org security sprint | `security-notifications-triage` → `build-ci-hygiene` → `release-preflight` |
+| Whānau hub UI | `hub-nextjs-component` → `design-system-unification` → `te-mana-raraunga-sovereignty` |
+
+---
+
+## Format
+
+See [AETHER_SKILL_FORMAT.md](./AETHER_SKILL_FORMAT.md) and [SKILL_DEVELOPMENT_GUIDE.md](./SKILL_DEVELOPMENT_GUIDE.md).  
+Meta skill: `skill-creator`.

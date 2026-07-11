@@ -103,18 +103,45 @@ Trigger the error remediation workflow on a specific error or CI failure.
 aether remediate "CI failed on main branch with test error in user.test.ts"
 ```
 
-## Error Remediation Capabilities
+## Skills
 
-Aether includes a set of skills designed to help with automated debugging and fixing:
+Skills are markdown packs under `skills/*/SKILL.md`, auto-loaded at runtime. Full catalogue: **[docs/SKILLS_CATALOG.md](./docs/SKILLS_CATALOG.md)**.
 
-- **`error-remediation-orchestrator`** — Coordinates the full process of analyzing errors and proposing fixes.
-- **`git-workflow`** — Safely creates branches, commits changes, and opens pull requests (with approval).
-- **`ci-failure-parser`** — Extracts useful information from CI failures and GitHub Actions logs.
-- **`notification-responder`** — Generates clear status updates and approval requests.
+```bash
+python -m aether.cli skills
+# or, after install:
+aether skills
+```
 
-These skills are designed to work together. You can trigger them manually or have them respond to CI failures and GitHub issues.
+### Architecture & sovereignty (Kiwi Edge companion)
 
-> **Note**: Git operations and code changes require human approval by default for safety.
+| Skill | Role |
+| ----- | ---- |
+| **`kiwi-edge-architecture`** | System map: field → MQTT → Core → Weaver → portals → Ollama/Hailo on **RPi 5 16GB + Hailo-10H** |
+| **`security-notifications-triage`** | Dependabot / GHSA / CodeQL / audit response (HITL for high-impact) |
+| **`te-mana-raraunga-sovereignty`** | **Te Mana Raraunga 2018** data-sovereignty constraints |
+
+### Error remediation
+
+| Skill | Role |
+| ----- | ---- |
+| **`error-remediation-orchestrator`** | Analyze failures and propose/apply fixes (HITL) |
+| **`git-workflow`** | Branch, commit, push, PR (HITL) |
+| **`ci-failure-parser`** | Structure CI / Actions logs |
+| **`notification-responder`** | Status updates and approval requests |
+
+### Security auditors
+
+`security-route-audit`, `security-auth-guard`, `error-message-sanitization`, `service-role-key-protection`, `strict-zod-schema-enforcement`, `release-preflight`, plus CI hygiene skills.
+
+Trigger manually or via GitHub webhook remediation:
+
+```bash
+aether run "Apply kiwi-edge-architecture and Te Mana Raraunga checks to this Core PR"
+aether remediate "CI failed on main with test error in user.test.ts"
+```
+
+> **Note**: Git operations, code writes, and high-impact security changes require human approval by default.
 
 ## Required Setup for Advanced Features
 
@@ -237,7 +264,7 @@ Status badges for this repository (CI, security, license, and stack metadata):
 
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue?style=flat-square)](LICENSE)  
 [![Python: 3.10+](https://img.shields.io/badge/Python-3.10%2B-blue?style=flat-square)](https://www.python.org/)  
-[![Version](https://img.shields.io/badge/version-0.6.3-informational?style=flat-square)](CHANGELOG.md)  
+[![Version](https://img.shields.io/badge/version-0.6.4-informational?style=flat-square)](CHANGELOG.md)  
 [![Hardware Target](https://img.shields.io/badge/Hardware-Raspberry%20Pi%205%2016GB-C11A5B?style=flat-square&logo=raspberry-pi&logoColor=white)]()  
 [![NPU Acceleration](https://img.shields.io/badge/NPU-Hailo--10H%20Accelerated-005A9C?style=flat-square)]()  
 [![Sovereignty](https://img.shields.io/badge/Sovereignty-NZ%20Data%20Bound-00247D?style=flat-square)]()  
