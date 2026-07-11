@@ -41,6 +41,31 @@ These skills are designed to work together. You can trigger them manually or hav
 
 > **Note**: Git operations and code changes require human approval by default for safety.
 
+## Architectural Standards And Skills CI
+
+Aether now includes two governance and quality-gate skills:
+
+- **`cat-architectural-standards`** - top-level governance for Gold / Platinum / Diamond maturity, decision protocol, HITL gates, and Te Mana Raraunga / Te Tiriti overlays.
+- **`aether-skills-ci`** - validation and CI/CD automation for skills, including version checks and catalog generation.
+
+Run the skills CI checks locally:
+
+```bash
+# Validate individual skills
+bash scripts/validate-skill.sh skills/cat-architectural-standards
+bash scripts/validate-skill.sh skills/aether-skills-ci
+
+# Install test dependencies and execute all tests
+pip install -r requirements-test.txt
+python -m pytest tests/ -v
+```
+
+GitHub Actions workflow:
+
+- `.github/workflows/skills-ci.yml` runs skill validation, version checks, and tests for pull requests and pushes.
+- `scripts/check-skill-versions.py` verifies version/changelog hygiene.
+- `scripts/generate-skills-catalog.py` builds an up-to-date catalog from installed skills.
+
 ## Required Setup for Advanced Features
 
 Some features (especially error remediation and git operations) require additional configuration:

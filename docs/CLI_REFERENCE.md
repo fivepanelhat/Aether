@@ -71,6 +71,20 @@ build-ci-hygiene
 ...
 ```
 
+## Skills CI Commands
+
+Use these repository scripts to validate and test skills changes:
+
+```bash
+bash scripts/validate-skill.sh skills/cat-architectural-standards
+bash scripts/validate-skill.sh skills/aether-skills-ci
+python scripts/check-skill-versions.py
+python scripts/generate-skills-catalog.py
+python -m pytest tests/ -v
+```
+
+The GitHub Actions workflow at `.github/workflows/skills-ci.yml` runs these checks automatically on CI.
+
 ## Planned / Future Commands
 
 These commands are not yet implemented but are planned for future versions of Aether.

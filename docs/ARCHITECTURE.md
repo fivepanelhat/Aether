@@ -35,6 +35,14 @@ Reusable, versioned units of knowledge and behavior. Skills can be:
 - Loaded and executed during the ReAct loop
 - Extended with custom execution logic
 
+#### Governance Layer
+Aether includes a top-level governance skill (`cat-architectural-standards`) that defines:
+- Gold / Platinum / Diamond maturity tiers for solution quality and operational readiness
+- Decision protocol and Human-in-the-Loop (HITL) gates for high-impact actions
+- Te Mana Raraunga and Te Tiriti overlays for cultural safety and data sovereignty alignment
+
+This governance layer is intended to be applied before implementation and release workflows.
+
 ## Data Flow
 
 1. User starts a task with a goal
@@ -61,3 +69,13 @@ Reusable, versioned units of knowledge and behavior. Skills can be:
 - More advanced execution workflows
 - Potential migration to LangGraph for very complex multi-agent scenarios
 - Packaging as a distributable tool
+
+## Skills CI/CD Quality Gates
+
+Aether now ships skills CI tooling to enforce skill quality over time:
+- `.github/workflows/skills-ci.yml`
+- `scripts/validate-skill.sh`
+- `scripts/check-skill-versions.py`
+- `scripts/generate-skills-catalog.py`
+
+These gates validate skill frontmatter, required metadata (`version`, `description`), changelog presence for versioned skills, and automated regression tests.

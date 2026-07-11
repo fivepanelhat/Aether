@@ -4,6 +4,18 @@ This document lists all current skills available in Aether, along with when to u
 
 ## High-Value Skills
 
+### cat-architectural-standards
+**Type**: Governance  
+**Priority**: Critical  
+**Description**: Enforces Gold / Platinum / Diamond maturity standards, decision protocol, HITL gates, and Te Mana Raraunga / Te Tiriti overlays.  
+**Use When**: Planning major architecture, approving production readiness, or reviewing cross-team delivery quality.
+
+### aether-skills-ci
+**Type**: CI/CD  
+**Priority**: Critical  
+**Description**: Provides skill validation, version hygiene checks, catalog generation, and automated tests for skills quality gates.  
+**Use When**: Adding/updating skills, preparing pull requests, and enforcing continuous quality across the skill system.
+
 ### security-auth-guard
 **Type**: Security  
 **Priority**: Very High  
