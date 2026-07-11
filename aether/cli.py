@@ -21,6 +21,7 @@ import sys
 from aether import __version__
 from aether.orchestrator import AetherOrchestrator
 from aether.logging_config import setup_logging
+from aether.init_cmd import run_init
 
 
 def print_header(text: str):
@@ -185,9 +186,24 @@ Examples:
     )
 
     # === Init Command ===
-    subparsers.add_parser(
+    init_parser = subparsers.add_parser(
         "init",
-        help="Initialize Aether in the current project (coming soon)"
+        help="Install bundled skills to ~/.aether/skills and ./skills",
+    )
+    init_parser.add_argument(
+        "--force",
+        action="store_true",
+        help="Overwrite existing skill directories",
+    )
+    init_parser.add_argument(
+        "--user-only",
+        action="store_true",
+        help="Only install to ~/.aether/skills",
+    )
+    init_parser.add_argument(
+        "--project-only",
+        action="store_true",
+        help="Only install to ./skills in the current directory",
     )
 
     # === Remediate Command ===
@@ -221,7 +237,17 @@ Examples:
         elif args.command == "skills":
             list_skills()
         elif args.command == "init":
-            print("Init command coming soon!")
+            user = not getattr(args, "project_only", False)
+            project = not getattr(args, "user_only", False)
+            if getattr(args, "user_only", False) and getattr(args, "project_only", False):
+                print("Error: --user-only and --project-only are mutually exclusive.")
+                sys.exit(1)
+            rc = run_init(
+                project=project,
+                user=user,
+                force=getattr(args, "force", False),
+            )
+            sys.exit(rc)
         elif args.command == "remediate":
             if not getattr(args, "error", "") or args.error.strip() == "":
                 print("Error: Please provide an error.\nExample: aether remediate \"CI failed on main branch\"")

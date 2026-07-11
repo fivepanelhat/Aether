@@ -29,27 +29,10 @@ logger = logging.getLogger("AetherOrchestrator")
 
 
 def _resolve_skills_directory(explicit: Optional[str] = None) -> Optional[str]:
-    """
-    Resolve the skills directory in priority order:
-    1. Explicit argument
-    2. AETHER_SKILLS_DIR environment variable
-    3. ./skills relative to the current working directory
-    4. ~/.aether/skills
-    Returns the first existing directory, or None.
-    """
-    candidates = []
-    if explicit:
-        candidates.append(explicit)
-    env_dir = os.environ.get("AETHER_SKILLS_DIR")
-    if env_dir:
-        candidates.append(env_dir)
-    candidates.append(os.path.join(os.getcwd(), "skills"))
-    candidates.append(os.path.join(os.path.expanduser("~"), ".aether", "skills"))
+    """Delegate to aether.paths (includes packaged bundled_skills)."""
+    from .paths import resolve_skills_directory
 
-    for candidate in candidates:
-        if candidate and os.path.isdir(candidate):
-            return candidate
-    return None
+    return resolve_skills_directory(explicit)
 
 
 @dataclass
@@ -139,10 +122,13 @@ class AetherOrchestrator:
         from .tools.file_writer import FileWriterTool
         from .tools.directory_lister import DirectoryListerTool
 
-        self.tool_registry.register(FileReaderTool())
-        self.tool_registry.register(CodebaseSearchTool())
-        self.tool_registry.register(FileWriterTool())
-        self.tool_registry.register(DirectoryListerTool())
+        # Shared sandbox root: CWD at orchestrator construction (project boundary)
+        root = os.getcwd()
+        self.allowed_root = os.path.realpath(root)
+        self.tool_registry.register(FileReaderTool(allowed_root=self.allowed_root))
+        self.tool_registry.register(CodebaseSearchTool(allowed_root=self.allowed_root))
+        self.tool_registry.register(FileWriterTool(allowed_root=self.allowed_root))
+        self.tool_registry.register(DirectoryListerTool(allowed_root=self.allowed_root))
 
         memory_tool = MemoryQueryTool()
         memory_tool.memory = self.memory

@@ -9,6 +9,8 @@ File Writer Tool (hardened)
 from .base import Tool, ToolResult
 import os
 
+from aether.paths import is_within_allowed_root
+
 
 class FileWriterTool(Tool):
     name = "file_writer"
@@ -23,16 +25,12 @@ class FileWriterTool(Tool):
         # Default sandbox: the current working directory at construction time
         self.allowed_root = os.path.realpath(allowed_root or os.getcwd())
 
-    def _is_within_allowed_root(self, path: str) -> bool:
-        resolved = os.path.realpath(os.path.abspath(path))
-        return resolved == self.allowed_root or resolved.startswith(self.allowed_root + os.sep)
-
     def run(self, file_path: str, content: str, mode: str = "write") -> ToolResult:
         try:
             if mode not in ("write", "append"):
                 return ToolResult(success=False, error=f"Invalid mode: {mode}")
 
-            if not self._is_within_allowed_root(file_path):
+            if not is_within_allowed_root(file_path, self.allowed_root):
                 return ToolResult(
                     success=False,
                     error=f"Refused: '{file_path}' resolves outside allowed root '{self.allowed_root}'"

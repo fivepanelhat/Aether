@@ -2,6 +2,16 @@
 
 All notable changes to Aether will be documented in this file.
 
+## [0.6.6] - 2026-07
+
+### Added
+- **Packaged skills**: `aether/bundled_skills` ships with the wheel; discovery falls back to package data after CWD / `~/.aether/skills`.
+- **`aether init`**: copies bundled skills to `~/.aether/skills` and `./skills` (`--force`, `--user-only`, `--project-only`).
+- Shared `aether.paths` helpers for skills resolution and path sandboxing.
+
+### Security
+- **`codebase_search`** and **`directory_lister`** respect the same `allowed_root` sandbox as file read/write (blocks path traversal).
+
 ## [0.6.5] - 2026-07
 
 ### Security

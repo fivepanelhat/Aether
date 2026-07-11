@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """
-Codebase Search Tool
+Codebase Search Tool (path-sandboxed)
 """
 
 from .base import Tool, ToolResult
@@ -20,15 +20,17 @@ from typing import Optional
 import os
 import fnmatch
 
+from aether.paths import is_within_allowed_root
+
 
 class CodebaseSearchTool(Tool):
     name = "codebase_search"
-    description = "Search for a string across files in a directory."
+    description = "Search for a string across files inside the allowed root."
     input_schema = {
         "query": "String to search for",
-        "directory": "Directory to search in",
+        "directory": "Directory to search in (must be inside allowed root)",
         "file_pattern": "Optional glob pattern (e.g. *.py)",
-        "max_results": "Maximum results to return"
+        "max_results": "Maximum results to return",
     }
 
     # Skip heavy / binary-ish extensions to keep search fast and useful
@@ -39,23 +41,46 @@ class CodebaseSearchTool(Tool):
     }
     _MAX_FILE_BYTES = 1_000_000
 
+    def __init__(self, allowed_root: str = None):
+        self.allowed_root = os.path.realpath(allowed_root or os.getcwd())
+
     def run(
         self,
         query: str,
         directory: str = ".",
         file_pattern: Optional[str] = None,
-        max_results: int = 20
+        max_results: int = 20,
     ) -> ToolResult:
         try:
             if not query:
                 return ToolResult(success=False, error="query must be a non-empty string")
 
+            if not is_within_allowed_root(directory, self.allowed_root):
+                return ToolResult(
+                    success=False,
+                    error=(
+                        f"Refused: '{directory}' resolves outside allowed root "
+                        f"'{self.allowed_root}'"
+                    ),
+                )
+
+            search_root = os.path.realpath(os.path.abspath(directory))
+            if not os.path.isdir(search_root):
+                return ToolResult(success=False, error=f"Not a directory: {directory}")
+
             max_results = max(1, int(max_results))
             matches = []
             query_lower = query.lower()
-            skip_dirs = {".git", "__pycache__", "node_modules", ".venv", "venv", "dist", "build", ".tox"}
+            skip_dirs = {
+                ".git", "__pycache__", "node_modules", ".venv", "venv",
+                "dist", "build", ".tox",
+            }
 
-            for root, dirs, files in os.walk(directory):
+            for root, dirs, files in os.walk(search_root):
+                # Never walk outside sandbox even if a symlink escapes (realpath files)
+                if not is_within_allowed_root(root, self.allowed_root):
+                    dirs.clear()
+                    continue
                 dirs[:] = [d for d in dirs if d not in skip_dirs]
                 for filename in files:
                     if file_pattern and not fnmatch.fnmatch(filename, file_pattern):
@@ -64,6 +89,8 @@ class CodebaseSearchTool(Tool):
                     if ext.lower() in self._SKIP_EXT:
                         continue
                     filepath = os.path.join(root, filename)
+                    if not is_within_allowed_root(filepath, self.allowed_root):
+                        continue
                     try:
                         if os.path.getsize(filepath) > self._MAX_FILE_BYTES:
                             continue

@@ -12,6 +12,8 @@ from typing import Optional
 from itertools import islice
 import os
 
+from aether.paths import is_within_allowed_root
+
 MAX_BYTES_DEFAULT = 512_000  # 500 KB safety ceiling
 
 
@@ -26,13 +28,9 @@ class FileReaderTool(Tool):
     def __init__(self, allowed_root: str = None):
         self.allowed_root = os.path.realpath(allowed_root or os.getcwd())
 
-    def _is_within_allowed_root(self, path: str) -> bool:
-        resolved = os.path.realpath(os.path.abspath(path))
-        return resolved == self.allowed_root or resolved.startswith(self.allowed_root + os.sep)
-
     def run(self, file_path: str, max_lines: Optional[int] = None) -> ToolResult:
         try:
-            if not self._is_within_allowed_root(file_path):
+            if not is_within_allowed_root(file_path, self.allowed_root):
                 return ToolResult(
                     success=False,
                     error=f"Refused: '{file_path}' resolves outside allowed root '{self.allowed_root}'",

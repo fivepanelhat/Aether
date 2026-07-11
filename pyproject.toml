@@ -37,6 +37,13 @@ version = {attr = "aether.__version__"}
 where = ["."]
 include = ["aether*"]
 
+[tool.setuptools.package-data]
+aether = [
+    "bundled_skills/**/*",
+    "bundled_skills/**/SKILL.md",
+    "bundled_skills/**/references/*",
+]
+
 [tool.ruff]
 line-length = 110
 target-version = "py310"

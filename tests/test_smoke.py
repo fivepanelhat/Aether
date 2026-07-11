@@ -10,6 +10,9 @@ from aether.threat_modeling import ThreatModeler
 from aether.tools.file_writer import FileWriterTool
 from aether.tools.file_reader import FileReaderTool
 from aether.tools.directory_lister import DirectoryListerTool
+from aether.tools.codebase_search import CodebaseSearchTool
+from aether.paths import bundled_skills_dir
+from aether.init_cmd import run_init
 
 
 def test_version_is_single_sourced():
@@ -21,10 +24,27 @@ def test_version_is_single_sourced():
 def test_orchestrator_initialises_without_skills(tmp_path, monkeypatch):
     monkeypatch.chdir(tmp_path)
     monkeypatch.delenv("AETHER_SKILLS_DIR", raising=False)
-    orch = AetherOrchestrator()
+    empty = tmp_path / "empty_skills"
+    empty.mkdir()
+    orch = AetherOrchestrator(skills_directory=str(empty))
     assert orch.get_available_skills() == []
     assert "file_writer" in orch.get_available_tools()
     assert isinstance(orch.errors, list)
+
+
+def test_orchestrator_loads_bundled_skills_by_default(tmp_path, monkeypatch):
+    """Outside a project skills/ folder, packaged bundled_skills still load."""
+    monkeypatch.chdir(tmp_path)
+    monkeypatch.delenv("AETHER_SKILLS_DIR", raising=False)
+    # Isolate from a pre-existing ~/.aether/skills on the developer machine
+    fake_home = tmp_path / "home"
+    fake_home.mkdir()
+    monkeypatch.setenv("USERPROFILE", str(fake_home))  # Windows
+    monkeypatch.setenv("HOME", str(fake_home))
+    orch = AetherOrchestrator()
+    skills = orch.get_available_skills()
+    assert len(skills) >= 10
+    assert "kiwi-edge-architecture" in skills or "git-workflow" in skills
 
 
 def test_skills_directory_resolution_env_var(tmp_path, monkeypatch):
@@ -81,7 +101,9 @@ def test_file_reader_blocks_path_traversal(tmp_path):
 
 def test_directory_lister_accepts_directory_alias(tmp_path):
     (tmp_path / "a.txt").write_text("x")
-    result = DirectoryListerTool().run(directory=str(tmp_path), max_depth=1)
+    result = DirectoryListerTool(allowed_root=str(tmp_path)).run(
+        directory=str(tmp_path), max_depth=1
+    )
     assert result.success is True
     assert "a.txt" in result.output
 
@@ -142,6 +164,53 @@ def test_skill_high_cultural_sensitivity_requires_approval(tmp_path, monkeypatch
         },
     )
     assert orch._requires_approval("sovereignty-check") is True
+
+
+def test_codebase_search_blocks_path_traversal(tmp_path):
+    (tmp_path / "ok.py").write_text("secret_token = 1\n")
+    tool = CodebaseSearchTool(allowed_root=str(tmp_path))
+    result = tool.run(query="secret", directory="../../")
+    assert result.success is False
+    assert "outside allowed root" in result.error
+
+
+def test_directory_lister_blocks_path_traversal(tmp_path):
+    tool = DirectoryListerTool(allowed_root=str(tmp_path))
+    result = tool.run(directory="../../")
+    assert result.success is False
+    assert "outside allowed root" in result.error
+
+
+def test_codebase_search_works_inside_root(tmp_path):
+    (tmp_path / "app.py").write_text("def login(): pass\n")
+    tool = CodebaseSearchTool(allowed_root=str(tmp_path))
+    result = tool.run(query="login", directory=str(tmp_path))
+    assert result.success is True
+    assert any("login" in str(m.get("content", "")) for m in result.output)
+
+
+def test_bundled_skills_dir_present():
+    b = bundled_skills_dir()
+    assert b is not None
+    assert (b / "git-workflow" / "SKILL.md").is_file() or any(b.iterdir())
+
+
+def test_aether_init_copies_skills(tmp_path, monkeypatch):
+    monkeypatch.chdir(tmp_path)
+    fake_home = tmp_path / "home"
+    fake_home.mkdir()
+    monkeypatch.setenv("USERPROFILE", str(fake_home))
+    monkeypatch.setenv("HOME", str(fake_home))
+    # Point Path.home() via expanduser is hard; patch user_skills_dir target by HOME
+    from aether import paths as paths_mod
+    monkeypatch.setattr(paths_mod, "user_skills_dir", lambda: fake_home / ".aether" / "skills")
+
+    rc = run_init(project=True, user=True, force=False, cwd=str(tmp_path))
+    assert rc == 0
+    assert (tmp_path / "skills").is_dir()
+    assert any((tmp_path / "skills").iterdir())
+    assert (fake_home / ".aether" / "skills").is_dir()
+    assert any((fake_home / ".aether" / "skills").iterdir())
 
 
 def test_execute_skill_injects_playbook_into_state(tmp_path, monkeypatch):
