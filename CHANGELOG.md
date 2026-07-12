@@ -1,5 +1,13 @@
 # Changelog
 
+
+## Hybrid platform update (July 2026)
+
+- Dual-platform installers: `install.sh` (Linux/macOS) and `install.ps1` (Windows)
+- Mermaid system maps updated for hybridisation (Core · Weaver · Aether · stack) and Windows + Linux hosts
+- Architecture overview images refreshed for hybrid stack + dual OS targets
+- Developer setup / installation docs cover Windows and Linux prerequisites and packages
+
 All notable changes to Aether will be documented in this file.
 
 ## [0.7.0] - 2026-07

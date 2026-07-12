@@ -22,7 +22,7 @@ Aether is the **sovereign agentic development orchestrator** for the stack: ReAc
 %%{init: {
   "theme": "dark",
   "themeVariables": {
-    "fontSize": "16px",
+    "fontSize": "15px",
     "fontFamily": "Inter, ui-sans-serif, system-ui, sans-serif",
     "primaryColor": "#0ea5e9",
     "primaryTextColor": "#f8fafc",
@@ -35,65 +35,136 @@ Aether is the **sovereign agentic development orchestrator** for the stack: ReAc
     "titleColor": "#e2e8f0"
   },
   "flowchart": {
-    "nodeSpacing": 40,
-    "rankSpacing": 48,
-    "padding": 20,
+    "nodeSpacing": 36,
+    "rankSpacing": 44,
+    "padding": 18,
     "htmlLabels": true,
-    "curve": "basis"
+    "curve": "basis",
+    "useMaxWidth": true
   }
 }}%%
 flowchart TB
 
-    classDef sense fill:#052e16,stroke:#4ade80,stroke-width:2px,color:#f0fdf4
-    classDef edge fill:#0c4a6e,stroke:#38bdf8,stroke-width:2px,color:#f0f9ff
-    classDef core fill:#134e4a,stroke:#2dd4bf,stroke-width:2px,color:#f0fdfa
     classDef act fill:#422006,stroke:#fbbf24,stroke-width:2px,color:#fffbeb
-    classDef store fill:#1e1b4b,stroke:#a5b4fc,stroke-width:2px,color:#eef2ff
+    classDef core fill:#134e4a,stroke:#2dd4bf,stroke-width:2px,color:#f0fdfa
     classDef ai fill:#3b0764,stroke:#e879f9,stroke-width:2px,color:#fdf4ff
-    classDef app fill:#1e1b4b,stroke:#c4b5fd,stroke-width:2px,color:#eef2ff
+    classDef store fill:#1e1b4b,stroke:#a5b4fc,stroke-width:2px,color:#eef2ff
+    classDef host fill:#0c4a6e,stroke:#38bdf8,stroke-width:2px,color:#f0f9ff
+    classDef desk fill:#052e16,stroke:#4ade80,stroke-width:2px,color:#f0fdf4
+    classDef stack fill:#312e81,stroke:#a5b4fc,stroke-width:2px,color:#eef2ff
 
-    G["Goal / CI signal"] --> ORCH["AetherOrchestrator"]
+    G["Goal / CI signal"] --> ORCH["AetherOrchestrator<br/>ReAct loop"]
     ORCH --> LLM["Ollama client<br/>JSON action contract"]
     ORCH --> SK["Skill loader<br/>skills/*/SKILL.md"]
-    ORCH --> TL["Tools<br/>read · search · write · memory"]
+    ORCH --> TL["File tools<br/>read · search · write · memory"]
+    ORCH --> CU["Computer use hybrid<br/>screenshot · click · type · shell"]
     ORCH --> GR["Guardrails + threat model<br/>HITL gates"]
     LLM --> DEC["Validated decision"]
     DEC --> GR
     GR -->|approved| TL
+    GR -->|approved| CU
     GR -->|halt / approve| HITL["Human approval"]
-    TL --> MEM["JSONL memory"]
+    TL --> MEM["JSONL memory / audit"]
+    CU --> MEM
     SK --> ORCH
 
+    subgraph HOSTS["Hybrid hosts — one code path"]
+        WIN["Windows 10/11<br/>install.ps1 · pyautogui"]
+        LIN["Linux / RPi OS<br/>install.sh · X11/Wayland"]
+        MAC["macOS optional"]
+    end
+
+    subgraph STACK["Kiwi Edge hybridisation"]
+        CORE["Coastal-Alpine-Core skills"]
+        WEA["Weaver multi-tenant mesh"]
+        CAS["coastal-alpine-stack monorepo"]
+    end
+
+    ORCH -.-> HOSTS
+    SK -.-> CORE & WEA & CAS
+    CU -.-> WIN & LIN
+
     class G,HITL act
-    class ORCH,SK,TL core
+    class ORCH,SK,TL,CU core
     class LLM,DEC ai
-    class GR store
-    class MEM store
+    class GR,MEM store
+    class WIN,LIN,MAC host
+    class CORE,WEA,CAS stack
 ```
 
 | Layer | Components | Role |
 | :--- | :--- | :--- |
-| **Loop** | ReAct + tools | One action per step |
-| **Skills** | Markdown packs | Domain procedures |
-| **Safety** | Guardrails + skill HITL | Writes + `requires_hitl` / high-cultural skills gated by default |
-| **LLM** | Ollama local | Offline-capable |
+| **Loop** | ReAct + tools + computer use | One action per step (files *or* desktop) |
+| **Skills** | Markdown packs + Kiwi Edge skills | Domain procedures + stack architecture |
+| **Safety** | Guardrails + skill HITL | Writes / desktop actuation gated by default |
+| **LLM** | Ollama local (text + vision) | Offline-capable on Windows, Linux, RPi |
+| **Hosts** | `install.ps1` · `install.sh` | Same package; dual-platform installers |
+| **Hybrid stack** | Core · Weaver · coastal-alpine-stack | Companion for sovereign edge development |
 
 *Full detail: [docs/ARCHITECTURE.md](./docs/ARCHITECTURE.md) · [docs/GETTING_STARTED.md](./docs/GETTING_STARTED.md)*
 
 ## Quick Start
 
+### One-line install (recommended)
+
+<details open>
+<summary><strong>🐧 Linux / macOS</strong></summary>
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/fivepanelhat/Aether/main/install.sh | bash
+aether doctor
+```
+
+</details>
+
+<details>
+<summary><strong>🪟 Windows (PowerShell)</strong></summary>
+
+```powershell
+irm https://raw.githubusercontent.com/fivepanelhat/Aether/main/install.ps1 | iex
+aether doctor
+```
+
+> **Note:** If script execution is blocked: `Set-ExecutionPolicy -Scope CurrentUser RemoteSigned`
+
+</details>
+
+### From a clone
+
+<details open>
+<summary><strong>🐧 Linux / macOS</strong></summary>
+
 ```bash
 git clone https://github.com/fivepanelhat/Aether.git
 cd Aether
-pip install -e .
-
-# Install skills into ~/.aether/skills and ./skills (also works after plain pip install)
+python3 -m venv .venv && source .venv/bin/activate
+pip install -e ".[computer]"   # or: pip install -e .  for CLI only
 aether init
-
 aether --help
 aether skills
 aether run "Audit the API routes for security issues"
 ```
+
+</details>
+
+<details>
+<summary><strong>🪟 Windows (PowerShell)</strong></summary>
+
+```powershell
+git clone https://github.com/fivepanelhat/Aether.git
+cd Aether
+python -m venv .venv
+.\.venv\Scripts\Activate.ps1
+pip install -e ".[computer]"   # or: pip install -e .  for CLI only
+aether init
+aether --help
+aether skills
+aether run "Audit the API routes for security issues"
+```
+
+</details>
+
+**Prerequisites (both platforms):** Python 3.10+, Git, [Ollama](https://ollama.com) for local models. On Linux desktop control also needs a display server (X11/Wayland) and often `python3-tk` / `scrot` depending on distro.
 
 Skills ship inside the package (`aether/bundled_skills`) so `pip install` works without a git checkout. `aether init` copies them to the user/project locations. Discovery order: `AETHER_SKILLS_DIR` → `./skills` → `~/.aether/skills` → packaged skills.
 
@@ -354,6 +425,8 @@ Status badges for this repository (CI, security, license, and stack metadata):
 
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue?style=flat-square)](LICENSE)  
 [![Python: 3.10+](https://img.shields.io/badge/Python-3.10%2B-blue?style=flat-square)](https://www.python.org/)  
+[![Platform](https://img.shields.io/badge/Platform-Windows%20%7C%20Linux%20%7C%20macOS-0078D6?style=flat-square)]()  
+[![Hybrid](https://img.shields.io/badge/Hybrid-Edge%20AI%20%2B%20Computer%20Use-8B5CF6?style=flat-square)]()  
 [![Version](https://img.shields.io/badge/version-0.6.8-informational?style=flat-square)](CHANGELOG.md)  
 [![Hardware Target](https://img.shields.io/badge/Hardware-Raspberry%20Pi%205%2016GB-C11A5B?style=flat-square&logo=raspberry-pi&logoColor=white)]()  
 [![NPU Acceleration](https://img.shields.io/badge/NPU-Hailo--10H%20Accelerated-005A9C?style=flat-square)]()  

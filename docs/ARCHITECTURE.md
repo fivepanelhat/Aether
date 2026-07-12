@@ -54,10 +54,42 @@ Reusable, versioned units of knowledge and behavior. Skills can be:
 - **Composability**: Skills and tools are modular and reusable.
 - **Observability**: Actions, decisions, and results are logged and traceable.
 - **Extensibility**: Easy to add new tools and skills over time.
+- **Cross-platform**: One code path for **Windows and Linux** (and macOS).
+
+## Hybridisation — Edge AI + Computer Use + Kiwi Stack
+
+Aether hybridises three concerns:
+
+1. **Sovereign edge AI** — local Ollama (text + vision), offline-capable
+2. **Computer use** — screenshot / mouse / keyboard / shell via `aether computer` (Windows + Linux)
+3. **Kiwi Edge companion** — skills for Core, Weaver, coastal-alpine-stack, Te Mana Raraunga
+
+```mermaid
+%%{init: { "theme": "dark", "flowchart": { "curve": "basis", "useMaxWidth": true } }}%%
+flowchart TB
+    Goal --> Orch[AetherOrchestrator]
+    Orch --> Tools[File tools]
+    Orch --> Computer[Computer use hybrid]
+    Orch --> Skills
+    Orch --> Guard[Guardrails HITL]
+    Computer --> Win[Windows pyautogui]
+    Computer --> Lin[Linux X11 Wayland]
+    Skills --> Core[Coastal-Alpine-Core awareness]
+    Skills --> Weaver
+    Skills --> Stack[coastal-alpine-stack]
+```
+
+### Dual-platform install
+
+| OS | Installer |
+| :--- | :--- |
+| Linux / macOS | `install.sh` — `curl -fsSL …/install.sh \| bash` |
+| Windows | `install.ps1` — `irm …/install.ps1 \| iex` |
+
+Extras: `pip install "aether[computer]"` for desktop control; `aether[webhook]` for CI remediation.
 
 ## Future Considerations
 
-- Deeper LLM integration for decision making
-- More advanced execution workflows
-- Potential migration to LangGraph for very complex multi-agent scenarios
-- Packaging as a distributable tool
+- Deeper multi-agent workflows with Weaver / LangGraph
+- Richer computer-use planners for long desktop tasks
+- Tighter Core SecurityGuard alignment on shared threat models

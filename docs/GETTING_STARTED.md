@@ -11,19 +11,63 @@ Aether is an agentic development system that can help you with tasks such as:
 - Running structured development workflows using reusable skills
 - Safely applying code changes through git
 
-## Installation
+## Installation (Windows + Linux)
+
+Aether is dual-platform: **Windows 10/11**, **Linux** (including RPi OS), and macOS. Hybrid extras add **computer use** (desktop control) on the same install path.
+
+### One-line installers
+
+**Linux / macOS**
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/fivepanelhat/Aether/main/install.sh | bash
+aether doctor
+```
+
+**Windows (PowerShell)**
+
+```powershell
+irm https://raw.githubusercontent.com/fivepanelhat/Aether/main/install.ps1 | iex
+aether doctor
+```
+
+### From a clone
+
+<details open>
+<summary><strong>🐧 Linux / macOS</strong></summary>
 
 ```bash
 git clone https://github.com/fivepanelhat/Aether.git
 cd Aether
-pip install -e .
+python3 -m venv .venv && source .venv/bin/activate
+pip install -e ".[computer]"   # or: pip install -e .
+aether init
 ```
+
+</details>
+
+<details>
+<summary><strong>🪟 Windows (PowerShell)</strong></summary>
+
+```powershell
+git clone https://github.com/fivepanelhat/Aether.git
+cd Aether
+python -m venv .venv
+.\.venv\Scripts\Activate.ps1
+pip install -e ".[computer]"   # or: pip install -e .
+aether init
+```
+
+</details>
+
+**Prerequisites:** Python 3.10+, Git, [Ollama](https://ollama.com). Linux computer-use may need a display (X11/Wayland) and distro packages such as `python3-tk`.
 
 ## Verify
 
 ```bash
 aether --version
 aether skills
+aether doctor
 ```
 
 ## Running Tasks
