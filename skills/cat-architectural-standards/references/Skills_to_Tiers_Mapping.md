@@ -20,35 +20,34 @@ Many skills serve more than one tier. Primary and secondary classifications are 
 
 ## Current Skills Inventory & Mapping
 
-### Core Orchestration Layer
+### Core Orchestration & Governance
 
 | Skill | Primary Tier | Secondary | Notes / Role |
 |-------|--------------|-----------|--------------|
-| `aether-core` | **Platinum** | Gold, Diamond | Top-level orchestrator. Enforces HITL, cultural safety, and coordinates all other skills. The living embodiment of the Platinum AI Engine. |
-| `cat-architectural-standards` (new) | **All three** | — | Meta-skill. Classifies work into Gold / Platinum / Diamond and enforces the maturity model. Must be loaded for any significant planning or architectural decision. |
-| `aether-skill-authoring` | Diamond + Platinum | Gold | Ensures new skills are production-grade (Diamond) and can contribute to learning/improvement (Platinum). |
+| `cat-architectural-standards` | **All three** | — | Meta-skill. Classifies work into Gold / Platinum / Diamond and enforces the maturity model. Must be loaded for any significant planning or architectural decision. |
+| `skill-creator` | Diamond + Platinum | Gold | Ensures new skills are production-grade (Diamond) and can contribute to learning/improvement (Platinum). |
 
 ### Delivery & Governance (Strong Diamond)
 
 | Skill | Primary Tier | Secondary | Notes / Role |
 |-------|--------------|-----------|--------------|
-| `aether-git-workflow` | **Diamond** | Gold | Safe Git/GitHub operations, conventional commits, PR process, release safety. Core Diamond practice. |
-| `release-preflight` (emerging) | **Diamond** | — | 7-point validation (visibility, sensitive files, tag collision, monotonic versioning, tests, clean tree). Hard Diamond gate. |
-| `keyword-consistency` (emerging) | Diamond | Gold | Enforces consistent naming (hardware standards, terminology) across repos — supports both clean Diamond foundations and Gold clarity. |
+| `git-workflow` | **Diamond** | Gold | Safe Git/GitHub operations, conventional commits, PR process, release safety. Core Diamond practice. |
+| `release-preflight` | **Diamond** | — | 7-point validation (visibility, sensitive files, tag collision, monotonic versioning, tests, clean tree). Hard Diamond gate. |
+| `release-engineering` | **Diamond** | Gold | Release coordination, tagging, deployment orchestration. Ensures Gold/Diamond aligned release gates. |
 
 ### Product & Platform (Gold + Platinum)
 
 | Skill | Primary Tier | Secondary | Notes / Role |
 |-------|--------------|-----------|--------------|
-| `aether-whanau-hub-architecture` | **Gold** | Platinum, Diamond | Deep knowledge of Hub architecture, agent fleet, cultural safety, Te Tiriti alignment, Supabase/RLS, RAG. Primary Gold workflow mapping for the Hub; also feeds Platinum agents and requires Diamond security. |
 | `hub-nextjs-component` | **Gold** | Diamond | Production-ready Next.js / shadcn / accessibility components for Hub UI. Strong Gold (user workflow) + Diamond (accessibility, security, performance). |
-| `aether-ui-ux-platform` | Gold | Diamond | UI/UX review frameworks, visual standards, accessibility auditing. Supports Gold user experience and Diamond quality. |
+| `design-system-unification` | Gold | Diamond | UI/UX frameworks, visual standards, accessibility auditing. Supports Gold user experience and Diamond quality. |
 
-### Domain & Vertical Skills
+### Security & Compliance (Diamond)
 
 | Skill | Primary Tier | Secondary | Notes / Role |
 |-------|--------------|-----------|--------------|
-| `nz-sme-ai-agents` | **Gold** | Platinum | Patterns for NZ SME verticals (Construction, Cafes, Retail, Tourism, etc.). Directly supports Gold workflow-native design for multi-vertical expansion. Can feed Platinum agent fleets. |
+| `security-auth-guard` | **Diamond** | — | Authentication and authorization patterns. Ensures Diamond-grade security posture. |
+| `te-mana-raraunga-sovereignty` | **All three** | — | Embedding Te Mana Raraunga principles into data design, storage, and agent behaviour. Applies to Gold/Platinum/Diamond work. |
 
 ### Supporting / General Skills (Context)
 
@@ -64,20 +63,19 @@ Many skills serve more than one tier. Primary and secondary classifications are 
 
 ### Strengths (What We Already Have)
 
-- **Platinum orchestration** is mature (`aether-core` + multi-agent fleet design).
 - **Gold workflow mapping** for the Hub and multi-vertical thinking is strong.
 - **Diamond foundations** (Git safety, release-preflight, CI hardening, accessibility) are in place or rapidly maturing.
-- Cultural safety and Te Mana Raraunga are embedded across tiers rather than bolted on.
+- **Security & sovereignty** (auth guards, Te Mana Raraunga integration) are embedded across tiers rather than bolted on.
+- **Error handling & observability** (error sanitization, CI failure parsing, notifications) support both Diamond reliability and Platinum feedback loops.
 
 ### Gaps & Opportunities
 
 | Gap | Recommended Action | Priority |
 |-----|--------------------|----------|
 | Explicit `gold_standard_execution` tool / skill | Create thin orchestrator skill that enforces the 5-phase linear pipeline | High |
-| Explicit `platinum_recursive_optimization` skill | Formalise the 5-pillar / data flywheel loop as a callable skill | High |
+| Explicit `platinum_recursive_optimization` skill | Formalise the data flywheel loop as a callable skill | High |
 | Explicit `diamond_infrastructure_deploy` skill | Codify hybrid edge + EKS Hybrid Nodes + security protocol as a skill | Medium-High |
 | Full Platinum Edge hardware skill | Skill that knows RPi field layer + DGX Spark intelligence hub + power/cooling/networking constraints | Medium |
-| Cultural Guardrails as first-class Platinum component | Integrate NeMo Guardrails-style rules + Te Tiriti Colang policies into Platinum layer | High |
 | Observability & SRE skill (Diamond) | Dedicated skill for Prometheus/Grafana, DCGM, logging, alerting standards | Medium |
 | Data Flywheel instrumentation skill | Capture → Curate → Fine-tune → Evaluate → Hot-swap as a repeatable process | High |
 

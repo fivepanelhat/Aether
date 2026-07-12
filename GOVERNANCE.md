@@ -31,4 +31,4 @@ and is bundled with the package so it loads in any Aether session.
 
 - `skills/cat-architectural-standards/SKILL.md` — decision protocol + definitions
 - `skills/cat-architectural-standards/references/Skills_to_Tiers_Mapping.md` — skill→tier map
-- `SECURITY.md`, `COMPLIANCE.md`, `ARCHITECTURE.md` — Diamond/sovereignty detail
+- `SECURITY.md`, `COMPLIANCE.md`, `docs/ARCHITECTURE.md` — Diamond/sovereignty detail

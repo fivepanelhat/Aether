@@ -1,12 +1,12 @@
 ---
 name: cat-architectural-standards
+version: "1.0.0"
+type: decision
+requires_hitl: true
 description: Use when planning, classifying, reviewing, or executing any work for Coastal Alpine Tech, Aether, the Whānau Preterm Support Hub, Mana Kai, or related projects. Enforces the Gold / Platinum / Diamond maturity model. Choose the correct execution mode, apply HITL gates, and keep all work aligned with sovereign AI, Te Mana Raraunga, and data flywheel principles. Trigger phrases include Gold Standard, Platinum Standard, Diamond Standard, architectural standards, maturity tier, execution mode, Platinum Edge.
-metadata:
-  version: "1.0.0"
-  status: active
-  owner: Coastal Alpine Tech
-  last_updated: "2026-07-11"
-  related_standards: Gold Platinum Diamond Platinum-Edge
+status: active
+owner: Coastal Alpine Tech
+last_updated: "2026-07-11"
 ---
 
 # CAT Architectural Standards
@@ -15,8 +15,8 @@ Top-level decision and governance skill for Coastal Alpine Tech. Operationalises
 
 ## Versioning
 
-- Current version is declared in frontmatter `metadata.version` (semver).
-- On any material change to definitions, decision protocol, HITL gates, or hardware targets, increment the version and update `metadata.last_updated`.
+- Current version is declared in frontmatter `version` (semver).
+- On any material change to definitions, decision protocol, HITL gates, or hardware targets, increment the version and update `last_updated`.
 - Maintain a short changelog in `references/CHANGELOG.md`.
 - Skills that implement the three tool signatures (`gold_standard_execution`, `platinum_recursive_optimization`, `diamond_infrastructure_deploy`) must declare compatibility with a minimum version of this skill.
 
@@ -94,10 +94,10 @@ Explicitly declare which standard(s) the decision advances or protects.
 
 ## Integration with Other Skills
 
-- Always load `aether-core` first.
-- Use `aether-git-workflow` for any Diamond-level release or infrastructure changes.
-- Use `aether-whanau-hub-architecture` and `hub-nextjs-component` for Hub-specific Gold/Platinum work.
-- Use `aether-skill-authoring` when creating or refining skills that implement parts of these standards.
+- Use `git-workflow` for any Diamond-level release or infrastructure changes.
+- Use `hub-nextjs-component` for Hub-specific Gold work on UI components and accessibility.
+- Use `skill-creator` when creating or refining skills that implement parts of these standards.
+- Use `release-preflight` and `release-engineering` for Gold/Diamond-aligned release gates.
 - Future skills that implement the three tool signatures (`gold_standard_execution`, `platinum_recursive_optimization`, `diamond_infrastructure_deploy`) must declare compliance with this skill (minimum version stated in their metadata).
 
 ## Anti-Patterns to Avoid
