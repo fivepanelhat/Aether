@@ -76,8 +76,24 @@ class OllamaClient:
 
     # ---------------- chat ----------------
 
-    def chat(self, messages: List[Dict[str, str]], temperature: float = 0.2) -> str:
-        """Single chat completion with retry + exponential backoff."""
+    def chat(
+        self,
+        messages: List[Dict[str, Any]],
+        temperature: float = 0.2,
+        images: Optional[List[str]] = None,
+    ) -> str:
+        """Single chat completion with retry + exponential backoff.
+
+        ``images`` is an optional list of base64-encoded PNG/JPEG frames attached
+        to the final user message — used by the computer-use vision loop against
+        a multimodal Ollama model (e.g. ``qwen2.5-vl`` / ``llama3.2-vision``).
+        """
+        if images:
+            messages = [dict(m) for m in messages]
+            for msg in reversed(messages):
+                if msg.get("role") == "user":
+                    msg["images"] = list(images)
+                    break
         payload = {
             "model": self.model,
             "messages": messages,

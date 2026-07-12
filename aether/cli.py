@@ -107,6 +107,141 @@ def list_skills():
         sys.exit(1)
 
 
+def _interactive_approver(action, args):
+    """Prompt on a TTY before an actuating computer-use step; deny otherwise."""
+    try:
+        if not sys.stdin.isatty():
+            return False
+        print(f"\n[APPROVAL] Computer action '{action}' with {args}")
+        answer = input("Proceed? [y/N] ").strip().lower()
+        return answer in ("y", "yes")
+    except (EOFError, KeyboardInterrupt):
+        return False
+
+
+def run_computer_agent(goal, model, max_steps, auto_approve, base_url, dry_run):
+    """Vision computer-use loop over a local Ollama multimodal model."""
+    from aether.computer.agent import ComputerUseAgent, DEFAULT_VISION_MODEL
+    from aether.computer.backend import get_backend
+
+    get_backend(force_new=True, dry_run=dry_run)
+
+    print_header("AETHER COMPUTER USE")
+    print(f"Goal: {goal}")
+    print(f"Vision model: {model or DEFAULT_VISION_MODEL} @ {base_url}")
+    print(f"Max steps: {max_steps} | auto-approve: {auto_approve} | dry-run: {dry_run}")
+    print("-" * 72)
+    if not auto_approve:
+        print("Actuating steps require approval (interactive y/N on a TTY).\n")
+
+    agent = ComputerUseAgent(
+        model=model or DEFAULT_VISION_MODEL,
+        base_url=base_url,
+        auto_approve=auto_approve,
+        approver=None if auto_approve else _interactive_approver,
+    )
+    try:
+        result = agent.run(goal=goal, max_steps=max_steps)
+    except KeyboardInterrupt:
+        print("\n\nOperation cancelled by user.")
+        sys.exit(0)
+
+    print("\n[Result]")
+    print(result.render())
+    print("\n" + "=" * 72)
+    sys.exit(0 if (result.completed or not result.halted_reason) else 2)
+
+
+def run_computer_direct(args):
+    """Deterministic, model-free desktop control (screenshot / click / type / key / scroll)."""
+    from aether.computer.backend import get_backend, BackendUnavailable
+
+    be = get_backend(force_new=True, dry_run=getattr(args, "dry_run", False))
+    if not be.available():
+        print(f"Error: {be.unavailable_reason()}")
+        sys.exit(1)
+
+    op = args.computer_op
+    try:
+        if op == "shot":
+            grab = be.screenshot(path=getattr(args, "path", None) or "aether_screenshot.png")
+            print(f"Saved {grab.width}x{grab.height} screenshot to {grab.path}")
+        elif op == "info":
+            w, h = be.screen_size()
+            cx, cy = be.cursor_position()
+            print(f"Screen {w}x{h}; cursor at ({cx},{cy})")
+        elif op == "click":
+            x, y = be.click(args.x, args.y, button=args.button, clicks=args.clicks)
+            print(f"Clicked {args.button} x{args.clicks} at ({x},{y})")
+        elif op == "move":
+            x, y = be.move(args.x, args.y)
+            print(f"Moved to ({x},{y})")
+        elif op == "type":
+            n = be.type_text(args.text)
+            print(f"Typed {n} characters")
+        elif op == "key":
+            keys = [k for k in args.keys.replace(" ", "").split("+") if k]
+            pressed = be.press(keys)
+            print(f"Pressed {'+'.join(pressed)}")
+        elif op == "scroll":
+            be.scroll(args.amount)
+            print(f"Scrolled {args.amount}")
+        else:
+            print("Unknown computer operation.")
+            sys.exit(1)
+    except BackendUnavailable as e:
+        print(f"Error: {e}")
+        sys.exit(1)
+    except Exception as e:
+        print(f"Error: {e}")
+        sys.exit(1)
+    sys.exit(0)
+
+
+def run_doctor():
+    """Environment readiness check for edge AI + computer use."""
+    from aether.computer.backend import backend_status
+    from aether.llm import OllamaClient, DEFAULT_MODEL
+
+    print_header("AETHER DOCTOR")
+
+    print("[Computer-use backend]")
+    status = backend_status()
+    print(f"  Platform : {status['platform']} (Python {status['python']})")
+    if status["available"]:
+        print(f"  Backend  : OK — screen {status['screen']}")
+    else:
+        print("  Backend  : UNAVAILABLE")
+        print(f"             {status['reason']}")
+    print(f"  Dry-run  : {status['dry_run']}")
+
+    print("\n[Local LLM / edge AI]")
+    text_client = OllamaClient()
+    reachable = text_client.is_available()
+    print(f"  Ollama   : {'reachable' if reachable else 'NOT reachable'} at {text_client.base_url}")
+    print(f"  Text model target : {DEFAULT_MODEL}")
+    if reachable:
+        try:
+            import urllib.request
+            req = urllib.request.Request(f"{text_client.base_url}/api/tags", method="GET")
+            with urllib.request.urlopen(req, timeout=3) as resp:
+                import json as _json
+                tags = _json.loads(resp.read().decode("utf-8"))
+                names = [m.get("name", "?") for m in tags.get("models", [])]
+                print(f"  Installed models  : {', '.join(names) if names else '(none pulled yet)'}")
+        except Exception as e:
+            print(f"  Could not list models: {e}")
+    else:
+        print("  Start Ollama (https://ollama.com) and pull a vision model, e.g.:")
+        print("      ollama pull qwen2.5-vl:7b")
+
+    ready = status["available"] and reachable
+    print("\n" + "=" * 72)
+    print("READY for computer use." if ready else "NOT fully ready — see notes above.")
+    print("=" * 72 + "\n")
+    sys.exit(0 if ready else 1)
+
+
 def start_webhook_server(host: str = "0.0.0.0", port: int = 8000):
     """Start the GitHub webhook server."""
     try:
@@ -146,6 +281,10 @@ Examples:
   aether run "Improve context handling in agents" --max-steps 10
   aether remediate "CI failed on main with test error in user.test.ts"
   aether skills
+  aether doctor
+  aether computer run "Open the calculator and compute 12 * 9"
+  aether computer shot screen.png
+  aether computer click 640 480 --button left
   aether webhook --port 9000
         """
     )
@@ -233,6 +372,59 @@ Examples:
     webhook_parser.add_argument("--host", default="0.0.0.0", help="Host to bind (default: 0.0.0.0)")
     webhook_parser.add_argument("--port", type=int, default=8000, help="Port to listen on (default: 8000)")
 
+    # === Doctor Command ===
+    subparsers.add_parser(
+        "doctor",
+        help="Check edge-AI + computer-use readiness (Ollama, display, backend)",
+    )
+
+    # === Computer Command (edge AI + computer use) ===
+    computer_parser = subparsers.add_parser(
+        "computer",
+        help="Operate the desktop: agentic vision loop, or direct control "
+             '(requires: pip install "aether[computer]")',
+    )
+    computer_parser.add_argument(
+        "--dry-run",
+        action="store_true",
+        help="Rehearse without actuating the mouse/keyboard (AETHER_COMPUTER_DRY_RUN)",
+    )
+    computer_sub = computer_parser.add_subparsers(dest="computer_op", help="Computer operation")
+
+    cu_run = computer_sub.add_parser("run", help="Agentic vision loop: pursue a goal on the desktop")
+    cu_run.add_argument("goal", type=str, help="What Aether should accomplish on screen")
+    cu_run.add_argument("--model", default=None, help="Ollama vision model (default: qwen2.5-vl:7b)")
+    cu_run.add_argument("--base-url", default="http://localhost:11434", help="Ollama base URL")
+    cu_run.add_argument("--max-steps", type=int, default=12, help="Max screenshot->act cycles")
+    cu_run.add_argument(
+        "--auto-approve",
+        action="store_true",
+        help="Authorize actuating steps without interactive confirmation",
+    )
+
+    cu_shot = computer_sub.add_parser("shot", help="Save a screenshot")
+    cu_shot.add_argument("path", nargs="?", default=None, help="Output PNG path")
+    computer_sub.add_parser("info", help="Print screen size and cursor position")
+
+    cu_click = computer_sub.add_parser("click", help="Click at absolute pixel (x, y)")
+    cu_click.add_argument("x", type=int)
+    cu_click.add_argument("y", type=int)
+    cu_click.add_argument("--button", default="left", choices=["left", "right", "middle"])
+    cu_click.add_argument("--clicks", type=int, default=1)
+
+    cu_move = computer_sub.add_parser("move", help="Move pointer to absolute pixel (x, y)")
+    cu_move.add_argument("x", type=int)
+    cu_move.add_argument("y", type=int)
+
+    cu_type = computer_sub.add_parser("type", help="Type literal text at the current focus")
+    cu_type.add_argument("text", type=str)
+
+    cu_key = computer_sub.add_parser("key", help="Press a key or chord, e.g. 'enter' or 'ctrl+s'")
+    cu_key.add_argument("keys", type=str)
+
+    cu_scroll = computer_sub.add_parser("scroll", help="Scroll wheel (positive up, negative down)")
+    cu_scroll.add_argument("amount", type=int)
+
     try:
         args = parser.parse_args()
 
@@ -267,6 +459,27 @@ Examples:
                 host=getattr(args, "host", "0.0.0.0"),
                 port=getattr(args, "port", 8000)
             )
+        elif args.command == "doctor":
+            run_doctor()
+        elif args.command == "computer":
+            op = getattr(args, "computer_op", None)
+            if not op:
+                computer_parser.print_help()
+                sys.exit(1)
+            if op == "run":
+                if not getattr(args, "goal", "") or args.goal.strip() == "":
+                    print('Error: provide a goal.\nExample: aether computer run "Open the calculator and compute 12*9"')
+                    sys.exit(1)
+                run_computer_agent(
+                    goal=args.goal,
+                    model=getattr(args, "model", None),
+                    max_steps=getattr(args, "max_steps", 12),
+                    auto_approve=getattr(args, "auto_approve", False),
+                    base_url=getattr(args, "base_url", "http://localhost:11434"),
+                    dry_run=getattr(args, "dry_run", False),
+                )
+            else:
+                run_computer_direct(args)
         else:
             parser.print_help()
             sys.exit(1)

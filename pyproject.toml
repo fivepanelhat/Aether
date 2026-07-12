@@ -26,6 +26,17 @@ webhook = [
     "uvicorn>=0.27",
     "tenacity>=8.2",
 ]
+computer = [
+    "pyautogui>=0.9.54",
+    "Pillow>=10.0",
+]
+all = [
+    "fastapi>=0.110",
+    "uvicorn>=0.27",
+    "tenacity>=8.2",
+    "pyautogui>=0.9.54",
+    "Pillow>=10.0",
+]
 
 [project.scripts]
 aether = "aether.cli:main"
