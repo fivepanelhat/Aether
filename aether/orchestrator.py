@@ -69,7 +69,8 @@ class TaskState:
 
 class AetherOrchestrator:
     def __init__(self, memory_path: Optional[str] = None, skills_directory: Optional[str] = None,
-                 llm: Optional[OllamaClient] = None, use_llm: bool = True):
+                 llm: Optional[OllamaClient] = None, use_llm: bool = True,
+                 enable_computer_use: bool = False):
         self.state: Optional[TaskState] = None
         self.errors: List[str] = []
         self.auto_remediate: bool = False
@@ -78,12 +79,15 @@ class AetherOrchestrator:
         self.threat_modeler = ThreatModeler()
         self.llm = llm or OllamaClient()
         self.use_llm = use_llm
+        self.enable_computer_use = bool(enable_computer_use)
 
         # Tool system
         self.tool_registry = ToolRegistry()
         self.tool_cache = ToolCache(default_ttl=300)  # 5 minutes
         self.tool_executor = ToolExecutor(self.tool_registry, cache=self.tool_cache)
         self._register_default_tools()
+        if self.enable_computer_use:
+            self._register_computer_tools()
 
         # === Dynamic Skill Loading ===
         resolved = _resolve_skills_directory(skills_directory)
@@ -133,6 +137,21 @@ class AetherOrchestrator:
         memory_tool = MemoryQueryTool()
         memory_tool.memory = self.memory
         self.tool_registry.register(memory_tool)
+
+    def _register_computer_tools(self):
+        """Register desktop actuators and mark the actuating ones high-risk.
+
+        Read-only observation (screenshot, screen_info) stays ungated; every
+        tool that moves the mouse, types, presses keys, or runs a shell command
+        is added to the guardrails' always-require-approval set so the existing
+        HITL gate covers computer use with no special-casing in the loop.
+        """
+        from .computer.tools import build_computer_tools, COMPUTER_ACTUATORS
+
+        for tool in build_computer_tools(allowed_root=self.allowed_root):
+            self.tool_registry.register(tool)
+        self.guardrails.always_require_approval.update(COMPUTER_ACTUATORS)
+        logger.info("Computer-use tools registered (actuators gated by HITL).")
 
     def get_available_tools(self) -> List[str]:
         return self.tool_registry.list_tool_names()

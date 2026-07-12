@@ -2,6 +2,26 @@
 
 All notable changes to Aether will be documented in this file.
 
+## [0.7.0] - 2026-07
+
+### Added — Edge AI + Computer Use (hybrid)
+- **`aether computer`**: operate a real desktop on **Windows and Linux** (and macOS).
+  - `computer run "<goal>"` — agentic screenshot→decide→act loop driven by a **local**
+    Ollama vision model (`qwen2.5-vl` class). Fully on-device; nothing is exfiltrated.
+  - Direct, model-free control: `shot`, `info`, `click`, `move`, `type`, `key`, `scroll`.
+- **`aether doctor`** — readiness check for display/backend + local Ollama + models.
+- New `aether.computer` package: cross-platform PyAutoGUI backend with coordinate
+  clamping, fail-safe, and a `AETHER_COMPUTER_DRY_RUN` rehearsal switch; Aether tools
+  (`screenshot`, `computer_*`, `shell_exec`) registered into the ReAct orchestrator.
+- Actuating tools are gated by the existing **guardrails / HITL** layer; goals are
+  screened for prompt injection before any action runs. Read-only capture is ungated.
+- `OllamaClient.chat()` accepts `images=` for multimodal (vision) prompts.
+- Optional extras `pip install "aether[computer]"` (pyautogui, Pillow) and `[all]`.
+- Cross-platform downloadable installers: `install.sh` (Linux/macOS) and `install.ps1`
+  (Windows) — venv, PATH launcher, skills, and Ollama check in one command.
+- Tests: `tests/test_computer_use.py` (backend clamping/dry-run, tool gating, agent loop,
+  approval-deny halt, injection block).
+
 ## [0.6.8] - 2026-07
 
 ### Fixed

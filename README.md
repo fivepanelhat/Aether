@@ -110,6 +110,87 @@ Trigger the error remediation workflow on a specific error or CI failure.
 aether remediate "CI failed on main branch with test error in user.test.ts"
 ```
 
+## Computer Use — Edge AI that operates your desktop
+
+Aether now hybridises **sovereign edge AI** with **computer use**: a local
+(Ollama) vision model looks at screenshots and drives the real mouse, keyboard,
+and shell to accomplish goals — entirely on-device. No screenshots or keystrokes
+leave the machine. Works on **Windows and Linux** (and macOS) from one code path.
+
+### Download & install (terminal, cross-platform)
+
+**Linux / macOS**
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/fivepanelhat/Aether/main/install.sh | bash
+```
+
+**Windows (PowerShell)**
+
+```powershell
+irm https://raw.githubusercontent.com/fivepanelhat/Aether/main/install.ps1 | iex
+```
+
+Or from a clone, install the desktop extras alongside the base package:
+
+```bash
+pip install -e ".[computer]"     # adds pyautogui + Pillow
+aether doctor                    # verify Ollama + display + backend
+```
+
+The installers create an isolated virtualenv, expose the `aether` command on your
+PATH, install the bundled skills, and check for the local [Ollama](https://ollama.com)
+runtime. Pull a vision model once:
+
+```bash
+ollama pull qwen2.5-vl:7b        # vision model for the agentic loop
+ollama pull qwen2.5-coder:7b     # text model for `aether run`
+```
+
+### Agentic desktop control
+
+```bash
+# Vision loop: Aether observes the screen and acts to reach the goal.
+aether computer run "Open the calculator and compute 12 * 9"
+aether computer run "Rename the selected file to report_final.txt" --max-steps 15
+
+# Authorize actuation without per-step prompts (batch / trusted contexts):
+aether computer run "Tidy my downloads folder" --auto-approve
+
+# Rehearse without touching the mouse/keyboard:
+aether computer run "..." --dry-run
+```
+
+By default every actuating step (click, type, key, scroll, shell) pauses for
+**human approval** on a TTY, routed through the same guardrails/HITL layer that
+gates Aether's file writes. `screenshot` and `screen_info` are read-only and
+never gated.
+
+### Direct control (deterministic, no model needed)
+
+```bash
+aether computer shot screen.png            # capture a screenshot
+aether computer info                       # screen size + cursor position
+aether computer click 640 480 --button left
+aether computer move 200 200
+aether computer type "kia ora"
+aether computer key ctrl+s
+aether computer scroll -3
+```
+
+### Compatibility with the existing stack
+
+The computer-use tools register into the **same ReAct orchestrator, guardrails,
+threat model, and JSONL memory/audit trail** as the rest of Aether, so
+`aether run` can also mix desktop actuation with file/search/skill steps. Prompt
+goals are screened for injection before any action runs, coordinates are clamped
+to the real screen, and the PyAutoGUI fail-safe (fling the cursor to a corner to
+abort) stays on. When there is no display or the extras aren't installed, the
+tools degrade gracefully with an actionable message instead of crashing.
+
+Environment switches: `AETHER_COMPUTER_DRY_RUN=1` rehearses without actuating;
+the vision model/host are overridable with `--model` / `--base-url`.
+
 ## Skills
 
 Skills are markdown packs under `skills/*/SKILL.md`, auto-loaded at runtime. Full catalogue: **[docs/SKILLS_CATALOG.md](./docs/SKILLS_CATALOG.md)**.

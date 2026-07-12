@@ -117,6 +117,53 @@ aether config set memory_path ./memory.json
 ```
 *Status: Planned*
 
+### `doctor`
+Check edge-AI + computer-use readiness: display/backend availability, local Ollama
+reachability, and installed models. Exits non-zero if not fully ready.
+
+```bash
+aether doctor
+```
+*Status: Available*
+
+### `computer`
+Hybrid **edge AI + computer use** — operate the desktop on Windows/Linux/macOS.
+Install the extras first: `pip install "aether[computer]"`.
+
+**Agentic vision loop** — a local Ollama vision model observes the screen and acts:
+
+```bash
+aether computer run "Open the calculator and compute 12 * 9"
+aether computer run "Tidy my downloads folder" --auto-approve
+aether computer run "..." --model qwen2.5-vl:7b --base-url http://localhost:11434 --max-steps 15
+aether computer --dry-run run "..."     # rehearse without actuating
+```
+
+Actuating steps (click/type/key/scroll/shell) require **human approval** on a TTY
+unless `--auto-approve` is passed; screenshots and screen info are read-only.
+
+**Direct control** — deterministic, no model needed:
+
+```bash
+aether computer shot [path.png]
+aether computer info
+aether computer click X Y [--button left|right|middle] [--clicks N]
+aether computer move X Y
+aether computer type "text"
+aether computer key ctrl+s
+aether computer scroll -3
+```
+
+| Option | Applies to | Description |
+|--------|-----------|-------------|
+| `--dry-run` | `computer` | Rehearse without moving the mouse/keyboard (`AETHER_COMPUTER_DRY_RUN`) |
+| `--auto-approve` | `computer run` | Authorize actuating steps without per-step confirmation |
+| `--model` | `computer run` | Ollama vision model (default `qwen2.5-vl:7b`) |
+| `--base-url` | `computer run` | Ollama host (default `http://localhost:11434`) |
+| `--max-steps` | `computer run` | Max screenshot→act cycles (default 12) |
+
+*Status: Available*
+
 ## Global Options
 
 | Option | Description | Default |
