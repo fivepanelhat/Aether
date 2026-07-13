@@ -20,6 +20,11 @@ $BinDir     = Join-Path $env:USERPROFILE ".local\bin"
 function Info($m) { Write-Host "[aether] $m" -ForegroundColor Cyan }
 function Warn($m) { Write-Host "[aether] $m" -ForegroundColor Yellow }
 function Fail($m) { Write-Host "[aether] $m" -ForegroundColor Red; exit 1 }
+function Require-Ok([string]$Step) {
+    if ($null -ne $LASTEXITCODE -and $LASTEXITCODE -ne 0) {
+        Fail "$Step failed (exit code $LASTEXITCODE)"
+    }
+}
 
 # ---- 1. Python ----
 $PythonBin = $null
@@ -28,6 +33,8 @@ foreach ($cand in @("python", "python3", "py")) {
 }
 if (-not $PythonBin) { Fail "Python 3.10+ is required but was not found. Install from https://python.org and re-run." }
 $PyVer = & $PythonBin -c "import sys; print('%d.%d' % sys.version_info[:2])"
+& $PythonBin -c "import sys; raise SystemExit(0 if sys.version_info >= (3, 10) else 1)"
+if ($LASTEXITCODE -ne 0) { Fail "Python 3.10+ is required (found $PyVer)" }
 Info "Using Python $PyVer ($PythonBin)"
 
 # ---- 2. Source: clone or in-place ----
@@ -46,19 +53,24 @@ if ((Test-Path "pyproject.toml") -and (Select-String -Path "pyproject.toml" -Pat
     } else {
         Info "Cloning $RepoUrl"
         git clone --depth 1 $RepoUrl $SrcDir
+        Require-Ok "git clone"
     }
 }
 
 # ---- 3. Virtualenv ----
 Info "Creating virtualenv at $VenvDir"
 & $PythonBin -m venv $VenvDir
+Require-Ok "venv create"
 $VenvPython = Join-Path $VenvDir "Scripts\python.exe"
 $VenvAether = Join-Path $VenvDir "Scripts\aether.exe"
-& $VenvPython -m pip install --upgrade pip | Out-Null
+if (-not (Test-Path $VenvPython)) { Fail "venv python not found at $VenvPython" }
+& $VenvPython -m pip install --upgrade pip
+Require-Ok "pip upgrade"
 
 # ---- 4. Install with computer-use extras ----
 Info "Installing aether[computer] (edge AI + desktop control)"
 & $VenvPython -m pip install "$SrcDir[computer]"
+Require-Ok "pip install aether"
 
 # ---- 5. Bundle skills ----
 Info "Installing bundled skills"
