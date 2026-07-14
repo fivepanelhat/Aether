@@ -1,7 +1,27 @@
 # Aether
 
-![Banner](assets/social_preview.png)
+[![License: Apache 2.0](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](./LICENSE)
+[![Python](https://img.shields.io/badge/Python-3.10%2B-3776ab?logo=python&logoColor=white)](https://www.python.org)
+[![Version](https://img.shields.io/badge/version-0.6.8-blue.svg)](./CHANGELOG.md)
 
+[![Linux](https://img.shields.io/badge/Linux-Ubuntu%2C%20Debian%2C%20Fedora-FCC624?logo=linux&logoColor=black)](https://github.com/fivepanelhat/Aether)
+[![Windows](https://img.shields.io/badge/Windows-10%2B-0078D4?logo=windows&logoColor=white)](https://github.com/fivepanelhat/Aether)
+[![macOS](https://img.shields.io/badge/macOS-12%2B-000000?logo=apple&logoColor=white)](https://github.com/fivepanelhat/Aether)
+[![Raspberry Pi](https://img.shields.io/badge/Raspberry%20Pi-5%20%2816GB%29-C11A5B?logo=raspberry-pi&logoColor=white)](https://github.com/fivepanelhat/Aether)
+
+[![Claude AI](https://img.shields.io/badge/Claude-Anthropic-9C27B0)](https://anthropic.com)
+[![Gemini](https://img.shields.io/badge/Gemini-Google-4285F4?logo=google&logoColor=white)](https://gemini.google.com)
+[![OpenAI](https://img.shields.io/badge/OpenAI-GPT--4-00A67E)](https://openai.com)
+[![Grok](https://img.shields.io/badge/Grok-xAI-000000)](https://x.ai)
+
+[![Hailo NPU](https://img.shields.io/badge/NPU-Hailo--10H-005A9C)](https://github.com/fivepanelhat/Aether)
+[![Computer Use](https://img.shields.io/badge/Computer%20Use-Desktop%20Automation-8B5CF6)](./docs/GETTING_STARTED.md)
+[![ReAct Loop](https://img.shields.io/badge/ReAct%20Loop-Agentic%20Orchestration-0EA5E9)](./docs/ARCHITECTURE.md)
+
+[![CI Status](https://github.com/fivepanelhat/Aether/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/fivepanelhat/Aether/actions/workflows/ci.yml)
+[![Security Status](https://img.shields.io/badge/Dependencies-Monitored-brightgreen?logo=dependabot)](https://github.com/fivepanelhat/Aether/security/dependabot)
+
+![Banner](assets/social_preview.png)
 
 **Sovereign Agentic Development System**
 
@@ -421,18 +441,5 @@ If you use this software, please provide appropriate credit to the Aether Projec
 
 ---
 
-## Project badges
-
-Status badges for this repository (CI, security, license, and stack metadata):
-
-[![License](https://img.shields.io/badge/License-Apache%202.0-blue?style=flat-square)](LICENSE)  
-[![Python: 3.10+](https://img.shields.io/badge/Python-3.10%2B-blue?style=flat-square)](https://www.python.org/)  
-[![Platform](https://img.shields.io/badge/Platform-Windows%20%7C%20Linux%20%7C%20macOS-0078D6?style=flat-square)]()  
-[![Hybrid](https://img.shields.io/badge/Hybrid-Edge%20AI%20%2B%20Computer%20Use-8B5CF6?style=flat-square)]()  
-[![Version](https://img.shields.io/badge/version-0.6.8-informational?style=flat-square)](CHANGELOG.md)  
-[![Hardware Target](https://img.shields.io/badge/Hardware-Raspberry%20Pi%205%2016GB-C11A5B?style=flat-square&logo=raspberry-pi&logoColor=white)]()  
-[![NPU Acceleration](https://img.shields.io/badge/NPU-Hailo--10H%20Accelerated-005A9C?style=flat-square)]()  
-[![Sovereignty](https://img.shields.io/badge/Sovereignty-NZ%20Data%20Bound-00247D?style=flat-square)]()  
-[![CI](https://github.com/fivepanelhat/Aether/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/fivepanelhat/Aether/actions/workflows/ci.yml)  
-[![Dependabot](https://img.shields.io/badge/Dependencies-Monitored-brightgreen?style=flat-square&logo=dependabot)]()  
-[![Sustainability](https://img.shields.io/badge/EECA%20NZ-Carbon%20Tracked-green?style=flat-square)]()
+**Built with focus on data sovereignty and edge intelligence.**  
+**Coastal Alpine Tech Limited — New Plymouth, Taranaki, New Zealand.**
