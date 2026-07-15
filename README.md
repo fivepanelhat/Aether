@@ -8,12 +8,12 @@
 [![HITL](https://img.shields.io/badge/HITL-Draft%2FPrepare%20only-dc2626)](./.github/agent-fleet/AGENTS.md)
 [![Te Mana Raraunga](https://img.shields.io/badge/Te%20Mana%20Raraunga-Aligned-0f766e)](https://github.com/fivepanelhat/fivepanelhat)
 
-**Part of the [Kiwi Edge AI Stack](https://github.com/fivepanelhat/fivepanelhat)** · Founder OS: [NZ-Start-Up](https://github.com/fivepanelhat/NZ-Start-Up) · Agent policy: [`.github/agent-fleet/`](./.github/agent-fleet/)
+**Part of the [Kiwi Edge AI Stack](https://github.com/fivepanelhat/fivepanelhat)** | Founder OS: [NZ-Start-Up](https://github.com/fivepanelhat/NZ-Start-Up) | Agent policy: [`.github/agent-fleet/`](./.github/agent-fleet/)
 
-> Sovereign hybrid edge AI for NZ farms & founders — local-first + multi-model, Te Mana Raraunga aligned — collaborating with Venture Taranaki, startups.com investors & Kotahitanga Investment Fund (HITL + cultural advisory for formal approaches).
+> Sovereign hybrid edge AI for NZ farms and founders - local-first + multi-model, Te Mana Raraunga aligned - collaborating with Venture Taranaki, startups.com investors and Kotahitanga Investment Fund (HITL + cultural advisory for formal approaches).
 
 **Agents inform, draft, prepare, monitor, and remind. Humans advise, sign, file, send, and pay.**  
-Anti-hallucination policy: [`.github/agent-fleet/anti-hallucination.md`](./.github/agent-fleet/anti-hallucination.md) · Congruence: [`CAT_CONGRUENCE.md`](./CAT_CONGRUENCE.md)
+Anti-hallucination policy: [`.github/agent-fleet/anti-hallucination.md`](./.github/agent-fleet/anti-hallucination.md) | Congruence: [`CAT_CONGRUENCE.md`](./CAT_CONGRUENCE.md)
 <!-- END CAT_CONGRUENCE_SNIPPET -->
 
 
@@ -42,18 +42,18 @@ Anti-hallucination policy: [`.github/agent-fleet/anti-hallucination.md`](./.gith
 
 **Sovereign Agentic Development System**
 
-Aether is a culturally grounded, extensible agentic development orchestrator. It helps you plan, debug, scaffold, and execute development work using tools and reusable skills â€” while keeping you in control through strong human oversight.
+Aether is a culturally grounded, extensible agentic development orchestrator. It helps you plan, debug, scaffold, and execute development work using tools and reusable skills  while keeping you in control through strong human oversight.
 
-**Coastal Alpine Tech Limited** â€” pre-seed startup, New Plymouth, Taranaki, Aotearoa New Zealand.
+**Coastal Alpine Tech Limited**  pre-seed startup, New Plymouth, Taranaki, Aotearoa New Zealand.
 **Canonical edge target:** Raspberry Pi 5 **(16GB)** with **Hailo-10H NPU** (40 TOPS). Local LLM via Ollama (`qwen2.5-coder` / Gemma 4 class models).
 
 ## Architecture Overview
 
-> **Diagrams:** Architecture images and Mermaid maps describe the **target product architecture** for this pre-seed stack. They are engineering design maps â€” not claims of large-scale commercial fleet deployment.
+> **Diagrams:** Architecture images and Mermaid maps describe the **target product architecture** for this pre-seed stack. They are engineering design maps  not claims of large-scale commercial fleet deployment.
 
 Aether is the **sovereign agentic development orchestrator** for the stack: ReAct loop over local tools and markdown skills, with HITL gates and optional Ollama (`qwen2.5-coder` / Gemma-class models) on developer or edge hardware.
 
-![Aether architecture â€” liquid glass overview](assets/architecture_overview.png)
+![Aether architecture  liquid glass overview](assets/architecture_overview.png)
 
 ### System map
 
@@ -95,21 +95,21 @@ flowchart TB
     G["Goal / CI signal"] --> ORCH["AetherOrchestrator<br/>ReAct loop"]
     ORCH --> LLM["Ollama client<br/>JSON action contract"]
     ORCH --> SK["Skill loader<br/>skills/*/SKILL.md"]
-    ORCH --> TL["File tools<br/>read Â· search Â· write Â· memory"]
-    ORCH --> CU["Computer use hybrid<br/>screenshot Â· click Â· type Â· shell"]
+    ORCH --> TL["File tools<br/>read | search | write | memory"]
+    ORCH --> CU["Computer use hybrid<br/>screenshot | click | type | shell"]
     ORCH --> GR["Guardrails + threat model<br/>HITL gates"]
     LLM --> DEC["Validated decision"]
     DEC --> GR
-    GR -->|approved| TL
-    GR -->|approved| CU
-    GR -->|halt / approve| HITL["Human approval"]
+    GR --> | approved | TL
+    GR --> | approved | CU
+    GR --> | halt / approve | HITL["Human approval"]
     TL --> MEM["JSONL memory / audit"]
     CU --> MEM
     SK --> ORCH
 
-    subgraph HOSTS["Hybrid hosts â€” one code path"]
-        WIN["Windows 10/11<br/>install.ps1 Â· pyautogui"]
-        LIN["Linux / RPi OS<br/>install.sh Â· X11/Wayland"]
+    subgraph HOSTS["Hybrid hosts  one code path"]
+        WIN["Windows 10/11<br/>install.ps1 | pyautogui"]
+        LIN["Linux / RPi OS<br/>install.sh | X11/Wayland"]
         MAC["macOS optional"]
     end
 
@@ -131,16 +131,16 @@ flowchart TB
     class CORE,WEA,CAS stack
 ```
 
-| Layer | Components | Role |
-| :--- | :--- | :--- |
-| **Loop** | ReAct + tools + computer use | One action per step (files *or* desktop) |
-| **Skills** | Markdown packs + Kiwi Edge skills | Domain procedures + stack architecture |
-| **Safety** | Guardrails + skill HITL | Writes / desktop actuation gated by default |
-| **LLM** | Ollama local (text + vision) | Offline-capable on Windows, Linux, RPi |
-| **Hosts** | `install.ps1` Â· `install.sh` | Same package; dual-platform installers |
-| **Hybrid stack** | Core Â· Weaver Â· coastal-alpine-stack | Companion for sovereign edge development |
+ | Layer | Components | Role |
+ | :--- | :--- | :--- |
+ | **Loop** | ReAct + tools + computer use | One action per step (files *or* desktop) |
+ | **Skills** | Markdown packs + Kiwi Edge skills | Domain procedures + stack architecture |
+ | **Safety** | Guardrails + skill HITL | Writes / desktop actuation gated by default |
+ | **LLM** | Ollama local (text + vision) | Offline-capable on Windows, Linux, RPi |
+ | **Hosts** | `install.ps1` | `install.sh` | Same package; dual-platform installers |
+ | **Hybrid stack** | Core | Weaver | coastal-alpine-stack | Companion for sovereign edge development |
 
-*Full detail: [docs/ARCHITECTURE.md](./docs/ARCHITECTURE.md) Â· [docs/GETTING_STARTED.md](./docs/GETTING_STARTED.md)*
+*Full detail: [docs/ARCHITECTURE.md](./docs/ARCHITECTURE.md) | [docs/GETTING_STARTED.md](./docs/GETTING_STARTED.md)*
 
 ## Quick Start
 
@@ -205,7 +205,7 @@ aether run "Audit the API routes for security issues"
 
 **Prerequisites (both platforms):** Python 3.10+, Git, [Ollama](https://ollama.com) for local models. On Linux desktop control also needs a display server (X11/Wayland) and often `python3-tk` / `scrot` depending on distro.
 
-Skills ship inside the package (`aether/bundled_skills`) so `pip install` works without a git checkout. `aether init` copies them to the user/project locations. Discovery order: `AETHER_SKILLS_DIR` â†’ `./skills` â†’ `~/.aether/skills` â†’ packaged skills.
+Skills ship inside the package (`aether/bundled_skills`) so `pip install` works without a git checkout. `aether init` copies them to the user/project locations. Discovery order: `AETHER_SKILLS_DIR` â†' `./skills` â†' `~/.aether/skills` â†' packaged skills.
 
 All file tools (read/write/search/list) are sandboxed to the process working directory (allowed root). Paths are handled portably on **Linux and Windows** (mixed separators, case-insensitive roots on Windows, UTF-8 console/logs).
 
@@ -220,11 +220,11 @@ Trigger the error remediation workflow on a specific error or CI failure.
 aether remediate "CI failed on main branch with test error in user.test.ts"
 ```
 
-## Computer Use â€” Edge AI that operates your desktop
+## Computer Use  Edge AI that operates your desktop
 
 Aether now hybridises **sovereign edge AI** with **computer use**: a local
 (Ollama) vision model looks at screenshots and drives the real mouse, keyboard,
-and shell to accomplish goals â€” entirely on-device. No screenshots or keystrokes
+and shell to accomplish goals  entirely on-device. No screenshots or keystrokes
 leave the machine. Works on **Windows and Linux** (and macOS) from one code path.
 
 ### Download & install (terminal, cross-platform)
@@ -313,20 +313,20 @@ aether skills
 
 ### Architecture & sovereignty (Kiwi Edge companion)
 
-| Skill | Role |
-| ----- | ---- |
-| **`kiwi-edge-architecture`** | System map: field â†’ MQTT â†’ Core â†’ Weaver â†’ portals â†’ Ollama/Hailo on **RPi 5 16GB + Hailo-10H** |
-| **`security-notifications-triage`** | Dependabot / GHSA / CodeQL / audit response (HITL for high-impact) |
-| **`te-mana-raraunga-sovereignty`** | **Te Mana Raraunga 2018** data-sovereignty constraints |
+ | Skill | Role |
+ | ----- | ---- |
+ | **`kiwi-edge-architecture`** | System map: field â†' MQTT â†' Core â†' Weaver â†' portals â†' Ollama/Hailo on **RPi 5 16GB + Hailo-10H** |
+ | **`security-notifications-triage`** | Dependabot / GHSA / CodeQL / audit response (HITL for high-impact) |
+ | **`te-mana-raraunga-sovereignty`** | **Te Mana Raraunga 2018** data-sovereignty constraints |
 
 ### Error remediation
 
-| Skill | Role |
-| ----- | ---- |
-| **`error-remediation-orchestrator`** | Analyze failures and propose/apply fixes (HITL) |
-| **`git-workflow`** | Branch, commit, push, PR (HITL) |
-| **`ci-failure-parser`** | Structure CI / Actions logs |
-| **`notification-responder`** | Status updates and approval requests |
+ | Skill | Role |
+ | ----- | ---- |
+ | **`error-remediation-orchestrator`** | Analyze failures and propose/apply fixes (HITL) |
+ | **`git-workflow`** | Branch, commit, push, PR (HITL) |
+ | **`ci-failure-parser`** | Structure CI / Actions logs |
+ | **`notification-responder`** | Status updates and approval requests |
 
 ### Security auditors
 
@@ -354,7 +354,7 @@ To use the `git-workflow` skill effectively, you should have:
   - `workflow` (Update GitHub Action workflows)
 
 **How to create a token:**
-1. Go to GitHub â†’ Settings â†’ Developer settings â†’ Personal access tokens â†’ Tokens (classic)
+1. Go to GitHub â†' Settings â†' Developer settings â†' Personal access tokens â†' Tokens (classic)
 2. Generate new token
 3. Select the scopes listed above
 4. Store the token securely (e.g. in a `.env` file or password manager)
@@ -374,7 +374,7 @@ Aether can start investigation when your CI fails. **Default is propose-only** (
    aether webhook --host 0.0.0.0 --port 9000
    ```
 
-2. **Set your webhook secret** (required â€” verification fails closed without it)
+2. **Set your webhook secret** (required  verification fails closed without it)
    ```bash
    export GITHUB_WEBHOOK_SECRET=your-secure-secret
    # Optional local-dev only bypass (never in production):
@@ -394,7 +394,7 @@ Aether can start investigation when your CI fails. **Default is propose-only** (
    ```
 
 4. **Register the webhook in GitHub**
-   - Go to your repo â†’ Settings â†’ Webhooks â†’ Add webhook
+   - Go to your repo â†' Settings â†' Webhooks â†' Add webhook
    - Payload URL: `https://your-url/webhook/github`
    - Content type: `application/json`
    - Secret: your `GITHUB_WEBHOOK_SECRET` value
@@ -402,7 +402,7 @@ Aether can start investigation when your CI fails. **Default is propose-only** (
 
 ### Webhook Retry Behavior
 
-When a CI failure is received, Aether will attempt to trigger remediation up to **4 times** using exponential backoff (2s â†’ 4s â†’ 8s â†’ 16s).
+When a CI failure is received, Aether will attempt to trigger remediation up to **4 times** using exponential backoff (2s â†' 4s â†' 8s â†' 16s).
 
 If all retry attempts fail, the error is logged but no further automatic action is taken. You can still trigger remediation manually:
 
@@ -412,11 +412,11 @@ aether run "Investigate CI failure in <repo> on branch <branch>"
 
 Retry parameters are configurable via environment variables:
 
-| Variable               | Default | Description                      |
-|------------------------|---------|----------------------------------|
-| `WEBHOOK_MAX_RETRIES`  | `4`     | Maximum number of retry attempts |
-| `WEBHOOK_MIN_WAIT`     | `2`     | Minimum wait between retries (s) |
-| `WEBHOOK_MAX_WAIT`     | `30`    | Maximum wait between retries (s) |
+ | Variable | Default | Description |
+ | ------------------------ | --------- | ---------------------------------- |
+ | `WEBHOOK_MAX_RETRIES` | `4` | Maximum number of retry attempts |
+ | `WEBHOOK_MIN_WAIT` | `2` | Minimum wait between retries (s) |
+ | `WEBHOOK_MAX_WAIT` | `30` | Maximum wait between retries (s) |
 
 ### Future Integrations
 
@@ -428,16 +428,16 @@ Retry parameters are configurable via environment variables:
 
 ```text
 Aether/
-â”œâ”€â”€ aether/
-â”‚   â”œâ”€â”€ webhooks/         # GitHub webhook handler (FastAPI)
-â”‚   â”œâ”€â”€ tools/            # Core tools (file_writer, codebase_search, etc.)
-â”‚   â””â”€â”€ orchestrator.py   # ReAct loop + skill routing
-â”œâ”€â”€ skills/               # Reusable skills (add your own here)
-â”œâ”€â”€ docs/                 # Documentation
-â”œâ”€â”€ examples/             # Usage examples
-â”œâ”€â”€ run_webhook.py        # Start the webhook server
-â”œâ”€â”€ pyproject.toml        # Packaging configuration
-â””â”€â”€ README.md
+â"œâ"€â"€ aether/
+â"‚   â"œâ"€â"€ webhooks/         # GitHub webhook handler (FastAPI)
+â"‚   â"œâ"€â"€ tools/            # Core tools (file_writer, codebase_search, etc.)
+â"‚   â""â"€â"€ orchestrator.py   # ReAct loop + skill routing
+â"œâ"€â"€ skills/               # Reusable skills (add your own here)
+â"œâ"€â"€ docs/                 # Documentation
+â"œâ"€â"€ examples/             # Usage examples
+â"œâ"€â"€ run_webhook.py        # Start the webhook server
+â"œâ"€â"€ pyproject.toml        # Packaging configuration
+â""â"€â"€ README.md
 ```
 
 ## Known Limitations
@@ -458,5 +458,5 @@ If you use this software, please provide appropriate credit to the Aether Projec
 
 ---
 
-**Built with focus on data sovereignty and edge intelligence.**  
-**Coastal Alpine Tech Limited â€” New Plymouth, Taranaki, New Zealand.**
+**Built with focus on data sovereignty and edge intelligence.**
+**Coastal Alpine Tech Limited  New Plymouth, Taranaki, New Zealand.**
