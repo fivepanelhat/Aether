@@ -1,7 +1,21 @@
 # Changelog
 
+## Unreleased
+
+### NZ Start-Up fleet pack + congruence
+- Synced founder-OS skills under `skills/nz-startup/` (from NZ-Start-Up)
+- `skills/nz-startup-fleet-bridge` discovery skill
+- Portfolio anti-hallucination agent fleet under `.github/agent-fleet/`
+
 
 ## Hybrid platform update (July 2026)
+
+## Unreleased
+
+### NZ Start-Up fleet pack + congruence
+- Synced founder-OS skills under `skills/nz-startup/` (from NZ-Start-Up)
+- `skills/nz-startup-fleet-bridge` discovery skill
+- Portfolio anti-hallucination agent fleet under `.github/agent-fleet/`
 
 - Dual-platform installers: `install.sh` (Linux/macOS) and `install.ps1` (Windows)
 - Mermaid system maps updated for hybridisation (Core · Weaver · Aether · stack) and Windows + Linux hosts
@@ -12,7 +26,21 @@ All notable changes to Aether will be documented in this file.
 
 ## [0.7.0] - 2026-07
 
+## Unreleased
+
+### NZ Start-Up fleet pack + congruence
+- Synced founder-OS skills under `skills/nz-startup/` (from NZ-Start-Up)
+- `skills/nz-startup-fleet-bridge` discovery skill
+- Portfolio anti-hallucination agent fleet under `.github/agent-fleet/`
+
 ### Added — Edge AI + Computer Use (hybrid)
+
+## Unreleased
+
+### NZ Start-Up fleet pack + congruence
+- Synced founder-OS skills under `skills/nz-startup/` (from NZ-Start-Up)
+- `skills/nz-startup-fleet-bridge` discovery skill
+- Portfolio anti-hallucination agent fleet under `.github/agent-fleet/`
 - **`aether computer`**: operate a real desktop on **Windows and Linux** (and macOS).
   - `computer run "<goal>"` — agentic screenshot→decide→act loop driven by a **local**
     Ollama vision model (`qwen2.5-vl` class). Fully on-device; nothing is exfiltrated.
@@ -32,13 +60,41 @@ All notable changes to Aether will be documented in this file.
 
 ## [0.6.8] - 2026-07
 
+## Unreleased
+
+### NZ Start-Up fleet pack + congruence
+- Synced founder-OS skills under `skills/nz-startup/` (from NZ-Start-Up)
+- `skills/nz-startup-fleet-bridge` discovery skill
+- Portfolio anti-hallucination agent fleet under `.github/agent-fleet/`
+
 ### Fixed
+
+## Unreleased
+
+### NZ Start-Up fleet pack + congruence
+- Synced founder-OS skills under `skills/nz-startup/` (from NZ-Start-Up)
+- `skills/nz-startup-fleet-bridge` discovery skill
+- Portfolio anti-hallucination agent fleet under `.github/agent-fleet/`
 - Webhook module imports without FastAPI/tenacity (optional extras); CI no longer fails on `ModuleNotFoundError: fastapi`.
 - CI installs `.[dev,webhook]`; CLI smoke falls back to `python -m aether.cli`.
 
 ## [0.6.7] - 2026-07
 
+## Unreleased
+
+### NZ Start-Up fleet pack + congruence
+- Synced founder-OS skills under `skills/nz-startup/` (from NZ-Start-Up)
+- `skills/nz-startup-fleet-bridge` discovery skill
+- Portfolio anti-hallucination agent fleet under `.github/agent-fleet/`
+
 ### Changed (cross-platform)
+
+## Unreleased
+
+### NZ Start-Up fleet pack + congruence
+- Synced founder-OS skills under `skills/nz-startup/` (from NZ-Start-Up)
+- `skills/nz-startup-fleet-bridge` discovery skill
+- Portfolio anti-hallucination agent fleet under `.github/agent-fleet/`
 - Path sandbox uses `commonpath` + Windows `normcase` (mixed `/`\\`, case-insensitive drives).
 - `escape_for_shell` uses `subprocess.list2cmdline` on Windows and `shlex.quote` on POSIX.
 - Logging/CLI force UTF-8 stdio where supported; log files open with `encoding=utf-8`.
@@ -47,42 +103,126 @@ All notable changes to Aether will be documented in this file.
 
 ## [0.6.6] - 2026-07
 
+## Unreleased
+
+### NZ Start-Up fleet pack + congruence
+- Synced founder-OS skills under `skills/nz-startup/` (from NZ-Start-Up)
+- `skills/nz-startup-fleet-bridge` discovery skill
+- Portfolio anti-hallucination agent fleet under `.github/agent-fleet/`
+
 ### Added
+
+## Unreleased
+
+### NZ Start-Up fleet pack + congruence
+- Synced founder-OS skills under `skills/nz-startup/` (from NZ-Start-Up)
+- `skills/nz-startup-fleet-bridge` discovery skill
+- Portfolio anti-hallucination agent fleet under `.github/agent-fleet/`
 - **Packaged skills**: `aether/bundled_skills` ships with the wheel; discovery falls back to package data after CWD / `~/.aether/skills`.
 - **`aether init`**: copies bundled skills to `~/.aether/skills` and `./skills` (`--force`, `--user-only`, `--project-only`).
 - Shared `aether.paths` helpers for skills resolution and path sandboxing.
 
 ### Security
+
+## Unreleased
+
+### NZ Start-Up fleet pack + congruence
+- Synced founder-OS skills under `skills/nz-startup/` (from NZ-Start-Up)
+- `skills/nz-startup-fleet-bridge` discovery skill
+- Portfolio anti-hallucination agent fleet under `.github/agent-fleet/`
 - **`codebase_search`** and **`directory_lister`** respect the same `allowed_root` sandbox as file read/write (blocks path traversal).
 
 ## [0.6.5] - 2026-07
 
+## Unreleased
+
+### NZ Start-Up fleet pack + congruence
+- Synced founder-OS skills under `skills/nz-startup/` (from NZ-Start-Up)
+- `skills/nz-startup-fleet-bridge` discovery skill
+- Portfolio anti-hallucination agent fleet under `.github/agent-fleet/`
+
 ### Security
+
+## Unreleased
+
+### NZ Start-Up fleet pack + congruence
+- Synced founder-OS skills under `skills/nz-startup/` (from NZ-Start-Up)
+- `skills/nz-startup-fleet-bridge` discovery skill
+- Portfolio anti-hallucination agent fleet under `.github/agent-fleet/`
 - **Skill HITL enforced**: skills with `requires_hitl: true` or `cultural_sensitivity: high` require approval (same path as `file_writer`).
 - **Webhook propose-only by default**: CI remediation no longer sets `auto_remediate=True`. Opt in with `AETHER_WEBHOOK_AUTO_REMEDIATE=1`.
 
 ### Added
+
+## Unreleased
+
+### NZ Start-Up fleet pack + congruence
+- Synced founder-OS skills under `skills/nz-startup/` (from NZ-Start-Up)
+- `skills/nz-startup-fleet-bridge` discovery skill
+- Portfolio anti-hallucination agent fleet under `.github/agent-fleet/`
 - `TaskState.skill_execution_results` and `active_skill_instructions` for audit + CLI.
 - Skill application injects a binding playbook block into task state (visible in `summarize()` / ReAct CURRENT STATE).
 
 ### Changed
+
+## Unreleased
+
+### NZ Start-Up fleet pack + congruence
+- Synced founder-OS skills under `skills/nz-startup/` (from NZ-Start-Up)
+- `skills/nz-startup-fleet-bridge` discovery skill
+- Portfolio anti-hallucination agent fleet under `.github/agent-fleet/`
 - `_execute_skill` records structured application metadata (version, HITL, cultural sensitivity).
 - Webhook CLI banner documents propose-only vs auto-remediate env flag.
 
 ## [0.6.4] - 2026-07
 
+## Unreleased
+
+### NZ Start-Up fleet pack + congruence
+- Synced founder-OS skills under `skills/nz-startup/` (from NZ-Start-Up)
+- `skills/nz-startup-fleet-bridge` discovery skill
+- Portfolio anti-hallucination agent fleet under `.github/agent-fleet/`
+
 ### Added (skills)
+
+## Unreleased
+
+### NZ Start-Up fleet pack + congruence
+- Synced founder-OS skills under `skills/nz-startup/` (from NZ-Start-Up)
+- `skills/nz-startup-fleet-bridge` discovery skill
+- Portfolio anti-hallucination agent fleet under `.github/agent-fleet/`
 - **`kiwi-edge-architecture`** — Kiwi Edge system map (field → fabric → Core → Weaver → portals → Ollama/Hailo → trust).
 - **`security-notifications-triage`** — Dependabot / GHSA / CodeQL / audit response playbook.
 - **`te-mana-raraunga-sovereignty`** — Te Mana Raraunga 2018 data-sovereignty constraints.
 - Full **Skills Catalog** refresh (`docs/SKILLS_CATALOG.md`) + README Skills section.
 
 ### Changed
+
+## Unreleased
+
+### NZ Start-Up fleet pack + congruence
+- Synced founder-OS skills under `skills/nz-startup/` (from NZ-Start-Up)
+- `skills/nz-startup-fleet-bridge` discovery skill
+- Portfolio anti-hallucination agent fleet under `.github/agent-fleet/`
 - `build-ci-hygiene` → v0.2.0 (least-privilege Actions permissions + Dependabot).
 
 ## [0.6.3] - 2026-07
 
+## Unreleased
+
+### NZ Start-Up fleet pack + congruence
+- Synced founder-OS skills under `skills/nz-startup/` (from NZ-Start-Up)
+- `skills/nz-startup-fleet-bridge` discovery skill
+- Portfolio anti-hallucination agent fleet under `.github/agent-fleet/`
+
 ### Fixed
+
+## Unreleased
+
+### NZ Start-Up fleet pack + congruence
+- Synced founder-OS skills under `skills/nz-startup/` (from NZ-Start-Up)
+- `skills/nz-startup-fleet-bridge` discovery skill
+- Portfolio anti-hallucination agent fleet under `.github/agent-fleet/`
 - CLI no longer crashes after a successful run (`aether.errors` AttributeError)
 - Threat model no longer forces HITL on read-only tools (`file_reader`, `codebase_search`, `memory_query`)
 - `auto_remediate` is now honored (authorized batch / webhook mode for high-risk actions)
@@ -94,12 +234,33 @@ All notable changes to Aether will be documented in this file.
 - Deterministic pipeline passes tool-appropriate kwargs (not always `query=goal`)
 
 ### Changed
+
+## Unreleased
+
+### NZ Start-Up fleet pack + congruence
+- Synced founder-OS skills under `skills/nz-startup/` (from NZ-Start-Up)
+- `skills/nz-startup-fleet-bridge` discovery skill
+- Portfolio anti-hallucination agent fleet under `.github/agent-fleet/`
 - Optional install extra: `pip install -e ".[webhook]"` (fastapi, uvicorn, tenacity)
 - Codebase search skips common binary/build dirs and large files for speed
 
 ## [0.6.0] - 2026-07
 
+## Unreleased
+
+### NZ Start-Up fleet pack + congruence
+- Synced founder-OS skills under `skills/nz-startup/` (from NZ-Start-Up)
+- `skills/nz-startup-fleet-bridge` discovery skill
+- Portfolio anti-hallucination agent fleet under `.github/agent-fleet/`
+
 ### Added
+
+## Unreleased
+
+### NZ Start-Up fleet pack + congruence
+- Synced founder-OS skills under `skills/nz-startup/` (from NZ-Start-Up)
+- `skills/nz-startup-fleet-bridge` discovery skill
+- Portfolio anti-hallucination agent fleet under `.github/agent-fleet/`
 - Dynamic Skill Loader (skills are now automatically discovered from the `skills/` directory)
 - Git Workflow skill for safe branch creation, committing, and pushing
 - Error Remediation Orchestrator skill
@@ -112,15 +273,36 @@ All notable changes to Aether will be documented in this file.
 - Multiple practical examples in the `examples/` folder
 
 ### Changed
+
+## Unreleased
+
+### NZ Start-Up fleet pack + congruence
+- Synced founder-OS skills under `skills/nz-startup/` (from NZ-Start-Up)
+- `skills/nz-startup-fleet-bridge` discovery skill
+- Portfolio anti-hallucination agent fleet under `.github/agent-fleet/`
 - Major improvements to first-run experience and startup messaging
 - Significant documentation overhaul (README, Getting Started, CLI Reference)
 - Better structure and consistency across the project
 
 ### Fixed
+
+## Unreleased
+
+### NZ Start-Up fleet pack + congruence
+- Synced founder-OS skills under `skills/nz-startup/` (from NZ-Start-Up)
+- `skills/nz-startup-fleet-bridge` discovery skill
+- Portfolio anti-hallucination agent fleet under `.github/agent-fleet/`
 - Smoke test compatibility improvements
 - More graceful handling when no skills are loaded
 
 ## [0.5.0] - Previous Development Versions
+
+## Unreleased
+
+### NZ Start-Up fleet pack + congruence
+- Synced founder-OS skills under `skills/nz-startup/` (from NZ-Start-Up)
+- `skills/nz-startup-fleet-bridge` discovery skill
+- Portfolio anti-hallucination agent fleet under `.github/agent-fleet/`
 
 - Core ReAct loop and tool system
 - Initial set of auditor skills (security, build hygiene, schema, etc.)
