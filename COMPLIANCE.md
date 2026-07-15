@@ -1,114 +1,56 @@
-# Aether Compliance Framework
+# Compliance — NZ AI + SOC 2 Type II
 
-**Sovereign Agentic Development System**  
-Aligned with Te Tiriti o Waitangi and Te Mana Raraunga
-
----
+This repository is governed by the **NZ AI Compliance + SOC 2 Type II** framework.  
+**Classification:** Platinum (primary) | Diamond (secondary) | Gold (tertiary)
 
 ## Purpose
 
-This document outlines Aether’s commitments to data sovereignty, cultural safety, human oversight, security, and responsible development practices. It serves as a reference for developers, reviewers, and partners.
+Aether is the **AI Engine** for Coastal Alpine Tech. Handles:
+- Multi-agent orchestration + ReAct reasoning
+- Computer use + vision-based decision making
+- Local model fine-tuning + continuous improvement
+- LLM skills + guardrails + approval gates
 
-Aether is designed to support high-stakes, community-focused digital platforms — particularly those serving whānau in Aotearoa New Zealand. As such, compliance is not an afterthought but a core design constraint.
+**Compliance Impact:** CRITICAL
+- AI decision-making transparency (explainability required)
+- Model bias detection + fairness monitoring
+- Computer use guardrails (prevent harmful actions)
+- Skills + prompt injection protection (prevent jailbreaking)
 
----
+## Key Requirements
 
-## 1. Te Mana Raraunga & Māori Data Sovereignty
+- **Explainability:** All agent actions logged with rationale
+- **HITL Gates:** High-risk decisions require human approval
+- **Fairness:** Monthly bias scoring + drift detection
+- **Safety:** Computer use gated by guardrails + approval
 
-Aether is built with explicit respect for **Te Mana Raraunga** principles:
+## Compliance Contacts
 
-- **Rangatiratanga**: Māori retain authority over their data and digital presence.
-- **Kaitiakitanga**: Aether supports responsible guardianship of data and knowledge.
-- **Whakapapa**: Data and decisions should be understood in relational and historical context.
-- **Manaakitanga**: Care and respect for people and communities is prioritised.
-- **Kotahitanga**: Work should ultimately serve collective benefit.
+- Compliance Officer: [ASSIGN]
+- Privacy Officer: [ASSIGN]
+- CISO / Security Lead: [ASSIGN]
+- Cultural Advisor: [ASSIGN]
 
-**Implementation**:
-- Strong preference for local/self-hosted operation.
-- Data minimisation by default.
-- Clear pathways for cultural review of skills, agents, and outputs that touch Māori data or knowledge.
-- No assumption that data can be freely used or moved without explicit consideration of sovereignty.
+## Compliance Milestones
 
----
+- [ ] Phase 1: Governance (Week 1)
+- [ ] Phase 2: Technical controls (Week 4)
+- [ ] Phase 3: Privacy Act (Week 4)
+- [ ] Phase 4: Te Mana Raraunga (Week 6)
+- [ ] Phase 5: Incident response (Week 8)
+- [ ] Phase 6: SOC 2 audit (Week 12)
 
-## 2. Human-in-the-Loop (HITL)
+## Monthly Checklist
 
-Aether operates under a **strong HITL model**:
+- [ ] Agent decisions auditable + explainable
+- [ ] HITL approvals logged (all high-risk actions)
+- [ ] Bias scoring completed (monthly)
+- [ ] Model drift monitoring active
+- [ ] Computer use guardrails tested
+- [ ] Prompt injection tests passed
+- [ ] Skills reviewed for compliance
 
-- The system proposes, plans, and prepares work.
-- Humans retain final authority over high-impact actions (code changes, Git operations, sensitive content, cultural decisions).
-- Skills and agents can flag when human review is required (`requires_hitl` metadata).
-- Cultural sensitivity level (`cultural_sensitivity`) is declared per skill to guide review processes.
+**Sign-Off:** _________________ Date: _________
 
-Aether is designed to **augment**, not replace, human judgment — especially on matters involving whānau, culture, health-adjacent information, or data sovereignty.
-
----
-
-## 3. Data Privacy & Sovereignty
-
-- Aether is designed to run **locally or in sovereign environments** wherever possible.
-- Skills and tools should minimise data exfiltration.
-- Memory systems should support tagging of culturally sensitive or restricted information.
-- When working with external services (e.g. LLMs, search), data handling must be transparent and minimised.
-
----
-
-## 4. Security Practices
-
-Aether follows security-conscious development:
-
-- Input validation and sanitisation on tool and skill inputs.
-- Avoidance of hardcoded secrets or credentials.
-- Clear separation between development, staging, and production environments.
-- Regular review of tools that interact with filesystems, networks, or external APIs.
-
----
-
-## 5. Cultural Safety
-
-- Skills that may affect Māori or Pacific communities should declare `cultural_sensitivity: medium` or `high`.
-- The orchestrator and skills should support inclusive language and avoid assumptions about family structures, cultural practices, or identity.
-- When relevant, skills should recommend cultural review before implementation.
-
----
-
-## 6. Responsible Skill & Agent Development
-
-When creating or modifying skills and agents:
-
-- Skills should be versioned and reviewable.
-- Overly broad or high-risk automation should require explicit human approval.
-- Skills that interact with sensitive domains (funding, health navigation, cultural knowledge) must include appropriate disclaimers and review pathways.
-- Self-improvement features (automatic skill creation) must include guardrails, especially for culturally sensitive areas.
-
----
-
-## 7. Transparency & Auditability
-
-- Plans, tool calls, and changes should be logged where feasible.
-- Memory entries and skill usage should be reviewable.
-- Major architectural or skill changes should be documented.
-
----
-
-## 8. Limitations
-
-Aether is **not**:
-
-- A replacement for professional legal, cultural, or clinical advice.
-- A fully autonomous system for high-stakes decisions.
-- A finished product — it is under active development.
-
-Users and operators remain responsible for reviewing outputs, especially when they may affect whānau, funding, health navigation, or cultural matters.
-
----
-
-## Ongoing Commitments
-
-- This document will evolve as Aether develops.
-- Feedback from cultural advisors, security reviewers, and community stakeholders is welcomed.
-- Aether’s design prioritises **sovereignty, care, and accountability** over raw capability or speed.
-
----
-
-**Maintained as part of the Aether project.**
+**Related:** [NZ AI Compliance Skill](./.github/compliance/nz-ai-compliance-soc2/)  
+**Last Updated:** 2026-07-12
