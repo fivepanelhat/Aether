@@ -16,6 +16,40 @@
 Anti-hallucination policy: [`.github/agent-fleet/anti-hallucination.md`](./.github/agent-fleet/anti-hallucination.md) | Congruence: [`CAT_CONGRUENCE.md`](./CAT_CONGRUENCE.md)
 <!-- END CAT_CONGRUENCE_SNIPPET -->
 
+<!-- BEGIN PROBLEMS_SOLUTIONS_ECONOMY -->
+## Problems we are solving
+
+**Aether** is the sovereign agentic companion (including computer-use paths) with hard HITL ceilings for NZ builders.
+
+1. **Unconstrained agent hype** - "Autonomous employees" create legal, tax, and cultural risk in NZ.
+2. **Tool sprawl** - Founders and engineers need one companion that can draft and operate tools under policy.
+3. **Offshore default** - Agentic stacks often assume US cloud identity and data paths.
+4. **Weak explainability** - Operators need skill routing and human gates, not black-box actuation.
+
+## Solution we have built
+
+| Built capability | What it does |
+| :--- | :--- |
+| **Agent orchestrator** | ReAct-style loop + skill routing |
+| **Computer-use path** | Desktop operation where explicitly enabled |
+| **Skill packs** | Reusable skills under HITL policy |
+| **Open companion licence** | Apache-2.0 - portable across CAT products |
+
+Policy slogan: **Agents inform, draft, prepare, monitor, and remind. Humans advise, sign, file, send, and pay.**
+
+### Local (Taranaki) and national (Aotearoa) economic benefits
+
+| Lever | Benefit |
+| :--- | :--- |
+| **Regional R&D HQ** | Product design and IP stay in New Plymouth / Taranaki - not only Auckland/offshore SaaS |
+| **Primary-sector productivity** | On-farm and rural tools aim to cut waste, protect consents, and support export competitiveness |
+| **Skilled employment pathways** | Edge install, field support, agritech ops, software, compliance, and cultural advisory roles as pilots scale |
+| **Data sovereignty** | Te Mana Raraunga-aligned local custody keeps high-value operational data onshore |
+| **HITL jobs quality** | Agents **inform / draft / prepare / monitor / remind**; humans **advise / sign / file / send / pay** - augment people, do not fake full autonomy |
+
+**Stage honesty (pre-seed):** Impact today is founder R&D, near-term contractors, and EDA/partner leverage. Permanent multi-region payroll follows paid pilots and revenue - we do not invent headcount claims.
+<!-- END PROBLEMS_SOLUTIONS_ECONOMY -->
+
 [![License: Apache 2.0](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](./LICENSE)
 [![Python](https://img.shields.io/badge/Python-3.10%2B-3776ab?logo=python&logoColor=white)](https://www.python.org)
 [![Version](https://img.shields.io/badge/version-0.6.8-blue.svg)](./CHANGELOG.md)
