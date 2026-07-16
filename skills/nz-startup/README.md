@@ -24,6 +24,8 @@ Load first: `agent-hardening` + Aether `.github/agent-fleet/anti-hallucination.m
 
 See each `*/SKILL.md`. Product runtime + CLI: install `nz-startup-in-a-box` from the NZ-Start-Up repo.
 
+Includes **first-principles-operator** (digital employee / `nz-startup operate`) and full founder fleet (formation through board CoS).
+
 ## Anti-hallucination
 
 Prefer tools/files. Label FACT / INFERENCE / UNKNOWN. Refuse invented NZBN, LOIs, partners, stats.

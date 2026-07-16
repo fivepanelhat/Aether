@@ -32,8 +32,10 @@ Anti-hallucination policy: [`.github/agent-fleet/anti-hallucination.md`](./.gith
 | :--- | :--- |
 | **Agent orchestrator** | ReAct-style loop + skill routing |
 | **Computer-use path** | Desktop operation where explicitly enabled |
-| **Skill packs** | Reusable skills under HITL policy |
+| **Skill packs** | Super Grok governance skills (`aether-core`, CAT standards, skills CI) + NZ Start-Up fleet under `skills/nz-startup/` |
 | **Open companion licence** | Apache-2.0 - portable across CAT products |
+
+Skills guide: [`docs/SKILLS.md`](./docs/SKILLS.md)
 
 Policy slogan: **Agents inform, draft, prepare, monitor, and remind. Humans advise, sign, file, send, and pay.**
 
