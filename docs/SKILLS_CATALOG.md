@@ -24,6 +24,11 @@ Run `python -m aether.cli skills` (or `aether skills` when installed) to list lo
 **Description**: Enforce Te Mana Raraunga 2018 data-sovereignty constraints (local custody, no silent cloud exfil).  
 **Use when**: Data flows, multi-tenant RAG, compliance/portfolio docs, whenua-linked domains.
 
+### aether-nz-ai-safety
+**Type**: Safety / Governance · **Priority**: Very High · **Version**: 1.0.0 · **HITL**: yes · **Cultural sensitivity**: high  
+**Description**: Hardened NZ AI safety guidelines (Public Service AI Framework, Algorithm Charter, MBIE Responsible AI Guidance + Te Mana Raraunga + fail-closed controls). Risk-tiered HITL mapping and mandatory technical controls.  
+**Use when**: Hardening safety policy, reviewing agents/portals for compliance, preparing pilots/grants/investor claims of responsible AI, risk tiering, or Te Tiriti + AI discussions.
+
 ---
 
 ## Security
@@ -74,6 +79,7 @@ Run `python -m aether.cli skills` (or `aether skills` when installed) to list lo
 | Touch Core / stack architecture | `kiwi-edge-architecture` → `te-mana-raraunga-sovereignty` → `security-notifications-triage` |
 | Org security sprint | `security-notifications-triage` → `build-ci-hygiene` → `release-preflight` |
 | Whānau hub UI | `hub-nextjs-component` → `design-system-unification` → `te-mana-raraunga-sovereignty` |
+| AI safety / compliance claims | `aether-nz-ai-safety` → `aether-hitl-protocol` → `te-mana-raraunga-sovereignty` |
 
 ---
 
