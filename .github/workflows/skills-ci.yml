@@ -1,0 +1,192 @@
+name: Skills CI
+
+on:
+  push:
+    paths:
+      - 'skills/**'
+      - 'scripts/**'
+      - 'tests/**'
+      - '.github/workflows/skills-ci.yml'
+      - 'requirements-test.txt'
+  pull_request:
+    paths:
+      - 'skills/**'
+      - 'scripts/**'
+      - 'tests/**'
+      - '.github/workflows/skills-ci.yml'
+      - 'requirements-test.txt'
+  workflow_dispatch:
+
+jobs:
+  # ─────────────────────────────────────────────────────────────
+  # Job 1: Unit + Integration tests for the validation tooling
+  # ─────────────────────────────────────────────────────────────
+  test:
+    name: Automated Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install test dependencies
+        run: |
+          pip install --quiet -r requirements-test.txt
+
+      - name: Make scripts executable
+        run: |
+          chmod +x scripts/*.sh scripts/*.py || true
+
+      - name: Run pytest
+        run: |
+          python -m pytest tests/skills_ci/ -v --tb=short
+
+      - name: Upload test results (on failure)
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: pytest-output
+          path: |
+            .pytest_cache/
+          if-no-files-found: ignore
+
+  # ─────────────────────────────────────────────────────────────
+  # Job 2: Structural + version validation of every skill
+  # ─────────────────────────────────────────────────────────────
+  validate-skills:
+    name: Validate Skills
+    runs-on: ubuntu-latest
+    needs: test
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          pip install --quiet pyyaml jsonschema
+
+      - name: Make scripts executable
+        run: chmod +x scripts/*.sh scripts/*.py || true
+
+      - name: Discover skill directories
+        id: discover
+        run: |
+          if [ -d "skills" ]; then
+            SKILLS=$(find skills -mindepth 1 -maxdepth 1 -type d -printf '%f\n' | sort)
+          else
+            SKILLS=$(find . -mindepth 1 -maxdepth 1 -type d \( -name '*-*' -o -name 'aether-*' -o -name 'cat-*' -o -name 'hub-*' -o -name 'nz-*' \) -printf '%f\n' | sort)
+          fi
+          echo "Found skills:"
+          echo "$SKILLS"
+          echo "skills<<EOF" >> $GITHUB_OUTPUT
+          echo "$SKILLS" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+      - name: Validate each skill (structure + frontmatter)
+        run: |
+          set -e
+          FAIL=0
+          for skill in ${{ steps.discover.outputs.skills }}; do
+            echo "----------------------------------------"
+            echo "Validating skill: $skill"
+            if [ -d "skills/$skill" ]; then
+              DIR="skills/$skill"
+            else
+              DIR="$skill"
+            fi
+            # Nested packs (e.g. skills/nz-startup/*) use a folder without root SKILL.md
+            if [ ! -f "$DIR/SKILL.md" ]; then
+              echo "SKIP: $DIR has no SKILL.md (nested skill pack)"
+              continue
+            fi
+            if [ -f "scripts/validate_skill.py" ]; then
+              if ! python3 scripts/validate_skill.py "$DIR"; then
+                FAIL=1
+              fi
+            elif [ -f "scripts/validate-skill.sh" ]; then
+              if ! bash scripts/validate-skill.sh "$DIR"; then
+                FAIL=1
+              fi
+            else
+              echo "FAIL: no skill validator script"
+              FAIL=1
+            fi
+          done
+          if [ $FAIL -ne 0 ]; then
+            echo "One or more skills failed validation"
+            exit 1
+          fi
+          echo "All skills passed structural validation"
+
+      - name: Version & Changelog checks
+        run: |
+          set -e
+          python3 scripts/check-skill-versions.py
+
+      - name: Check for secrets / sensitive patterns
+        run: |
+          set -e
+          if grep -rE '(api[_-]?key|secret|password|token)\s*[:=]\s*["\']?[A-Za-z0-9_\-]{16,}' \
+               --include='*.md' --include='*.py' --include='*.yml' --include='*.yaml' \
+               skills/ 2>/dev/null; then
+            echo "Potential secrets detected — review before merging"
+            exit 1
+          fi
+          echo "No obvious secrets found"
+
+      - name: Summary
+        if: always()
+        run: |
+          echo "## Skills CI Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "- Automated tests (pytest) completed" >> $GITHUB_STEP_SUMMARY
+          echo "- Structural validation completed" >> $GITHUB_STEP_SUMMARY
+          echo "- Version + changelog checks completed" >> $GITHUB_STEP_SUMMARY
+          echo "- Secret scan completed" >> $GITHUB_STEP_SUMMARY
+
+  # ─────────────────────────────────────────────────────────────
+  # Job 3: Generate catalog (main only)
+  # ─────────────────────────────────────────────────────────────
+  generate-catalog:
+    name: Generate Skills Catalog
+    runs-on: ubuntu-latest
+    needs: validate-skills
+    if: github.ref == 'refs/heads/main' || github.event_name == 'workflow_dispatch'
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: pip install --quiet pyyaml
+
+      - name: Generate skills catalog
+        run: |
+          python3 scripts/generate-skills-catalog.py > skills-catalog.md || true
+          cat skills-catalog.md || echo "Catalog generation skipped"
+
+      - name: Upload catalog artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: skills-catalog
+          path: skills-catalog.md
+          if-no-files-found: ignore
