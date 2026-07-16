@@ -11,7 +11,7 @@ aether = AetherOrchestrator()
 
 # Run a task using the ReAct loop
 state = aether.run_react_loop(
-    goal="Explore the current codebase and identify security issues in the API routes"
+ goal="Explore the current codebase and identify security issues in the API routes"
 )
 
 print(state.summarize())
@@ -46,32 +46,32 @@ Skills are automatically suggested based on the goal, but you can also load them
 
 ### Tools
 Aether has access to several tools:
-- `codebase_search` — Search for code patterns
-- `file_reader` — Read file contents
-- `memory_query` — Search past task history
-- `directory_lister` — Explore project structure
-- `file_writer` — Write files (requires approval)
+- `codebase_search` - Search for code patterns
+- `file_reader` - Read file contents
+- `memory_query` - Search past task history
+- `directory_lister` - Explore project structure
+- `file_writer` - Write files (requires approval)
 
 ## Common Usage Patterns
 
 ### 1. Exploration Task
 ```python
 state = aether.run_react_loop(
-    goal="Find all API routes that are missing authentication"
+ goal="Find all API routes that are missing authentication"
 )
 ```
 
 ### 2. Security Hardening Task
 ```python
 state = aether.run_react_loop(
-    goal="Audit and fix security issues across all API routes"
+ goal="Audit and fix security issues across all API routes"
 )
 ```
 
 ### 3. Feature Implementation Task
 ```python
 state = aether.run_react_loop(
-    goal="Create a new accessible Resource Card component following our design system"
+ goal="Create a new accessible Resource Card component following our design system"
 )
 ```
 

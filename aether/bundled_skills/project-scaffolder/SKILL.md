@@ -37,35 +37,35 @@ When creating a new project, generate the following structure by default:
 
 ```text
 <project-name>/
-├── app/
-│   ├── (auth)/
-│   │   ├── login/page.tsx
-│   │   └── register/page.tsx
-│   ├── (dashboard)/
-│   │   └── dashboard/page.tsx
-│   ├── api/
-│   │   └── health/route.ts
-│   ├── layout.tsx
-│   ├── page.tsx
-│   └── globals.css
-├── components/
-│   ├── ui/              # shadcn/ui components
-│   └── shared/          # Shared application components
-├── lib/
-│   ├── utils.ts
-│   ├── supabase/
-│   │   ├── client.ts
-│   │   └── server.ts
-│   └── validations/     # Zod schemas
-├── types/
-│   └── index.ts
-├── public/
-├── .env.local.example
-├── .eslintrc.json
-├── tailwind.config.ts
-├── tsconfig.json
-├── next.config.ts
-└── package.json
+|-- app/
+| |-- (auth)/
+| | |-- login/page.tsx
+| | `-- register/page.tsx
+| |-- (dashboard)/
+| | `-- dashboard/page.tsx
+| |-- api/
+| | `-- health/route.ts
+| |-- layout.tsx
+| |-- page.tsx
+| `-- globals.css
+|-- components/
+| |-- ui/ # shadcn/ui components
+| `-- shared/ # Shared application components
+|-- lib/
+| |-- utils.ts
+| |-- supabase/
+| | |-- client.ts
+| | `-- server.ts
+| `-- validations/ # Zod schemas
+|-- types/
+| `-- index.ts
+|-- public/
+|-- .env.local.example
+|-- .eslintrc.json
+|-- tailwind.config.ts
+|-- tsconfig.json
+|-- next.config.ts
+`-- package.json
 ```
 
 ### 4. Follow Established Conventions
@@ -95,16 +95,16 @@ Create the following files with sensible defaults:
 
 ## Input / Output
 
-**Input**: A request to scaffold a new project or feature, including any specific requirements.  
+**Input**: A request to scaffold a new project or feature, including any specific requirements. 
 **Output**: A well-structured project or feature with clear next steps for the user.
 
 ## Examples
 
-**Example 1:**  
-Input: "Scaffold a new Next.js project for a resource directory"  
+**Example 1:** 
+Input: "Scaffold a new Next.js project for a resource directory" 
 Output: Creates a new folder with proper structure, layout, basic components, and Tailwind setup.
 
-**Example 2:**  
-Input: "Create the folder structure for a new admin dashboard feature"  
+**Example 2:** 
+Input: "Create the folder structure for a new admin dashboard feature" 
 Output: Creates the relevant folders and files inside the existing project.
 

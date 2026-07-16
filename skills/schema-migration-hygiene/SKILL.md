@@ -13,7 +13,7 @@ cultural_sensitivity: medium
 Prevents silent runtime failures caused by missing columns/tables and ensures good database performance through proper indexing.
 
 ## When to Use
-- Code references columns or tables that don’t exist in migrations
+- Code references columns or tables that don't exist in migrations
 - Queries are slow due to missing indexes
 - New features require database changes
 

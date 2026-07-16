@@ -6,11 +6,11 @@ This guide explains how to create high-quality, effective skills for Aether.
 
 A good skill should be:
 
-- **Focused** — It solves one clear problem or workflow well.
-- **Reusable** — It can be used across many different situations.
-- **Clear** — The instructions are easy to understand and follow.
-- **Safe** — It respects human approval gates on high-risk actions.
-- **Extensible** — It can be improved over time without major rewrites.
+- **Focused** - It solves one clear problem or workflow well.
+- **Reusable** - It can be used across many different situations.
+- **Clear** - The instructions are easy to understand and follow.
+- **Safe** - It respects human approval gates on high-risk actions.
+- **Extensible** - It can be improved over time without major rewrites.
 
 ## Skill Structure
 
@@ -38,5 +38,5 @@ tags: [tag1, tag2]
 
 ## Guardrails
 
-Never commit directly to the `main` branch.  
+Never commit directly to the `main` branch. 
 This prevents accidental changes to production code and maintains a clean git history.

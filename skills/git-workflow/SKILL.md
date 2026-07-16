@@ -39,10 +39,10 @@ This skill provides controlled git operations so other skills (especially remedi
 ## Guardrails & Constraints
 - Never force push.
 - Never commit directly to protected branches.
-- All modifying git operations must go through the orchestrator’s approval system.
+- All modifying git operations must go through the orchestrator's approval system.
 - Log every git action taken.
 
 ## Input / Output
 
-**Input**: Summary of changes and reason for the commit.  
+**Input**: Summary of changes and reason for the commit. 
 **Output**: Branch name, commit hash, and Pull Request URL (if created).

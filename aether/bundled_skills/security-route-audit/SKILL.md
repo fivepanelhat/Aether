@@ -55,7 +55,7 @@ For each route, verify the following:
 
 ## Input / Output
 
-**Input**: A request to perform a security audit on the current API surface.  
+**Input**: A request to perform a security audit on the current API surface. 
 **Output**: A prioritized list of findings with recommended fixes and patched code where applicable.
 
 ## Examples

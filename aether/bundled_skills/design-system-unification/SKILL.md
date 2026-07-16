@@ -29,7 +29,7 @@ This skill ensures visual and structural consistency across the application by e
 ### 2. Establish Consistent Design Tokens
 - Use the application's defined brand colors (e.g. Indigo as primary, Cyan as secondary).
 - Ensure all heroes, CTAs, links, and focus states follow the same color tokens.
-- Apply scoped classes (e.g. `.dark-space`) only where intentionally dark experiences are needed (such as the Whānau Hub section).
+- Apply scoped classes (e.g. `.dark-space`) only where intentionally dark experiences are needed (such as the Whanau Hub section).
 
 ### 3. Fix Common Issues
 - **Heading visibility**: Ensure headings use dark text on light backgrounds and light text only on intentionally dark sections.
@@ -48,11 +48,11 @@ This skill ensures visual and structural consistency across the application by e
 ## Guardrails & Constraints
 - Do not create new design systems or introduce new brand colors without approval.
 - Respect existing design tokens defined in the Tailwind config and globals.
-- Avoid forcing dark mode globally unless it is part of the intentional experience (e.g. the Whānau Hub section).
+- Avoid forcing dark mode globally unless it is part of the intentional experience (e.g. the Whanau Hub section).
 
 ## Input / Output
 
-**Input**: A description of current design inconsistencies or a specific page/component to fix.  
+**Input**: A description of current design inconsistencies or a specific page/component to fix. 
 **Output**: A unified, consistent design approach with clear token usage and minimal visual fragmentation.
 
 ## Examples

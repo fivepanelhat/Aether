@@ -15,7 +15,7 @@ nz-startup install-skills --target path/to/Aether/skills/nz-startup
 
 ## Autonomy (non-negotiable)
 
-Agents **inform, draft, prepare, monitor, remind**.  
+Agents **inform, draft, prepare, monitor, remind**. 
 Humans **advise, sign, file, send, pay**.
 
 Load first: `agent-hardening` + Aether `.github/agent-fleet/anti-hallucination.md`.
@@ -28,4 +28,4 @@ See each `*/SKILL.md`. Product runtime + CLI: install `nz-startup-in-a-box` from
 
 Prefer tools/files. Label FACT / INFERENCE / UNKNOWN. Refuse invented NZBN, LOIs, partners, stats.
 
-Synced for portfolio congruence — keep versions aligned with NZ-Start-Up releases.
+Synced for portfolio congruence - keep versions aligned with NZ-Start-Up releases.

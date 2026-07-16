@@ -1,6 +1,6 @@
 ---
 name: kiwi-edge-architecture
-description: Applies the Kiwi Edge AI Stack system map when working on Coastal Alpine repos — field firmware, mTLS MQTT, Core SDK, Weaver, domain portals, Ollama + Hailo-10H on RPi 5 16GB, SecOps, and data flywheel.
+description: Applies the Kiwi Edge AI Stack system map when working on Coastal Alpine repos - field firmware, mTLS MQTT, Core SDK, Weaver, domain portals, Ollama + Hailo-10H on RPi 5 16GB, SecOps, and data flywheel.
 version: "1.0.0"
 type: orchestration
 requires_hitl: false
@@ -34,13 +34,13 @@ Encodes the **July 2026** Coastal Alpine / Kiwi Edge system map so Aether plans 
 | Trust | HITL, SecOps CI, Dependabot, Prometheus | Least-privilege Actions tokens |
 
 ### 2. Prefer Core SDK primitives
-- Prompt/input checks → `SecurityGuard` / `input_guard_check` (Core ≥0.5.4 patterns)
-- Trajectories → `DataFlywheel` (never commit `flywheel_*.jsonl`)
-- LLM calls → `SovereignOllamaClient` edge defaults
-- Portal loops → `portal_core` AIAgent / MQTT / AV / HardwareController
+- Prompt/input checks -> `SecurityGuard` / `input_guard_check` (Core 0.5.4 patterns)
+- Trajectories -> `DataFlywheel` (never commit `flywheel_*.jsonl`)
+- LLM calls -> `SovereignOllamaClient` edge defaults
+- Portal loops -> `portal_core` AIAgent / MQTT / AV / HardwareController
 
 ### 3. Control loop (portals)
-`sensors/MQTT → analyze → SecurityGuard → plan → enforce → flywheel outcome → audit`
+`sensors/MQTT -> analyze -> SecurityGuard -> plan -> enforce -> flywheel outcome -> audit`
 
 ### 4. Docs & blurbs
 When updating public architecture copy:
