@@ -54,7 +54,7 @@ Create a new skill following the official Aether `SKILL.md` format:
 Save the skill in `skills/<skill-name>/SKILL.md`.
 
 ### 4. Create Test Cases
-After drafting the skill, propose 2-4 realistic test prompts that a real user might give.
+After drafting the skill, propose 2–4 realistic test prompts that a real user might give.
 
 Ask the user:
 - "Here are a few test cases I'd like to try. Do these look right, or would you like to add/change any?"
@@ -95,7 +95,7 @@ Once the skill is working well, offer to improve the `description` field in the 
 
 ## Input / Output
 
-**Input**: A request to create or improve a skill, often with some description of what it should do. 
+**Input**: A request to create or improve a skill, often with some description of what it should do.  
 **Output**: A well-structured, tested `SKILL.md` file (and supporting files if needed) that is ready to be used.
 
 ## Communication Style

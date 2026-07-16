@@ -1,53 +1,53 @@
 name: CI
 
 on:
- push:
- branches: [main]
- pull_request:
- branches: [main]
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
 
 permissions:
- contents: read
+  contents: read
 
 jobs:
- test:
- strategy:
- fail-fast: false
- matrix:
- os: [ubuntu-latest, windows-latest]
- python-version: ["3.10", "3.12"]
- runs-on: ${{ matrix.os }}
- steps:
- - uses: actions/checkout@v4
+  test:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+        python-version: ["3.10", "3.12"]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
 
- - uses: actions/setup-python@v5
- with:
- python-version: ${{ matrix.python-version }}
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
 
- - name: Install
- # dev = pytest/ruff; webhook optional but installed so server path is exercised in CI
- run: pip install -e ".[dev,webhook]"
+      - name: Install
+        # dev = pytest/ruff; webhook optional but installed so server path is exercised in CI
+        run: pip install -e ".[dev,webhook]"
 
- - name: Lint
- run: ruff check aether/
+      - name: Lint
+        run: ruff check aether/
 
- - name: Tests
- run: pytest tests/ -v
+      - name: Tests
+        run: pytest tests/ -v
 
- - name: CLI smoke test (from outside repo root)
- shell: bash
- env:
- AETHER_SKILLS_DIR: ${{ github.workspace }}/skills
- run: |
- # Portable temp dir: $RUNNER_TEMP on GHA
- TMPDIR="${RUNNER_TEMP:-${TMPDIR:-/tmp}}"
- mkdir -p "$TMPDIR/aether-smoke"
- cd "$TMPDIR/aether-smoke"
- # Prefer console script; fall back to module form (PATH quirks)
- if command -v aether >/dev/null 2>&1; then
- aether --version
- aether skills | head -n 40
- else
- python -m aether.cli --version
- python -m aether.cli skills | head -n 40
- fi
+      - name: CLI smoke test (from outside repo root)
+        shell: bash
+        env:
+          AETHER_SKILLS_DIR: ${{ github.workspace }}/skills
+        run: |
+          # Portable temp dir: $RUNNER_TEMP on GHA
+          TMPDIR="${RUNNER_TEMP:-${TMPDIR:-/tmp}}"
+          mkdir -p "$TMPDIR/aether-smoke"
+          cd "$TMPDIR/aether-smoke"
+          # Prefer console script; fall back to module form (PATH quirks)
+          if command -v aether >/dev/null 2>&1; then
+            aether --version
+            aether skills | head -n 40
+          else
+            python -m aether.cli --version
+            python -m aether.cli skills | head -n 40
+          fi

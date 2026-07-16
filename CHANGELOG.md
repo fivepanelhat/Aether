@@ -18,7 +18,7 @@
 - Portfolio anti-hallucination agent fleet under `.github/agent-fleet/`
 
 - Dual-platform installers: `install.sh` (Linux/macOS) and `install.ps1` (Windows)
-- Mermaid system maps updated for hybridisation (Core | Weaver | Aether | stack) and Windows + Linux hosts
+- Mermaid system maps updated for hybridisation (Core · Weaver · Aether · stack) and Windows + Linux hosts
 - Architecture overview images refreshed for hybrid stack + dual OS targets
 - Developer setup / installation docs cover Windows and Linux prerequisites and packages
 
@@ -33,7 +33,7 @@ All notable changes to Aether will be documented in this file.
 - `skills/nz-startup-fleet-bridge` discovery skill
 - Portfolio anti-hallucination agent fleet under `.github/agent-fleet/`
 
-### Added - Edge AI + Computer Use (hybrid)
+### Added — Edge AI + Computer Use (hybrid)
 
 ## Unreleased
 
@@ -42,21 +42,21 @@ All notable changes to Aether will be documented in this file.
 - `skills/nz-startup-fleet-bridge` discovery skill
 - Portfolio anti-hallucination agent fleet under `.github/agent-fleet/`
 - **`aether computer`**: operate a real desktop on **Windows and Linux** (and macOS).
- - `computer run "<goal>"` - agentic screenshot->decide->act loop driven by a **local**
- Ollama vision model (`qwen2.5-vl` class). Fully on-device; nothing is exfiltrated.
- - Direct, model-free control: `shot`, `info`, `click`, `move`, `type`, `key`, `scroll`.
-- **`aether doctor`** - readiness check for display/backend + local Ollama + models.
+  - `computer run "<goal>"` — agentic screenshot→decide→act loop driven by a **local**
+    Ollama vision model (`qwen2.5-vl` class). Fully on-device; nothing is exfiltrated.
+  - Direct, model-free control: `shot`, `info`, `click`, `move`, `type`, `key`, `scroll`.
+- **`aether doctor`** — readiness check for display/backend + local Ollama + models.
 - New `aether.computer` package: cross-platform PyAutoGUI backend with coordinate
- clamping, fail-safe, and a `AETHER_COMPUTER_DRY_RUN` rehearsal switch; Aether tools
- (`screenshot`, `computer_*`, `shell_exec`) registered into the ReAct orchestrator.
+  clamping, fail-safe, and a `AETHER_COMPUTER_DRY_RUN` rehearsal switch; Aether tools
+  (`screenshot`, `computer_*`, `shell_exec`) registered into the ReAct orchestrator.
 - Actuating tools are gated by the existing **guardrails / HITL** layer; goals are
- screened for prompt injection before any action runs. Read-only capture is ungated.
+  screened for prompt injection before any action runs. Read-only capture is ungated.
 - `OllamaClient.chat()` accepts `images=` for multimodal (vision) prompts.
 - Optional extras `pip install "aether[computer]"` (pyautogui, Pillow) and `[all]`.
 - Cross-platform downloadable installers: `install.sh` (Linux/macOS) and `install.ps1`
- (Windows) - venv, PATH launcher, skills, and Ollama check in one command.
+  (Windows) — venv, PATH launcher, skills, and Ollama check in one command.
 - Tests: `tests/test_computer_use.py` (backend clamping/dry-run, tool gating, agent loop,
- approval-deny halt, injection block).
+  approval-deny halt, injection block).
 
 ## [0.6.8] - 2026-07
 
@@ -99,7 +99,7 @@ All notable changes to Aether will be documented in this file.
 - `escape_for_shell` uses `subprocess.list2cmdline` on Windows and `shlex.quote` on POSIX.
 - Logging/CLI force UTF-8 stdio where supported; log files open with `encoding=utf-8`.
 - Skill loader accepts `SKILL.md` or `skill.md` (Linux case-sensitive trees).
-- CI matrix: **ubuntu-latest** and **windows-latest** x Python 3.10 / 3.12; portable CLI smoke.
+- CI matrix: **ubuntu-latest** and **windows-latest** × Python 3.10 / 3.12; portable CLI smoke.
 
 ## [0.6.6] - 2026-07
 
@@ -191,9 +191,9 @@ All notable changes to Aether will be documented in this file.
 - Synced founder-OS skills under `skills/nz-startup/` (from NZ-Start-Up)
 - `skills/nz-startup-fleet-bridge` discovery skill
 - Portfolio anti-hallucination agent fleet under `.github/agent-fleet/`
-- **`kiwi-edge-architecture`** - Kiwi Edge system map (field -> fabric -> Core -> Weaver -> portals -> Ollama/Hailo -> trust).
-- **`security-notifications-triage`** - Dependabot / GHSA / CodeQL / audit response playbook.
-- **`te-mana-raraunga-sovereignty`** - Te Mana Raraunga 2018 data-sovereignty constraints.
+- **`kiwi-edge-architecture`** — Kiwi Edge system map (field → fabric → Core → Weaver → portals → Ollama/Hailo → trust).
+- **`security-notifications-triage`** — Dependabot / GHSA / CodeQL / audit response playbook.
+- **`te-mana-raraunga-sovereignty`** — Te Mana Raraunga 2018 data-sovereignty constraints.
 - Full **Skills Catalog** refresh (`docs/SKILLS_CATALOG.md`) + README Skills section.
 
 ### Changed
@@ -204,7 +204,7 @@ All notable changes to Aether will be documented in this file.
 - Synced founder-OS skills under `skills/nz-startup/` (from NZ-Start-Up)
 - `skills/nz-startup-fleet-bridge` discovery skill
 - Portfolio anti-hallucination agent fleet under `.github/agent-fleet/`
-- `build-ci-hygiene` -> v0.2.0 (least-privilege Actions permissions + Dependabot).
+- `build-ci-hygiene` → v0.2.0 (least-privilege Actions permissions + Dependabot).
 
 ## [0.6.3] - 2026-07
 
@@ -229,7 +229,7 @@ All notable changes to Aether will be documented in this file.
 - Single-sourced version: CLI uses `aether.__version__`
 - `file_reader` path sandbox aligned with `file_writer` (blocks traversal + symlinks)
 - Webhook signature verification fails closed when `GITHUB_WEBHOOK_SECRET` is unset
- (opt-in dev bypass: `AETHER_WEBHOOK_INSECURE=1`)
+  (opt-in dev bypass: `AETHER_WEBHOOK_INSECURE=1`)
 - `directory_lister` accepts `directory=` alias used by the LLM / tests
 - Deterministic pipeline passes tool-appropriate kwargs (not always `query=goal`)
 

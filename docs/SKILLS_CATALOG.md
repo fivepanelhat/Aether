@@ -1,6 +1,6 @@
 # Aether Skills Catalog
 
-All skills under `skills/*/SKILL.md` are auto-discovered by the dynamic Skill Loader. 
+All skills under `skills/*/SKILL.md` are auto-discovered by the dynamic Skill Loader.  
 **Stack companion context (2026-07):** Aether supports the Kiwi Edge AI architecture (RPi 5 16GB + Hailo-10H, Coastal-Alpine-Core, Weaver, portals, firmware) with HITL-first safety.
 
 Run `python -m aether.cli skills` (or `aether skills` when installed) to list loaded skills and descriptions.
@@ -10,18 +10,18 @@ Run `python -m aether.cli skills` (or `aether skills` when installed) to list lo
 ## Architecture & sovereignty (new)
 
 ### kiwi-edge-architecture
-**Type**: Orchestration | **Priority**: Very High | **Version**: 1.0.0 
-**Description**: Full Kiwi Edge system map - field -> fabric -> Core SDK -> Weaver -> portals -> Ollama/Hailo -> trust plane. 
+**Type**: Orchestration · **Priority**: Very High · **Version**: 1.0.0  
+**Description**: Full Kiwi Edge system map — field → fabric → Core SDK → Weaver → portals → Ollama/Hailo → trust plane.  
 **Use when**: Working on coastal-alpine-stack, Core, Weaver, portals, firmware, or architecture docs/blurbs.
 
 ### security-notifications-triage
-**Type**: Security | **Priority**: Very High | **Version**: 1.0.0 | **HITL**: yes 
-**Description**: Triage Dependabot/GHSA/CodeQL/pip-audit findings; apply estate patch patterns (workflow permissions, dep floors, SECURITY.md). 
+**Type**: Security · **Priority**: Very High · **Version**: 1.0.0 · **HITL**: yes  
+**Description**: Triage Dependabot/GHSA/CodeQL/pip-audit findings; apply estate patch patterns (workflow permissions, dep floors, SECURITY.md).  
 **Use when**: Security notifications, org-wide hardening sprints, advisory response.
 
 ### te-mana-raraunga-sovereignty
-**Type**: Security | **Priority**: Very High | **Version**: 1.0.0 | **HITL**: yes | **Cultural sensitivity**: high 
-**Description**: Enforce Te Mana Raraunga 2018 data-sovereignty constraints (local custody, no silent cloud exfil). 
+**Type**: Security · **Priority**: Very High · **Version**: 1.0.0 · **HITL**: yes · **Cultural sensitivity**: high  
+**Description**: Enforce Te Mana Raraunga 2018 data-sovereignty constraints (local custody, no silent cloud exfil).  
 **Use when**: Data flows, multi-tenant RAG, compliance/portfolio docs, whenua-linked domains.
 
 ---
@@ -43,7 +43,7 @@ Run `python -m aether.cli skills` (or `aether skills` when installed) to list lo
 
 | Skill | Priority | Description |
 | ----- | -------- | ----------- |
-| `error-remediation-orchestrator` | Very High | End-to-end analyze -> fix -> git (HITL) |
+| `error-remediation-orchestrator` | Very High | End-to-end analyze → fix → git (HITL) |
 | `ci-failure-parser` | High | Structure CI / Actions logs for remediation |
 | `notification-responder` | High | Status updates and approval asks |
 | `git-workflow` | High | Branch / commit / push / PR with HITL |
@@ -56,7 +56,7 @@ Run `python -m aether.cli skills` (or `aether skills` when installed) to list lo
 | Skill | Priority | Description |
 | ----- | -------- | ----------- |
 | `agent-reliability-context` | Very High | Multi-turn history, tools, guardrail tuning |
-| `hub-nextjs-component` | High | Whanau hub UI - a11y, Te Tiriti-aware |
+| `hub-nextjs-component` | High | Whānau hub UI — a11y, Te Tiriti-aware |
 | `design-system-unification` | High | Tokens, theme, visual consistency |
 | `schema-migration-hygiene` | High | Safe DB migrations + indexes (HITL) |
 | `project-scaffolder` | High | Scaffold new projects with stack norms |
@@ -69,15 +69,15 @@ Run `python -m aether.cli skills` (or `aether skills` when installed) to list lo
 
 | Goal | Skill sequence |
 | ---- | -------------- |
-| Harden a portal API | `security-route-audit` -> `security-auth-guard` -> `strict-zod-schema-enforcement` -> `error-message-sanitization` |
-| Fix CI on main | `ci-failure-parser` -> `error-remediation-orchestrator` -> `git-workflow` |
-| Touch Core / stack architecture | `kiwi-edge-architecture` -> `te-mana-raraunga-sovereignty` -> `security-notifications-triage` |
-| Org security sprint | `security-notifications-triage` -> `build-ci-hygiene` -> `release-preflight` |
-| Whanau hub UI | `hub-nextjs-component` -> `design-system-unification` -> `te-mana-raraunga-sovereignty` |
+| Harden a portal API | `security-route-audit` → `security-auth-guard` → `strict-zod-schema-enforcement` → `error-message-sanitization` |
+| Fix CI on main | `ci-failure-parser` → `error-remediation-orchestrator` → `git-workflow` |
+| Touch Core / stack architecture | `kiwi-edge-architecture` → `te-mana-raraunga-sovereignty` → `security-notifications-triage` |
+| Org security sprint | `security-notifications-triage` → `build-ci-hygiene` → `release-preflight` |
+| Whānau hub UI | `hub-nextjs-component` → `design-system-unification` → `te-mana-raraunga-sovereignty` |
 
 ---
 
 ## Format
 
-See [AETHER_SKILL_FORMAT.md](./AETHER_SKILL_FORMAT.md) and [SKILL_DEVELOPMENT_GUIDE.md](./SKILL_DEVELOPMENT_GUIDE.md). 
+See [AETHER_SKILL_FORMAT.md](./AETHER_SKILL_FORMAT.md) and [SKILL_DEVELOPMENT_GUIDE.md](./SKILL_DEVELOPMENT_GUIDE.md).  
 Meta skill: `skill-creator`.

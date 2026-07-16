@@ -6,16 +6,16 @@ type: orchestration
 requires_hitl: true
 cultural_sensitivity: medium
 description: >
- Bridge to NZ Start-Up in a Box founder fleet skills under skills/nz-startup/.
- Load agent-hardening first. Full runtime is the nz-startup CLI in the NZ-Start-Up repo.
+  Bridge to NZ Start-Up in a Box founder fleet skills under skills/nz-startup/.
+  Load agent-hardening first. Full runtime is the nz-startup CLI in the NZ-Start-Up repo.
 metadata:
- status: active
- owner: Coastal Alpine Tech
- last_updated: "2026-07-15"
+  status: active
+  owner: Coastal Alpine Tech
+  last_updated: "2026-07-15"
 tags:
- - nz-startup
- - fleet
- - bridge
+  - nz-startup
+  - fleet
+  - bridge
 ---
 
 # NZ Start-Up Fleet Bridge

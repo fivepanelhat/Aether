@@ -32,17 +32,17 @@ Example transformation:
 ```ts
 // Weak
 const AgentQuerySchema = z.object({
- history: z.any()
+  history: z.any()
 });
 
 // Strong
 const MessageSchema = z.object({
- role: z.enum(["user", "assistant"]),
- content: z.string().min(1).max(4000)
+  role: z.enum(["user", "assistant"]),
+  content: z.string().min(1).max(4000)
 });
 
 const AgentQuerySchema = z.object({
- history: z.array(MessageSchema),
- // ... other fields
+  history: z.array(MessageSchema),
+  // ... other fields
 });
 ```

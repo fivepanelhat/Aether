@@ -21,7 +21,7 @@ Addresses common failures in multi-agent systems: dropped history, poor tool use
 ## Instructions
 1. Ensure full conversation history is passed to every agent and the classifier.
 2. Equip agents with real tools (especially web search + citations) instead of relying on model memory.
-3. Review and tune guardrails - remove blanket blocks that kill legitimate answers.
+3. Review and tune guardrails — remove blanket blocks that kill legitimate answers.
 4. Fix streaming final events so the UI receives clean output.
 5. Add consistent locale support across all agents.
 

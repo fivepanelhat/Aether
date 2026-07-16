@@ -38,5 +38,5 @@ Helps Aether communicate clearly with humans during automated workflows (especia
 
 ## Input / Output
 
-**Input**: Current task status and what needs to be communicated. 
+**Input**: Current task status and what needs to be communicated.  
 **Output**: Well-written message ready to post or send.

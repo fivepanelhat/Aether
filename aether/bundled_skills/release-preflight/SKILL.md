@@ -6,11 +6,11 @@ type: security
 requires_hitl: true
 cultural_sensitivity: medium
 tags:
- - release
- - git
- - security
- - preflight
- - publish
+  - release
+  - git
+  - security
+  - preflight
+  - publish
 ---
 
 # Release Preflight
@@ -24,11 +24,11 @@ bundles out of order. This skill makes those failures impossible to reach by req
 
 Real incidents this skill encodes (Aether, July 2026):
 1. A v0.5.0 tag was pushed pointing at a commit NEWER than v0.6.0 (fix zips applied in
- reverse order), inverting release history.
+   reverse order), inverting release history.
 2. `git tag v0.6.1` failed because the tag already existed; the agent deleted and
- recreated it - recoverable, but only because a human reviewed the output.
+   recreated it — recoverable, but only because a human reviewed the output.
 3. `INVESTOR_ONE_PAGER.md` sat untracked in a PUBLIC repo, one `git add -A` away from
- publishing confidential valuation figures to every scraper watching GitHub.
+   publishing confidential valuation figures to every scraper watching GitHub.
 
 ## When to Use
 - Before every `git tag`, `git push --tags`, or `gh release create`
@@ -38,30 +38,30 @@ Real incidents this skill encodes (Aether, July 2026):
 
 ## Instructions
 1. Run the preflight script from the repo root and STOP on any failure:
- ```bash
- python scripts/release_preflight.py --version <intended-version>
- ```
+   ```bash
+   python scripts/release_preflight.py --version <intended-version>
+   ```
 2. The script enforces, in order:
- - **Visibility awareness**: detects whether the remote is public; if public, scans
- untracked and staged files against the sensitive-name blocklist (investor, valuation,
- financial, credential, secret, .env, one-pager, board-pack, term-sheet).
- - **Tag collision**: the intended tag must not already exist locally or on the remote.
- - **Monotonic versions**: the intended version must be greater than every existing
- semver tag - prevents inverted release history.
- - **Version-file agreement**: `aether/__init__.py` `__version__` must equal the
- intended version (single source of truth; pyproject reads it dynamically).
- - **Clean tree**: no unstaged modifications; untracked files must be explicitly
- acknowledged with `--allow-untracked <path>` (no silent `add -A` sweeps).
- - **Tests green**: full pytest suite passes.
+   - **Visibility awareness**: detects whether the remote is public; if public, scans
+     untracked and staged files against the sensitive-name blocklist (investor, valuation,
+     financial, credential, secret, .env, one-pager, board-pack, term-sheet).
+   - **Tag collision**: the intended tag must not already exist locally or on the remote.
+   - **Monotonic versions**: the intended version must be greater than every existing
+     semver tag — prevents inverted release history.
+   - **Version-file agreement**: `aether/__init__.py` `__version__` must equal the
+     intended version (single source of truth; pyproject reads it dynamically).
+   - **Clean tree**: no unstaged modifications; untracked files must be explicitly
+     acknowledged with `--allow-untracked <path>` (no silent `add -A` sweeps).
+   - **Tests green**: full pytest suite passes.
 3. Only after exit code 0 may the release sequence proceed.
 4. HITL: a human confirms the printed summary (visibility, files to be published,
- tag, version) before push. Never bypass this confirmation.
+   tag, version) before push. Never bypass this confirmation.
 
 ## Guardrails & Constraints
 - NEVER use `git add -A` in a public repo without a preflight pass in the same session.
-- NEVER delete-and-recreate a remote tag without explicit human approval - moving
- published tags breaks downstream consumers.
+- NEVER delete-and-recreate a remote tag without explicit human approval — moving
+  published tags breaks downstream consumers.
 - Sensitive-pattern matches are a hard stop, not a warning, when the repo is public.
 - Te Mana Raraunga alignment: data about people and communities (funding documents,
- community-partner details, marae deployment specifics) must never reach a public
- remote without explicit kaitiaki approval.
+  community-partner details, marae deployment specifics) must never reach a public
+  remote without explicit kaitiaki approval.

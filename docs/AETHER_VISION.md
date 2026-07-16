@@ -1,18 +1,18 @@
-# Aether: Problems We're Solving & How We're Solving Them
+# Aether: Problems We’re Solving & How We’re Solving Them
 
-## The 5 W's
+## The 5 W’s
 
 | Question | Answer |
 |---------|--------|
-| **Why** | Founders and small teams building important digital platforms (especially community and whanau-focused ones) are overwhelmed by repetitive technical work, context switching, and inconsistent quality. |
+| **Why** | Founders and small teams building important digital platforms (especially community and whānau-focused ones) are overwhelmed by repetitive technical work, context switching, and inconsistent quality. |
 | **What** | Aether is a sovereign, culturally grounded agentic development orchestrator that helps users plan, build, and maintain high-quality software with strong human oversight. |
-| **Who** | Primarily founders and small teams working on projects like the Whanau Preterm Support Hub NZ - people who need to move fast without sacrificing quality, accessibility, or cultural safety. |
-| **Where** | Designed to work locally or in sovereign environments. Initially focused on the Whanau Preterm Support Hub, with the goal of being portable to other projects. |
-| **When** | Right now - during active development of the Hub and similar platforms where reducing founder load and maintaining control is critical. |
+| **Who** | Primarily founders and small teams working on projects like the Whānau Preterm Support Hub NZ — people who need to move fast without sacrificing quality, accessibility, or cultural safety. |
+| **Where** | Designed to work locally or in sovereign environments. Initially focused on the Whānau Preterm Support Hub, with the goal of being portable to other projects. |
+| **When** | Right now — during active development of the Hub and similar platforms where reducing founder load and maintaining control is critical. |
 
 ---
 
-## The Problems We're Solving
+## The Problems We’re Solving
 
 ### 1. High Cognitive Load & Context Switching
 Founders constantly switch between planning, coding, reviewing, Git operations, and stakeholder communication. This leads to fatigue and slower progress.
@@ -27,14 +27,14 @@ AI-generated code and plans often lack consistency in accessibility, security, c
 Many AI coding tools offer little control. Important decisions (especially those affecting data, culture, or funding) are made without proper human review.
 
 ### 5. Lack of Cultural & Data Sovereignty
-Most existing tools are not designed with Te Mana Raraunga or indigenous data sovereignty in mind. This creates misalignment when building platforms for Maori and Pacific communities.
+Most existing tools are not designed with Te Mana Raraunga or indigenous data sovereignty in mind. This creates misalignment when building platforms for Māori and Pacific communities.
 
 ### 6. Poor Long-term Learning
 Most AI interactions start from zero every time. There is little compounding intelligence tailored to a specific project or set of values.
 
 ---
 
-## How We're Solving These Problems
+## How We’re Solving These Problems
 
 | Problem | How Aether Addresses It |
 |--------|--------------------------|

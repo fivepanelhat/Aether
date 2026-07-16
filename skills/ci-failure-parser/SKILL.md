@@ -38,5 +38,5 @@ Converts noisy CI output and error logs into clean, structured data that other s
 
 ## Input / Output
 
-**Input**: Raw CI log or error output. 
+**Input**: Raw CI log or error output.  
 **Output**: Structured failure report.

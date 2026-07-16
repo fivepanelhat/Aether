@@ -57,16 +57,16 @@ aether skills
 AVAILABLE SKILLS
 
 security-auth-guard
- Type: security | Requires Approval: No
- Adds authentication and role-based access guards to sensitive API routes
+  Type: security | Requires Approval: No
+  Adds authentication and role-based access guards to sensitive API routes
 
 agent-reliability-context
- Type: orchestration | Requires Approval: No
- Improves agent behavior around conversation history and context retention
+  Type: orchestration | Requires Approval: No
+  Improves agent behavior around conversation history and context retention
 
 build-ci-hygiene
- Type: hygiene | Requires Approval: No
- Prevents module-level environment crashes and ensures reliable CI builds
+  Type: hygiene | Requires Approval: No
+  Prevents module-level environment crashes and ensures reliable CI builds
 
 ...
 ```
@@ -127,22 +127,22 @@ aether doctor
 *Status: Available*
 
 ### `computer`
-Hybrid **edge AI + computer use** - operate the desktop on Windows/Linux/macOS.
+Hybrid **edge AI + computer use** — operate the desktop on Windows/Linux/macOS.
 Install the extras first: `pip install "aether[computer]"`.
 
-**Agentic vision loop** - a local Ollama vision model observes the screen and acts:
+**Agentic vision loop** — a local Ollama vision model observes the screen and acts:
 
 ```bash
 aether computer run "Open the calculator and compute 12 * 9"
 aether computer run "Tidy my downloads folder" --auto-approve
 aether computer run "..." --model qwen2.5-vl:7b --base-url http://localhost:11434 --max-steps 15
-aether computer --dry-run run "..." # rehearse without actuating
+aether computer --dry-run run "..."     # rehearse without actuating
 ```
 
 Actuating steps (click/type/key/scroll/shell) require **human approval** on a TTY
 unless `--auto-approve` is passed; screenshots and screen info are read-only.
 
-**Direct control** - deterministic, no model needed:
+**Direct control** — deterministic, no model needed:
 
 ```bash
 aether computer shot [path.png]
@@ -160,7 +160,7 @@ aether computer scroll -3
 | `--auto-approve` | `computer run` | Authorize actuating steps without per-step confirmation |
 | `--model` | `computer run` | Ollama vision model (default `qwen2.5-vl:7b`) |
 | `--base-url` | `computer run` | Ollama host (default `http://localhost:11434`) |
-| `--max-steps` | `computer run` | Max screenshot->act cycles (default 12) |
+| `--max-steps` | `computer run` | Max screenshot→act cycles (default 12) |
 
 *Status: Available*
 

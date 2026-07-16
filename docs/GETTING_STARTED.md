@@ -34,27 +34,27 @@ aether doctor
 ### From a clone
 
 <details open>
-<summary><strong> Linux / macOS</strong></summary>
+<summary><strong>🐧 Linux / macOS</strong></summary>
 
 ```bash
 git clone https://github.com/fivepanelhat/Aether.git
 cd Aether
 python3 -m venv .venv && source .venv/bin/activate
-pip install -e ".[computer]" # or: pip install -e .
+pip install -e ".[computer]"   # or: pip install -e .
 aether init
 ```
 
 </details>
 
 <details>
-<summary><strong> Windows (PowerShell)</strong></summary>
+<summary><strong>🪟 Windows (PowerShell)</strong></summary>
 
 ```powershell
 git clone https://github.com/fivepanelhat/Aether.git
 cd Aether
 python -m venv .venv
 .\.venv\Scripts\Activate.ps1
-pip install -e ".[computer]" # or: pip install -e .
+pip install -e ".[computer]"   # or: pip install -e .
 aether init
 ```
 
@@ -90,18 +90,18 @@ aether remediate "CI failed on main with test error in user.test.ts"
 
 ```text
 Aether/
-|-- aether/
-| |-- orchestrator.py # ReAct loop + skill routing
-| |-- guardrails.py # Human-in-the-loop controls
-| |-- memory.py # Persistent memory
-| |-- tools/ # Core tools (file_writer, codebase_search, etc.)
-| `-- webhooks/ # GitHub webhook handler (FastAPI)
-|-- skills/ # Reusable skills (add your own here)
-|-- docs/ # Documentation
-|-- examples/ # Usage examples
-|-- run_webhook.py # Start the webhook server
-|-- pyproject.toml
-`-- README.md
+├── aether/
+│   ├── orchestrator.py     # ReAct loop + skill routing
+│   ├── guardrails.py       # Human-in-the-loop controls
+│   ├── memory.py           # Persistent memory
+│   ├── tools/              # Core tools (file_writer, codebase_search, etc.)
+│   └── webhooks/           # GitHub webhook handler (FastAPI)
+├── skills/                 # Reusable skills (add your own here)
+├── docs/                   # Documentation
+├── examples/               # Usage examples
+├── run_webhook.py          # Start the webhook server
+├── pyproject.toml
+└── README.md
 ```
 
 ## Skills
@@ -109,7 +109,7 @@ Aether/
 Skills are reusable instruction sets that tell Aether how to handle specific tasks.
 
 ```bash
-aether skills # list all loaded skills
+aether skills   # list all loaded skills
 ```
 
 Each skill lives in `skills/<skill-name>/SKILL.md`. To create a new skill, add a folder with a `SKILL.md` file using the standard YAML frontmatter format.
