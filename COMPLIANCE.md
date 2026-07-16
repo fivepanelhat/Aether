@@ -1,23 +1,23 @@
 # Aether Compliance Framework
 
-**Sovereign Agentic Development System**  
+**Sovereign Agentic Development System** 
 Aligned with Te Tiriti o Waitangi and Te Mana Raraunga
 
 ---
 
 ## Purpose
 
-This document outlines Aether’s commitments to data sovereignty, cultural safety, human oversight, security, and responsible development practices. It serves as a reference for developers, reviewers, and partners.
+This document outlines Aether's commitments to data sovereignty, cultural safety, human oversight, security, and responsible development practices. It serves as a reference for developers, reviewers, and partners.
 
-Aether is designed to support high-stakes, community-focused digital platforms — particularly those serving whānau in Aotearoa New Zealand. As such, compliance is not an afterthought but a core design constraint.
+Aether is designed to support high-stakes, community-focused digital platforms - particularly those serving whanau in Aotearoa New Zealand. As such, compliance is not an afterthought but a core design constraint.
 
 ---
 
-## 1. Te Mana Raraunga & Māori Data Sovereignty
+## 1. Te Mana Raraunga & Maori Data Sovereignty
 
 Aether is built with explicit respect for **Te Mana Raraunga** principles:
 
-- **Rangatiratanga**: Māori retain authority over their data and digital presence.
+- **Rangatiratanga**: Maori retain authority over their data and digital presence.
 - **Kaitiakitanga**: Aether supports responsible guardianship of data and knowledge.
 - **Whakapapa**: Data and decisions should be understood in relational and historical context.
 - **Manaakitanga**: Care and respect for people and communities is prioritised.
@@ -26,7 +26,7 @@ Aether is built with explicit respect for **Te Mana Raraunga** principles:
 **Implementation**:
 - Strong preference for local/self-hosted operation.
 - Data minimisation by default.
-- Clear pathways for cultural review of skills, agents, and outputs that touch Māori data or knowledge.
+- Clear pathways for cultural review of skills, agents, and outputs that touch Maori data or knowledge.
 - No assumption that data can be freely used or moved without explicit consideration of sovereignty.
 
 ---
@@ -40,7 +40,7 @@ Aether operates under a **strong HITL model**:
 - Skills and agents can flag when human review is required (`requires_hitl` metadata).
 - Cultural sensitivity level (`cultural_sensitivity`) is declared per skill to guide review processes.
 
-Aether is designed to **augment**, not replace, human judgment — especially on matters involving whānau, culture, health-adjacent information, or data sovereignty.
+Aether is designed to **augment**, not replace, human judgment - especially on matters involving whanau, culture, health-adjacent information, or data sovereignty.
 
 ---
 
@@ -66,7 +66,7 @@ Aether follows security-conscious development:
 
 ## 5. Cultural Safety
 
-- Skills that may affect Māori or Pacific communities should declare `cultural_sensitivity: medium` or `high`.
+- Skills that may affect Maori or Pacific communities should declare `cultural_sensitivity: medium` or `high`.
 - The orchestrator and skills should support inclusive language and avoid assumptions about family structures, cultural practices, or identity.
 - When relevant, skills should recommend cultural review before implementation.
 
@@ -97,9 +97,9 @@ Aether is **not**:
 
 - A replacement for professional legal, cultural, or clinical advice.
 - A fully autonomous system for high-stakes decisions.
-- A finished product — it is under active development.
+- A finished product - it is under active development.
 
-Users and operators remain responsible for reviewing outputs, especially when they may affect whānau, funding, health navigation, or cultural matters.
+Users and operators remain responsible for reviewing outputs, especially when they may affect whanau, funding, health navigation, or cultural matters.
 
 ---
 
@@ -107,7 +107,7 @@ Users and operators remain responsible for reviewing outputs, especially when th
 
 - This document will evolve as Aether develops.
 - Feedback from cultural advisors, security reviewers, and community stakeholders is welcomed.
-- Aether’s design prioritises **sovereignty, care, and accountability** over raw capability or speed.
+- Aether's design prioritises **sovereignty, care, and accountability** over raw capability or speed.
 
 ---
 

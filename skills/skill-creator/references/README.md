@@ -24,6 +24,6 @@ This folder contains helpful references when using the `skill-creator` skill.
 
 ## Philosophy
 
-These supporting files exist to reduce friction when creating high-quality skills. They are intentionally lightweight — use what helps you and ignore what doesn't.
+These supporting files exist to reduce friction when creating high-quality skills. They are intentionally lightweight - use what helps you and ignore what doesn't.
 
 The most important thing is maintaining a good feedback loop with the person you're helping create the skill.

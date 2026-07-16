@@ -1,4 +1,4 @@
-# Security Policy — Aether
+# Security Policy - Aether
 
 Sovereign agentic development orchestrator (skills, HITL, threat modeling).
 
@@ -25,7 +25,7 @@ Report privately via GitHub Security Advisory or maintainers. Do not file public
 
 | ID | Note |
 | -- | ---- |
-| GHSA-f4xh-w4cj-qxq8 (`langsmith`) | Transitive risk when LangChain stack is installed — require `>=0.8.18` |
+| GHSA-f4xh-w4cj-qxq8 (`langsmith`) | Transitive risk when LangChain stack is installed - require `>=0.8.18` |
 | GHSA-4xgf-cpjx-pc3j (`pydantic-settings`) | Require `>=2.14.2` when settings sources are used |
 | Workflow permissions | CI sets `permissions: contents: read` |
 

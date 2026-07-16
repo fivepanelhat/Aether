@@ -1,6 +1,6 @@
 ---
 name: error-remediation-orchestrator
-description: Orchestrates the full remediation process — receives an error, analyzes it using other skills, proposes fixes, applies changes (with approval), and uses git-workflow to persist the fix.
+description: Orchestrates the full remediation process - receives an error, analyzes it using other skills, proposes fixes, applies changes (with approval), and uses git-workflow to persist the fix.
 version: "0.2.0"
 type: orchestration
 requires_hitl: true
@@ -45,5 +45,5 @@ This is the central coordinator for turning errors (from CI, GitHub, tests, etc.
 
 ## Input / Output
 
-**Input**: Error information (CI failure, stack trace, GitHub issue, etc.).  
+**Input**: Error information (CI failure, stack trace, GitHub issue, etc.). 
 **Output**: Proposed fix + branch/PR containing the resolution.

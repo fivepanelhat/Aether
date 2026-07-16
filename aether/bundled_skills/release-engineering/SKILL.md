@@ -55,14 +55,14 @@ This skill standardizes the process of preparing, building, testing, tagging, an
 
 ## Input / Output
 
-**Input**: A decision to prepare a new release or version.  
+**Input**: A decision to prepare a new release or version. 
 **Output**: A clean, tagged, and verified release with all necessary artifacts (web build + desktop installers).
 
 ## Examples
 
 **Before**: Manual tagging, inconsistent desktop builds, missing smoke tests, and releases pushed with failing CI.
 
-**After**: Structured release process with version bump → clean build → smoke tests → tag → CI-generated installers → verified release.
+**After**: Structured release process with version bump -> clean build -> smoke tests -> tag -> CI-generated installers -> verified release.
 
 ## References
 - Project CI/CD workflows (e.g. `.github/workflows`)

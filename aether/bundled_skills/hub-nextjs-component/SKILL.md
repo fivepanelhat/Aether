@@ -1,6 +1,6 @@
 ---
 name: hub-nextjs-component
-description: Use when building or modifying UI components for the Whānau Preterm Support Hub. Provides production-ready patterns for accessible shadcn/ui + Tailwind components, WCAG 2.2 AA compliance, mobile-first design, Te Tiriti-aligned considerations, and proper handling of health-related disclaimers.
+description: Use when building or modifying UI components for the Whanau Preterm Support Hub. Provides production-ready patterns for accessible shadcn/ui + Tailwind components, WCAG 2.2 AA compliance, mobile-first design, Te Tiriti-aligned considerations, and proper handling of health-related disclaimers.
 version: "0.2.0"
 type: component
 requires_hitl: false
@@ -9,7 +9,7 @@ cultural_sensitivity: medium
 
 # Hub Next.js Component Authoring
 
-This skill encodes the standards and patterns for creating high-quality, accessible, and culturally considerate UI components for the Whānau Preterm Support Hub NZ.
+This skill encodes the standards and patterns for creating high-quality, accessible, and culturally considerate UI components for the Whanau Preterm Support Hub NZ.
 
 ## Overview
 
@@ -41,21 +41,21 @@ Follow this general structure:
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
 interface ResourceCardProps {
-  title: string;
-  description: string;
-  category: string;
+ title: string;
+ description: string;
+ category: string;
 }
 
 export function ResourceCard({ title, description, category }: ResourceCardProps) {
-  return (
-    <Card>
-      <CardHeader>
-        <CardTitle>{title}</CardTitle>
-      </CardHeader>
-      <CardContent>
-        <p>{description}</p>
-      </CardContent>
-    </Card>
-  );
+ return (
+ <Card>
+ <CardHeader>
+ <CardTitle>{title}</CardTitle>
+ </CardHeader>
+ <CardContent>
+ <p>{description}</p>
+ </CardContent>
+ </Card>
+ );
 }
 ```

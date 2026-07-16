@@ -30,11 +30,11 @@ Download: https://github.com/fivepanelhat/Aether/archive/refs/tags/v0.6.0.zip
 - LLM integration module for Ollama-based decisioning support.
 - Dynamic skill auto-discovery from the skills directory.
 - New workflow skills:
-  - git-workflow
-  - error-remediation-orchestrator
-  - ci-failure-parser
-  - notification-responder
-  - project-scaffolder
+ - git-workflow
+ - error-remediation-orchestrator
+ - ci-failure-parser
+ - notification-responder
+ - project-scaffolder
 - GitHub webhook support and retry handling.
 - Release-focused test coverage for LLM decision parsing, memory behavior, and guardrail logic.
 

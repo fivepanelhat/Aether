@@ -1,6 +1,6 @@
 # Aether Development Roadmap
 
-**Sovereign Agentic Development System**  
+**Sovereign Agentic Development System** 
 Aligned with Te Tiriti o Waitangi and Te Mana Raraunga
 
 ---
@@ -9,27 +9,27 @@ Aligned with Te Tiriti o Waitangi and Te Mana Raraunga
 
 Aether is being built as a **lightweight, culturally grounded, self-improving agentic development orchestrator**. The goal is to reduce founder cognitive load and repetitive work while maintaining strong human oversight and cultural safety.
 
-This roadmap reflects a **pragmatic, phased approach** — staying with a custom Python orchestrator in the short-to-medium term, with the option to adopt LangGraph later for more complex workflows.
+This roadmap reflects a **pragmatic, phased approach** - staying with a custom Python orchestrator in the short-to-medium term, with the option to adopt LangGraph later for more complex workflows.
 
 ---
 
 ## Current Status (July 2026)
 
-| Area                    | Status          | Notes |
+| Area | Status | Notes |
 |-------------------------|------------------|-------|
-| Core Orchestrator       | Phase B          | ReAct loop + tool calling implemented |
-| Tool System             | Functional       | 4 tools (read, search, memory, write) |
-| Skill System            | Good             | 5 high-value skills created |
-| Logging & Tracking      | Improved         | Basic structured logging + task state |
-| HITL & Guardrails       | Active           | Guardrails module + approval awareness |
-| Autonomy                | Basic            | Tool selection and ReAct loop working |
-| LangGraph               | Deferred         | Option for later (user preference) |
+| Core Orchestrator | Phase B | ReAct loop + tool calling implemented |
+| Tool System | Functional | 4 tools (read, search, memory, write) |
+| Skill System | Good | 5 high-value skills created |
+| Logging & Tracking | Improved | Basic structured logging + task state |
+| HITL & Guardrails | Active | Guardrails module + approval awareness |
+| Autonomy | Basic | Tool selection and ReAct loop working |
+| LangGraph | Deferred | Option for later (user preference) |
 
 ---
 
 ## Phased Roadmap
 
-### Phase 0 – Foundation (Completed)
+### Phase 0 - Foundation (Completed)
 
 - Initial architecture and principles
 - Core modules: Orchestrator, Memory, Guardrails
@@ -41,7 +41,7 @@ This roadmap reflects a **pragmatic, phased approach** — staying with a custom
 
 ---
 
-### Phase 1 – Capability Hardening (Current)
+### Phase 1 - Capability Hardening (Current)
 
 **Goal**: Make the orchestrator reliable and useful for real development work.
 
@@ -64,7 +64,7 @@ This roadmap reflects a **pragmatic, phased approach** — staying with a custom
 
 ---
 
-### Phase 2 – Execution & Autonomy (Next)
+### Phase 2 - Execution & Autonomy (Next)
 
 **Goal**: Enable the orchestrator to safely generate and apply changes with minimal guidance.
 
@@ -81,7 +81,7 @@ This roadmap reflects a **pragmatic, phased approach** — staying with a custom
 
 ---
 
-### Phase 3 – Polish & Portability
+### Phase 3 - Polish & Portability
 
 **Goal**: Make Aether easy to use and share across projects.
 
@@ -98,9 +98,9 @@ This roadmap reflects a **pragmatic, phased approach** — staying with a custom
 
 ---
 
-### Phase 4 – Advanced Capabilities (Future)
+### Phase 4 - Advanced Capabilities (Future)
 
-**Goal**: Increase autonomy and capability while staying aligned with Aether’s principles.
+**Goal**: Increase autonomy and capability while staying aligned with Aether's principles.
 
 **Possible Directions**:
 - Deeper LLM integration for planning and tool selection
@@ -118,7 +118,7 @@ This roadmap reflects a **pragmatic, phased approach** — staying with a custom
 - Prioritise **Human-in-the-Loop** on high-impact actions
 - Embed **Te Mana Raraunga** principles in design and guardrails
 - Favour **clarity and maintainability** over maximum autonomy early on
-- Build for **real usage** on the Whānau Preterm Support Hub first
+- Build for **real usage** on the Whanau Preterm Support Hub first
 
 ---
 
