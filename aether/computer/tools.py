@@ -6,21 +6,22 @@
 #
 #     http://www.apache.org/licenses/LICENSE-2.0
 #
-# Unless otherwise indicated, all content is original to the Aether Project.
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
 
 """
 Computer-use tools exposed to Aether's ReAct orchestrator.
 
-Every tool here actuates the real machine, so all of them are declared
-high-risk and are gated by Aether's guardrails / HITL layer (see
-``Guardrails.always_require_approval``). The tools stay stateless; they read the
-process-wide backend singleton from ``aether.computer.backend``.
+SECURITY NOTE (July 2026):
+The ShellExecTool was hardened to use shell=False + shlex.split() instead of
+shell=True. This change mitigates command injection risk from model-generated
+commands (aligned with OWASP Agentic Top 10 2026 ASI05 / ASI02).
 
-SECURITY NOTE (2026-07):
-The ShellExecTool previously used shell=True. This has been hardened to
-shell=False + shlex.split() to mitigate command injection from model-generated
-commands (OWASP Agentic Top 10 2026 ASI05 / ASI02). The working-directory
-clamp and mandatory HITL gate remain as the primary backstops.
+All high-risk computer-use tools (including shell_exec) remain gated by
+mandatory human approval via the HITL layer.
 """
 
 from __future__ import annotations
@@ -228,22 +229,24 @@ class ScrollTool(_ComputerTool):
 
 class ShellExecTool(Tool):
     """
-    Cross-platform command runner.
+    Cross-platform command runner with strong security controls.
 
-    SECURITY: Uses shell=False + shlex.split() to prevent command injection
-    from model-generated strings (OWASP Agentic Top 10 2026 ASI05/ASI02).
-    A working-directory allow-list clamp + mandatory HITL gate are the
-    primary controls. Timeout and output capping remain.
+    SECURITY DESIGN (2026):
+    - Uses shell=False + shlex.split() to prevent command injection from
+      model-generated input (OWASP Agentic Top 10 ASI05 / ASI02).
+    - Working directory is clamped for sandboxing.
+    - All executions require human approval via the HITL layer.
+    - Output is capped and commands are timed out.
     """
 
     name = "shell_exec"
     description = (
         "Run a shell command on the local machine and capture stdout/stderr. "
-        "High-risk: requires approval. Commands are parsed safely (no shell metacharacters)."
+        "High-risk: requires human approval. Commands are parsed safely (no shell metacharacters)."
     )
     input_schema = {
-        "command": "The command line to execute (parsed safely, no shell=True)",
-        "cwd": "Optional working directory (clamped)",
+        "command": "The command to execute (will be parsed safely)",
+        "cwd": "Optional working directory (restricted)",
         "timeout": "Seconds before the command is killed (default 60)",
     }
 
@@ -260,9 +263,10 @@ class ShellExecTool(Tool):
             return ToolResult(success=False, error=f"Working directory does not exist: {workdir}")
 
         try:
-            # SECURITY: shell=False + shlex.split prevents metacharacter injection
-            # from model-generated command strings.
+            # SECURITY: Parse with shlex.split() and run with shell=False
+            # This prevents shell metacharacter injection from the model.
             argv = shlex.split(str(command), posix=os.name != "nt")
+
             if not argv:
                 return ToolResult(success=False, error="Empty command after parsing.")
 
@@ -274,21 +278,30 @@ class ShellExecTool(Tool):
                 text=True,
                 timeout=max(1, int(timeout)),
             )
+
             out = (completed.stdout or "")[: self.max_output]
             err = (completed.stderr or "")[: self.max_output]
+
             body = out
             if err:
                 body += f"\n[stderr]\n{err}"
+
             return ToolResult(
                 success=completed.returncode == 0,
                 output=body.strip() or f"(exit {completed.returncode}, no output)",
                 error=None if completed.returncode == 0 else f"Exit code {completed.returncode}",
-                metadata={"returncode": completed.returncode, "cwd": workdir, "argv": argv},
+                metadata={
+                    "returncode": completed.returncode,
+                    "cwd": workdir,
+                    "argv": argv,
+                },
             )
+
         except subprocess.TimeoutExpired:
             return ToolResult(success=False, error=f"Command timed out after {timeout}s")
         except FileNotFoundError:
-            return ToolResult(success=False, error=f"Command not found: {command.split()[0] if command else ''}")
+            first_cmd = argv[0] if 'argv' in locals() else str(command).split()[0]
+            return ToolResult(success=False, error=f"Command not found: {first_cmd}")
         except Exception as exc:
             return ToolResult(success=False, error=f"shell_exec failed: {exc}")
 
@@ -305,8 +318,7 @@ COMPUTER_TOOL_NAMES = [
     "shell_exec",
 ]
 
-#: Subset that actuates the machine (used to force HITL). ``screenshot`` and
-#: ``screen_info`` are read-only observation and stay ungated.
+#: Subset that actuates the machine (used to force HITL).
 COMPUTER_ACTUATORS = [
     "computer_click",
     "computer_move",
