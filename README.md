@@ -12,6 +12,8 @@
 
 > Sovereign hybrid edge AI for NZ farms and founders - local-first + multi-model, Te Mana Raraunga aligned - collaborating with Venture Taranaki, startups.com investors and Kotahitanga Investment Fund (HITL + cultural advisory for formal approaches).
 
+**See [AI Infrastructure Leadership](https://github.com/fivepanelhat/fivepanelhat/blob/main/AI_INFRASTRUCTURE_LEADERSHIP.md) for our positioning as New Zealand's leader in sovereign edge AI Infrastructure.**
+
 **Agents inform, draft, prepare, monitor, and remind. Humans advise, sign, file, send, and pay.** 
 Anti-hallucination policy: [`.github/agent-fleet/anti-hallucination.md`](./.github/agent-fleet/anti-hallucination.md) | Congruence: [`CAT_CONGRUENCE.md`](./CAT_CONGRUENCE.md)
 <!-- END CAT_CONGRUENCE_SNIPPET -->
@@ -240,10 +242,6 @@ aether run "Audit the API routes for security issues"
 
 **Prerequisites (both platforms):** Python 3.10+, Git, [Ollama](https://ollama.com) for local models. On Linux desktop control also needs a display server (X11/Wayland) and often `python3-tk` / `scrot` depending on distro.
 
-Skills ship inside the package (`aether/bundled_skills`) so `pip install` works without a git checkout. `aether init` copies them to the user/project locations. Discovery order: `AETHER_SKILLS_DIR` -> `./skills` -> `~/.aether/skills` -> packaged skills.
-
-All file tools (read/write/search/list) are sandboxed to the process working directory (allowed root). Paths are handled portably on **Linux and Windows** (mixed separators, case-insensitive roots on Windows, UTF-8 console/logs).
-
 - **[Getting Started Guide](docs/GETTING_STARTED.md)**: A complete guide on how to use Aether's ReAct loop and tools.
 - **[CLI Reference](docs/CLI_REFERENCE.md)**: A detailed reference of all available CLI commands.
 
@@ -274,6 +272,7 @@ curl -fsSL https://raw.githubusercontent.com/fivepanelhat/Aether/main/install.sh
 
 ```powershell
 irm https://raw.githubusercontent.com/fivepanelhat/Aether/main/install.ps1 | iex
+aether doctor
 ```
 
 Or from a clone, install the desktop extras alongside the base package:
@@ -311,28 +310,6 @@ By default every actuating step (click, type, key, scroll, shell) pauses for
 gates Aether's file writes. `screenshot` and `screen_info` are read-only and
 never gated.
 
-### Direct control (deterministic, no model needed)
-
-```bash
-aether computer shot screen.png # capture a screenshot
-aether computer info # screen size + cursor position
-aether computer click 640 480 --button left
-aether computer move 200 200
-aether computer type "kia ora"
-aether computer key ctrl+s
-aether computer scroll -3
-```
-
-### Compatibility with the existing stack
-
-The computer-use tools register into the **same ReAct orchestrator, guardrails,
-threat model, and JSONL memory/audit trail** as the rest of Aether, so
-`aether run` can also mix desktop actuation with file/search/skill steps. Prompt
-goals are screened for injection before any action runs, coordinates are clamped
-to the real screen, and the PyAutoGUI fail-safe (fling the cursor to a corner to
-abort) stays on. When there is no display or the extras aren't installed, the
-tools degrade gracefully with an actionable message instead of crashing.
-
 Environment switches: `AETHER_COMPUTER_DRY_RUN=1` rehearses without actuating;
 the vision model/host are overridable with `--model` / `--base-url`.
 
@@ -363,10 +340,6 @@ aether skills
  | **`ci-failure-parser`** | Structure CI / Actions logs |
  | **`notification-responder`** | Status updates and approval requests |
 
-### Security auditors
-
-`security-route-audit`, `security-auth-guard`, `error-message-sanitization`, `service-role-key-protection`, `strict-zod-schema-enforcement`, `release-preflight`, plus CI hygiene skills.
-
 Trigger manually or via GitHub webhook remediation:
 
 ```bash
@@ -383,7 +356,6 @@ Some features (especially error remediation and git operations) require addition
 ### GitHub Integration (Recommended)
 
 To use the `git-workflow` skill effectively, you should have:
-
 - A GitHub Personal Access Token (classic) with the following scopes:
  - `repo` (Full control of private repositories)
  - `workflow` (Update GitHub Action workflows)
@@ -418,12 +390,7 @@ Aether can start investigation when your CI fails. **Default is propose-only** (
  # export AETHER_WEBHOOK_AUTO_REMEDIATE=1
  ```
 
- Install webhook dependencies if needed:
- ```bash
- pip install -e ".[webhook]"
- ```
-
-3. **Expose the server** using [ngrok](https://ngrok.com) or deploy to a server
+1. **Expose the server** using [ngrok](https://ngrok.com) or deploy to a server
  ```bash
  ngrok http 8000
  ```
