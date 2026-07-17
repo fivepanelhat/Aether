@@ -242,8 +242,12 @@ def run_doctor():
     sys.exit(0 if ready else 1)
 
 
-def start_webhook_server(host: str = "0.0.0.0", port: int = 8000):
-    """Start the GitHub webhook server."""
+def start_webhook_server(host: str = "127.0.0.1", port: int = 8000):
+    """Start the GitHub webhook server.
+
+    SECURITY: Defaults to localhost (127.0.0.1) to avoid unintended network exposure.
+    Use --host 0.0.0.0 explicitly if you need to expose it (with proper authentication).
+    """
     try:
         import uvicorn
         from aether.webhooks.github_webhook import app, create_app
@@ -252,6 +256,11 @@ def start_webhook_server(host: str = "0.0.0.0", port: int = 8000):
         sys.exit(1)
 
     application = app if app is not None else create_app()
+
+    if host in ("0.0.0.0", "::"):
+        print("\n[WARNING] Webhook server is binding to all interfaces (0.0.0.0).")
+        print("This exposes the server on the network. Ensure you have strong authentication.")
+        print("Consider using a reverse proxy or firewall rules in production.\n")
 
     print(f"\nStarting Aether GitHub Webhook server on http://{host}:{port}")
     print("Set GITHUB_WEBHOOK_SECRET for signature verification.")
@@ -369,7 +378,7 @@ Examples:
         "webhook",
         help="Start the GitHub webhook server (requires: pip install -e \".[webhook]\")"
     )
-    webhook_parser.add_argument("--host", default="0.0.0.0", help="Host to bind (default: 0.0.0.0)")
+    webhook_parser.add_argument("--host", default="127.0.0.1", help="Host to bind (default: 127.0.0.1 for security)")
     webhook_parser.add_argument("--port", type=int, default=8000, help="Port to listen on (default: 8000)")
 
     # === Doctor Command ===
@@ -456,7 +465,7 @@ Examples:
             run_task(goal, max_steps=10, auto_remediate=True)
         elif args.command == "webhook":
             start_webhook_server(
-                host=getattr(args, "host", "0.0.0.0"),
+                host=getattr(args, "host", "127.0.0.1"),
                 port=getattr(args, "port", 8000)
             )
         elif args.command == "doctor":
