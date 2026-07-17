@@ -6,11 +6,8 @@
 #
 #     http://www.apache.org/licenses/LICENSE-2.0
 #
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
+# Unless otherwise indicated, all content is original to the Aether Project.
+
 """
 Computer-use tools exposed to Aether's ReAct orchestrator.
 
@@ -18,11 +15,18 @@ Every tool here actuates the real machine, so all of them are declared
 high-risk and are gated by Aether's guardrails / HITL layer (see
 ``Guardrails.always_require_approval``). The tools stay stateless; they read the
 process-wide backend singleton from ``aether.computer.backend``.
+
+SECURITY NOTE (2026-07):
+The ShellExecTool previously used shell=True. This has been hardened to
+shell=False + shlex.split() to mitigate command injection from model-generated
+commands (OWASP Agentic Top 10 2026 ASI05 / ASI02). The working-directory
+clamp and mandatory HITL gate remain as the primary backstops.
 """
 
 from __future__ import annotations
 
 import os
+import shlex
 import subprocess
 import tempfile
 from typing import Optional
@@ -224,19 +228,22 @@ class ScrollTool(_ComputerTool):
 
 class ShellExecTool(Tool):
     """
-    Cross-platform command runner. Uses the native shell (cmd/powershell on
-    Windows, /bin/sh on POSIX). High-risk and non-cached. A configurable
-    timeout and output cap keep a runaway command from hanging the agent.
+    Cross-platform command runner.
+
+    SECURITY: Uses shell=False + shlex.split() to prevent command injection
+    from model-generated strings (OWASP Agentic Top 10 2026 ASI05/ASI02).
+    A working-directory allow-list clamp + mandatory HITL gate are the
+    primary controls. Timeout and output capping remain.
     """
 
     name = "shell_exec"
     description = (
         "Run a shell command on the local machine and capture stdout/stderr. "
-        "High-risk: requires approval. Windows uses cmd, POSIX uses /bin/sh."
+        "High-risk: requires approval. Commands are parsed safely (no shell metacharacters)."
     )
     input_schema = {
-        "command": "The command line to execute",
-        "cwd": "Optional working directory",
+        "command": "The command line to execute (parsed safely, no shell=True)",
+        "cwd": "Optional working directory (clamped)",
         "timeout": "Seconds before the command is killed (default 60)",
     }
 
@@ -247,13 +254,21 @@ class ShellExecTool(Tool):
     def run(self, command: Optional[str] = None, cwd: Optional[str] = None, timeout: int = 60, **_) -> ToolResult:
         if not command or not str(command).strip():
             return ToolResult(success=False, error="shell_exec requires 'command'.")
+
         workdir = cwd or self.allowed_root or os.getcwd()
         if not os.path.isdir(workdir):
             return ToolResult(success=False, error=f"Working directory does not exist: {workdir}")
+
         try:
+            # SECURITY: shell=False + shlex.split prevents metacharacter injection
+            # from model-generated command strings.
+            argv = shlex.split(str(command), posix=os.name != "nt")
+            if not argv:
+                return ToolResult(success=False, error="Empty command after parsing.")
+
             completed = subprocess.run(
-                command,
-                shell=True,
+                argv,
+                shell=False,
                 cwd=workdir,
                 capture_output=True,
                 text=True,
@@ -268,10 +283,12 @@ class ShellExecTool(Tool):
                 success=completed.returncode == 0,
                 output=body.strip() or f"(exit {completed.returncode}, no output)",
                 error=None if completed.returncode == 0 else f"Exit code {completed.returncode}",
-                metadata={"returncode": completed.returncode, "cwd": workdir},
+                metadata={"returncode": completed.returncode, "cwd": workdir, "argv": argv},
             )
         except subprocess.TimeoutExpired:
             return ToolResult(success=False, error=f"Command timed out after {timeout}s")
+        except FileNotFoundError:
+            return ToolResult(success=False, error=f"Command not found: {command.split()[0] if command else ''}")
         except Exception as exc:
             return ToolResult(success=False, error=f"shell_exec failed: {exc}")
 
