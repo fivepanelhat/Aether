@@ -98,10 +98,15 @@ jobs:
           echo "EOF" >> $GITHUB_OUTPUT
 
       - name: Validate each skill (structure + frontmatter)
+        env:
+          # Pass the multi-line discover output via env so bash word-splits on
+          # whitespace. Interpolating ${{ ... }} directly into `for` injects raw
+          # newlines and breaks the loop (syntax error near the second skill).
+          SKILLS: ${{ steps.discover.outputs.skills }}
         run: |
           set -e
           FAIL=0
-          for skill in ${{ steps.discover.outputs.skills }}; do
+          for skill in $SKILLS; do
             echo "----------------------------------------"
             echo "Validating skill: $skill"
             if [ -d "skills/$skill" ]; then
@@ -141,7 +146,7 @@ jobs:
       - name: Check for secrets / sensitive patterns
         run: |
           set -e
-          if grep -rE '(api[_-]?key|secret|password|token)\s*[:=]\s*["\']?[A-Za-z0-9_\-]{16,}' \
+          if grep -rE "(api[_-]?key|secret|password|token)[[:space:]]*[:=][[:space:]]*[\"']?[A-Za-z0-9_-]{16,}" \
                --include='*.md' --include='*.py' --include='*.yml' --include='*.yaml' \
                skills/ 2>/dev/null; then
             echo "Potential secrets detected — review before merging"
