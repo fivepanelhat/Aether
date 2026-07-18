@@ -74,6 +74,9 @@ class AetherOrchestrator:
         self.state: Optional[TaskState] = None
         self.errors: List[str] = []
         self.auto_remediate: bool = False
+        # Set True when a run's goal trips prompt-injection screening; forces
+        # human approval for every action and disables auto_remediate bypass.
+        self._goal_injection_locked: bool = False
         self.memory = AetherMemory(persist_path=memory_path)
         self.guardrails = Guardrails()
         self.threat_modeler = ThreatModeler()
@@ -333,10 +336,20 @@ class AetherOrchestrator:
             f"- {name}: {meta.get('description', '')}" for name, meta in self.skills_registry.items()
         ) or "No skills loaded."
 
-        # Screen user goal once for injection patterns (not only model thoughts)
+        # Screen user goal once for injection patterns (not only model thoughts).
+        # A flagged goal is untrusted: lock the loop into HITL so EVERY action
+        # requires human approval and cannot be bypassed by auto_remediate.
+        # Headless runs with no interactive approver therefore halt at the first
+        # action rather than executing an injected goal unattended. (The computer
+        # agent halts outright; the ReAct loop degrades to mandatory approval so a
+        # false-positive substring match can still proceed under human oversight.)
         goal_suspicious, goal_patterns = self.guardrails.detect_prompt_injection(goal)
+        self._goal_injection_locked = goal_suspicious
         if goal_suspicious:
-            logger.warning(f"[ReAct] Injection patterns in goal: {goal_patterns}")
+            logger.warning(
+                f"[ReAct] Injection patterns in goal: {goal_patterns}. "
+                "Locking loop to human approval for all actions."
+            )
             self.state.history.append(f"Goal flagged for injection patterns: {goal_patterns}")
             self.state.risks.append(f"prompt_injection:{','.join(goal_patterns)}")
 
@@ -508,15 +521,26 @@ class AetherOrchestrator:
         - High-risk + auto_remediate: proceed (authorized batch mode).
         - High-risk + interactive TTY: prompt via request_approval.
         - High-risk + non-interactive (default): halt with pending approval.
+
+        When the goal was flagged for prompt injection, every action requires
+        approval and auto_remediate does NOT bypass it (the goal is untrusted).
         """
-        if not self._requires_approval(action, context=context):
+        injection_locked = getattr(self, "_goal_injection_locked", False)
+
+        if not injection_locked and not self._requires_approval(action, context=context):
             return True
 
-        if self.auto_remediate:
+        if self.auto_remediate and not injection_locked:
             logger.warning(f"[HITL] '{action}' authorized via auto_remediate=True")
             if self.state:
                 self.state.history.append(f"Auto-remediate authorized: {action}")
             return True
+
+        if injection_locked:
+            logger.warning(
+                f"[HITL] '{action}' needs explicit approval: goal flagged for prompt "
+                "injection (auto_remediate bypass disabled)."
+            )
 
         # Interactive approval only when stdin is a TTY (avoids hanging webhooks/tests)
         try:
