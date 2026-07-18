@@ -14,6 +14,7 @@ import logging
 import time
 import urllib.request
 import urllib.error
+import urllib.parse
 from dataclasses import dataclass
 from typing import Any, Callable, Dict, List, Optional
 
@@ -21,6 +22,26 @@ logger = logging.getLogger("AetherLLM")
 
 DEFAULT_BASE_URL = "http://localhost:11434"
 DEFAULT_MODEL = "qwen2.5-coder:7b"  # solid tool-use model for Pi 5 / Hailo-class hardware; override via config
+
+#: Only these URL schemes may be used for the LLM endpoint. Blocks urllib from
+#: dereferencing file://, gopher://, ftp:// etc. (SSRF / local-file read) if a
+#: base_url is ever sourced from config, an operator flag, or untrusted input.
+ALLOWED_URL_SCHEMES = ("http", "https")
+
+
+def _require_http_url(url: str) -> str:
+    """Validate and normalise an LLM endpoint URL. Raises ValueError on a
+    non-http(s) scheme or a URL with no host."""
+    cleaned = str(url).rstrip("/")
+    parsed = urllib.parse.urlparse(cleaned)
+    if parsed.scheme not in ALLOWED_URL_SCHEMES:
+        raise ValueError(
+            f"base_url scheme must be one of {ALLOWED_URL_SCHEMES}, got "
+            f"{parsed.scheme or '(none)'!r} in {url!r}"
+        )
+    if not parsed.netloc:
+        raise ValueError(f"base_url must include a host, got {url!r}")
+    return cleaned
 
 
 @dataclass
@@ -49,7 +70,7 @@ class OllamaClient:
         max_retries: int = 2,
         transport: Optional[Callable[[str, Dict[str, Any], int], str]] = None,
     ):
-        self.base_url = base_url.rstrip("/")
+        self.base_url = _require_http_url(base_url)
         self.model = model
         self.timeout = timeout
         self.max_retries = max_retries

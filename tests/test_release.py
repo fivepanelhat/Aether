@@ -6,6 +6,8 @@ No Ollama required — the LLM is tested via an injected fake transport.
 
 import json
 
+import pytest
+
 from aether.llm import OllamaClient, parse_decision
 from aether.memory import AetherMemory
 from aether.guardrails import Guardrails
@@ -50,6 +52,28 @@ def test_ollama_client_retries_then_succeeds():
     client_result = client.chat([{"role": "user", "content": "hi"}])
     assert client_result == "hello"
     assert calls["n"] == 2
+
+
+# ---------------- LLM: endpoint URL hardening (SSRF / local-file read) ----------------
+
+@pytest.mark.parametrize(
+    "bad_url",
+    [
+        "file:///etc/passwd",
+        "gopher://127.0.0.1:11434/_x",
+        "ftp://example.com/x",
+        "localhost:11434",   # no scheme -> urlparse scheme is empty
+        "http://",           # scheme but no host
+    ],
+)
+def test_ollama_rejects_non_http_or_hostless_base_url(bad_url):
+    with pytest.raises(ValueError):
+        OllamaClient(base_url=bad_url)
+
+
+def test_ollama_accepts_http_and_https_and_strips_trailing_slash():
+    assert OllamaClient(base_url="http://localhost:11434/").base_url == "http://localhost:11434"
+    assert OllamaClient(base_url="https://edge.local:443").base_url == "https://edge.local:443"
 
 
 # ---------------- LLM: end-to-end ReAct loop with fake model ----------------
