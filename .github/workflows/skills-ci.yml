@@ -98,10 +98,15 @@ jobs:
           echo "EOF" >> $GITHUB_OUTPUT
 
       - name: Validate each skill (structure + frontmatter)
+        env:
+          # Pass the multi-line discover output via env so bash word-splits on
+          # whitespace. Interpolating ${{ ... }} directly into `for` injects raw
+          # newlines and breaks the loop (syntax error near the second skill).
+          SKILLS: ${{ steps.discover.outputs.skills }}
         run: |
           set -e
           FAIL=0
-          for skill in ${{ steps.discover.outputs.skills }}; do
+          for skill in $SKILLS; do
             echo "----------------------------------------"
             echo "Validating skill: $skill"
             if [ -d "skills/$skill" ]; then

@@ -265,7 +265,20 @@ class ShellExecTool(Tool):
         try:
             # SECURITY: Parse with shlex.split() and run with shell=False
             # This prevents shell metacharacter injection from the model.
-            argv = shlex.split(str(command), posix=os.name != "nt")
+            if os.name == "nt":
+                # On Windows, posix=False preserves backslash paths (e.g.
+                # C:\Users\...), but shlex then keeps the surrounding quote
+                # characters inside each token. Strip a single matching pair so
+                # a quoted argument (e.g. python -c "code") reaches the child
+                # unquoted instead of as a literal quoted string that no-ops.
+                argv = [
+                    tok[1:-1]
+                    if len(tok) >= 2 and tok[0] == tok[-1] and tok[0] in "\"'"
+                    else tok
+                    for tok in shlex.split(str(command), posix=False)
+                ]
+            else:
+                argv = shlex.split(str(command), posix=True)
 
             if not argv:
                 return ToolResult(success=False, error="Empty command after parsing.")
