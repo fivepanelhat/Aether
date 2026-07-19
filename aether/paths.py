@@ -167,4 +167,7 @@ def ensure_utf8_stdio() -> None:
             try:
                 reconfigure(encoding="utf-8", errors="replace")
             except Exception:
-                pass
+                # Best-effort UTF-8 stdio: runs before logging is configured and
+                # stdio itself may be what's unavailable, so there is nothing to
+                # log and nothing actionable — intentionally silent.
+                pass  # nosec B110

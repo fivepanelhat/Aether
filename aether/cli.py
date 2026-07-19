@@ -279,7 +279,9 @@ def main():
 
         ensure_utf8_stdio()
     except Exception:
-        pass
+        # Best-effort UTF-8 stdio before logging is configured; non-fatal and
+        # nothing to log to yet — intentionally silent.
+        pass  # nosec B110
     setup_logging()
     parser = argparse.ArgumentParser(
         description="Aether - Sovereign Agentic Development System",
