@@ -18,6 +18,14 @@ External claims of compliance (grants, investor materials, pilot agreements) req
 
 ## Unreleased
 
+### Super Grok skills structure (2026-07-19)
+- **`grants-agent` v0.1.0** - structured from Super Grok chat *Maori AI startups - Grants and Funding*
+  - Discover / fit-score / draft / track / Kotahitanga modes
+  - HITL hard stops; Te Mana Raraunga and no-cultural-extraction guards
+  - References: fit matrix, application checklist, funding system pointer, opportunity themes
+- Documented Super Grok domain skills in `docs/SKILLS.md` and `docs/SKILLS_CATALOG.md`
+  - `grants-agent` (active), `cat-egress-sentinel` (draft), `cat-model-sentinel` (draft)
+
 ### NZ Start-Up fleet pack + congruence
 - Synced founder-OS skills under `skills/nz-startup/` (from NZ-Start-Up)
 - `skills/nz-startup-fleet-bridge` discovery skill

@@ -2,6 +2,8 @@
 
 Skills live under `skills/` and are loaded by `aether.skills.loader.SkillLoader`.
 
+Full catalogue: [SKILLS_CATALOG.md](./SKILLS_CATALOG.md).
+
 ## Super Grok governance skills (2026-07)
 
 | Skill | Role |
@@ -11,6 +13,18 @@ Skills live under `skills/` and are loaded by `aether.skills.loader.SkillLoader`
 | `cat-architectural-standards` | Gold / Platinum / Diamond maturity + HITL gates |
 | `aether-git-workflow` | Safe git with approval gates |
 | `aether-skill-authoring` | How to write new skills |
+| `aether-nz-ai-safety` | NZ AI safety (Algorithm Charter, MBIE, Te Mana Raraunga) |
+
+## Super Grok domain skills (2026-07-19)
+
+| Skill | Role | Status |
+|-------|------|--------|
+| `grants-agent` | Maori AI / agritech / deeptech grants discover-fit-draft-track | active |
+| `cat-egress-sentinel` | Offline-native data egress monitor (report-first, HITL) | draft |
+| `cat-model-sentinel` | Edge model integrity / drift / silent-swap detection | draft |
+
+**grants-agent source:** Super Grok chat *Maori AI startups - Grants and Funding* (2026-07-19).  
+Canonical funding board (when present): `fivepanelhat/.github/funding`.
 
 ## NZ Start-Up fleet (embedded)
 
@@ -19,6 +33,7 @@ Under `skills/nz-startup/` (synced from [NZ-Start-Up](https://github.com/fivepan
 - formation, compliance, grants/RDTI, market, GTM, finance, legal, board CoS
 - **`first-principles-operator`** - digital employee P0 brief (`nz-startup operate`)
 - Load via `nz-startup-fleet-bridge` + `agent-hardening`
+- Pair `grants-agent` with fleet `grants-rdti-clerk` / `funding-analyst` when founder memory is in scope
 
 ## CI
 
