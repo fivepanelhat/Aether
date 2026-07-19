@@ -5,6 +5,8 @@ Provides security, safety, cultural, and process guardrails for the orchestrator
 """
 
 import logging
+import re
+import unicodedata
 from typing import List, Dict, Any, Tuple, Optional
 from dataclasses import dataclass
 
@@ -163,13 +165,25 @@ class Guardrails:
     INJECTION_PATTERNS = [
         "ignore previous instructions",
         "ignore all previous",
+        "ignore prior instructions",
+        "ignore the above",
+        "ignore your instructions",
         "disregard your instructions",
+        "disregard previous instructions",
+        "disregard all previous",
+        "forget previous instructions",
+        "forget everything above",
         "you are now",
+        "you must now",
         "system prompt",
+        "reveal your prompt",
+        "print your instructions",
+        "repeat the words above",
         "bypass approval",
         "skip approval",
-        "reveal your prompt",
         "developer mode",
+        "do anything now",
+        "new instructions:",
     ]
 
     def escape_for_shell(self, text: str) -> str:
@@ -187,11 +201,40 @@ class Guardrails:
             return subprocess.list2cmdline([text])
         return shlex.quote(text)
 
+    @staticmethod
+    def _normalize_for_screening(text: str) -> str:
+        """Fold text for injection screening: convert every whitespace run to a
+        single space, drop zero-width / format / control characters used to hide
+        trigger phrases (e.g. ``ignore​previous``), and lowercase."""
+        out = []
+        for ch in str(text):
+            if ch.isspace():
+                out.append(" ")
+            elif unicodedata.category(ch) in ("Cf", "Cc"):
+                continue  # zero-width space/joiner, BOM, other invisibles
+            else:
+                out.append(ch)
+        return re.sub(r"\s+", " ", "".join(out)).strip().lower()
+
     def detect_prompt_injection(self, text: str) -> Tuple[bool, List[str]]:
         """Heuristic prompt-injection detection. Returns (suspicious, matched
-        patterns). Suspicious input should be routed to HITL, not mutated."""
-        text_lower = text.lower()
-        matches = [p for p in self.INJECTION_PATTERNS if p in text_lower]
+        patterns).
+
+        Best-effort screening only — it is deliberately bypassable and is NOT
+        the primary control. The real control is HITL routing: a flagged goal
+        locks the orchestrator loop to human approval (see
+        ``orchestrator._approve_if_needed``); suspicious input is routed for
+        approval, never silently mutated. Normalisation resists trivial evasion
+        via irregular whitespace, newlines, and zero-width characters, and
+        matching also compares a whitespace-stripped form so a phrase whose
+        spaces were replaced by invisibles (``ignore​previous``) still
+        matches."""
+        normalized = self._normalize_for_screening(text)
+        despaced = normalized.replace(" ", "")
+        matches = [
+            p for p in self.INJECTION_PATTERNS
+            if p in normalized or p.replace(" ", "") in despaced
+        ]
         return (len(matches) > 0, matches)
 
     def sanitize_input(self, text: str) -> str:

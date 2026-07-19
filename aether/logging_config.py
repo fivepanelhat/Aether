@@ -30,7 +30,9 @@ def setup_logging(level: int = logging.INFO, log_file: Optional[str] = None):
 
         ensure_utf8_stdio()
     except Exception:
-        pass
+        # UTF-8 stdio is a nice-to-have applied before handlers exist; failure
+        # is non-fatal and logging isn't ready yet — intentionally silent.
+        pass  # nosec B110
 
     formatter = logging.Formatter(
         fmt="%(asctime)s | %(levelname)-8s | %(name)s | %(message)s",
