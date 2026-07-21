@@ -35,7 +35,7 @@ Anti-hallucination policy: [`.github/agent-fleet/anti-hallucination.md`](./.gith
 | **Agent orchestrator** | ReAct-style loop + skill routing |
 | **Computer-use path** | Desktop operation where explicitly enabled |
 | **Skill packs** | Super Grok governance skills (`aether-core`, CAT standards, skills CI) + NZ Start-Up fleet under `skills/nz-startup/` |
-| **Open companion licence** | Apache-2.0 - portable across CAT products |
+| **Licence** | Proprietary (Coastal Alpine Tech) - internal companion across CAT products |
 
 Skills guide: [`docs/SKILLS.md`](./docs/SKILLS.md)
 
@@ -54,7 +54,7 @@ Policy slogan: **Agents inform, draft, prepare, monitor, and remind. Humans advi
 **Stage honesty (pre-seed):** Impact today is founder R&D, near-term contractors, and EDA/partner leverage. Permanent multi-region payroll follows paid pilots and revenue - we do not invent headcount claims.
 <!-- END PROBLEMS_SOLUTIONS_ECONOMY -->
 
-[![License: Apache 2.0](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](./LICENSE)
+[![License: Proprietary (CAT)](https://img.shields.io/badge/License-Proprietary%20(CAT)-8B2F45.svg)](./LICENSE)
 [![Python](https://img.shields.io/badge/Python-3.10%2B-3776ab?logo=python&logoColor=white)](https://www.python.org)
 [![Version](https://img.shields.io/badge/version-0.6.8-blue.svg)](./CHANGELOG.md)
 
@@ -452,11 +452,9 @@ We are actively working on improving generative (builder) capabilities.
 
 ## License
 
-This project is licensed under the **Apache License 2.0**.
-
-See [LICENSE](LICENSE) and [NOTICE](NOTICE) for details.
-
-If you use this software, please provide appropriate credit to the Aether Project.
+Proprietary — © 2026 Coastal Alpine Tech Limited. All rights reserved.
+No open-source grant is implied by access to this repository; use is governed
+solely by [LICENSE](LICENSE).
 
 ---
 
