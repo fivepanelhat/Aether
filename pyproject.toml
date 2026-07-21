@@ -23,7 +23,7 @@ dev = [
 ]
 webhook = [
     "fastapi>=0.110",
-    "uvicorn>=0.27",
+    "uvicorn>=0.51.0",
     "tenacity>=8.2",
 ]
 computer = [
@@ -32,7 +32,7 @@ computer = [
 ]
 all = [
     "fastapi>=0.110",
-    "uvicorn>=0.27",
+    "uvicorn>=0.51.0",
     "tenacity>=8.2",
     "pyautogui>=0.9.54",
     "Pillow>=10.0",
