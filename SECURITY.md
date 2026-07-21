@@ -40,3 +40,11 @@ Report privately via GitHub Security Advisory or maintainers. Do not file public
 ## Quality gates
 
 - Matrix CI (Python 3.10 / 3.12): ruff, pytest, CLI smoke.
+
+## Fleet security principles
+
+- **No silent exfiltration** of personal or tenant operational data
+- Prefer **local-first** processing; third-party AI only with explicit operator configuration and UI/docs disclosure
+- Report vulnerabilities via GitHub Security Advisories or the maintainer contact on the org profile
+- High-stakes production changes require human approval (HITL)
+
