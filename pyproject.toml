@@ -58,3 +58,13 @@ aether = [
 [tool.ruff]
 line-length = 110
 target-version = "py310"
+
+[tool.ruff.lint]
+# Pin an explicit rule set. Ruff's *unpinned* default expands with each
+# release (0.16 treats UP/BLE/I/PL/SIM/RUF as default), which silently turned
+# CI red on ~269 pre-existing style findings that are not bugs. E4/E7/E9/F is
+# Ruff's documented default baseline (Pyflakes + essential pycodestyle) and
+# catches the real correctness issues (undefined names, unused imports, syntax).
+# Stylistic modernisation (pyupgrade, import-sort, pylint opinions) is tracked
+# as a separate, reviewed task — deliberately not gated here.
+select = ["E4", "E7", "E9", "F"]
