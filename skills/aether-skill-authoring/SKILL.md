@@ -2,14 +2,14 @@
 name: aether-skill-authoring
 description: Use when creating, updating, or refining agent skills for Aether, the Whānau Preterm Support Hub, or any Coastal Alpine Tech project. Encodes progressive disclosure, the successful-run-to-skill workflow, recursive improvement loops, HITL gates, cultural safety, and token-efficient authoring. Load this skill before authoring or improving any skill.
 metadata:
-  version: "1.1.0"
+  version: "1.1.1"
   status: active
   owner: Coastal Alpine Tech
   last_updated: "2026-07-26"
-  source_insights: "Greg Isenberg + Ras Mic (Apr 2026) progressive disclosure & skill creation method; HyperAgent/Howie Liu skills-as-primitive framing"
+  source_insights: "Greg Isenberg + Ras Mic (Apr 2026); HyperAgent/Howie Liu; IBM Technology – What AI Agent Skills Are and How They Work (2026)"
 ---
 
-# Aether Skill Authoring (v1.1.0)
+# Aether Skill Authoring (v1.1.1)
 
 This skill turns the highest-leverage patterns from frontier agent practice into a concrete, production-ready process for Aether and CAT.
 
@@ -26,6 +26,8 @@ Design every skill in three layers:
 Never put trigger phrases or “when to use” information only in the body. The description must carry the full decision signal.
 
 This pattern saves thousands of tokens per conversation compared with always-on agent.md / CLAUDE.md files.
+
+See also: `references/industry-practices.md` for the three-tier model as explained by IBM Technology and the emerging open standard.
 
 ## 2. The Highest-Leverage Authoring Method
 
@@ -73,17 +75,22 @@ Create a skill only when you see:
 skill-name/
 ├── SKILL.md                 # Required
 ├── references/              # Optional – long docs, checklists, examples
-│   └── CHANGELOG.md         # Recommended for versioned skills
+│   ├── CHANGELOG.md         # Recommended for versioned skills
+│   └── industry-practices.md # Optional reference for alignment notes
 ├── scripts/                 # Optional – deterministic helpers
 └── assets/                  # Optional – templates, sample files
 ```
 
-## 6. Frontmatter Rules
+## 6. Frontmatter Rules (Description Quality is Critical)
 
-- `description` is the single most important field. Write it as a clear “Use when…” statement that includes both capability and triggers.
+- `description` is the single most important field. It is the **only** signal the agent sees at Tier 1.
+- Write it as a clear “Use when…” statement that includes both capability and concrete trigger phrases.
+- The description must be precise enough that an LLM can reliably decide “this skill applies” from the description alone.
 - Keep it a plain YAML scalar (avoid complex quoting).
 - Include key constraints (HITL, cultural safety, sovereignty) in the description when they are load-bearing.
 - Always include version, status, owner, and last_updated in metadata.
+
+Vague descriptions cause missed or incorrect triggering.
 
 ## 7. Body Guidelines
 
@@ -106,9 +113,12 @@ Any skill that can:
 
 Default posture: agents inform, draft, prepare, and remind. Humans approve, sign, file, send, and pay.
 
+Treat skills that contain executable scripts the same way a responsible team treats any software dependency — review before first use.
+
 ## 9. Validation Checklist Before Shipping a Skill
 
 - [ ] Description alone is sufficient for the agent to decide when to load it.
+- [ ] Description is precise (avoids vague or overly broad triggers).
 - [ ] Body is under ~5k tokens; bulk moved to references/.
 - [ ] HITL gates are explicit where required.
 - [ ] Cultural / health / sovereignty constraints are stated if relevant.
@@ -122,6 +132,7 @@ Default posture: agents inform, draft, prepare, and remind. Humans approve, sign
 - Always-on large context files instead of progressive skills.
 - Writing skills purely from theory without a successful run.
 - Putting the “when to use” signal only in the body.
+- Vague or incomplete descriptions that prevent reliable triggering.
 - Overly long SKILL.md files without progressive disclosure.
 - Skills that lack HITL for high-stakes actions.
 - Creating skills for things the base model already does well.

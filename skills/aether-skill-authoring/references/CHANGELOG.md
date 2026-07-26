@@ -1,5 +1,17 @@
 # Changelog — aether-skill-authoring
 
+## [1.1.1] — 2026-07-26
+
+### Added
+- Explicit guidance that description quality is critical for correct Tier-1 triggering.
+- New reference: `references/industry-practices.md` capturing progressive-disclosure tiers, procedural-memory framing, skills-vs-tools relationship, and security posture from IBM Technology and the emerging open standard.
+- Security note: treat skills containing scripts like software dependencies.
+
+### Changed
+- Strengthened Frontmatter Rules section with precision requirement for descriptions.
+- Updated validation checklist and anti-patterns to include vague descriptions.
+- Bumped version and source_insights to include IBM Technology video.
+
 ## [1.1.0] — 2026-07-26
 
 ### Added
