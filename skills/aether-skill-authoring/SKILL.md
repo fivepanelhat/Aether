@@ -1,19 +1,19 @@
 ---
 name: aether-skill-authoring
-description: Use when creating, updating, or refining agent skills for Aether, the Whānau Preterm Support Hub, or any Coastal Alpine Tech project. Encodes progressive disclosure, the successful-run-to-skill workflow, recursive improvement loops, HITL gates, cultural safety, and token-efficient authoring. Load this skill before authoring or improving any skill.
+description: Use when creating, updating, or refining agent skills for Aether, the Whānau Preterm Support Hub, or any Coastal Alpine Tech project. Encodes progressive disclosure, the successful-run-to-skill workflow, recursive improvement loops, HITL gates, cultural safety, lifecycle metadata (status + owner), and token-efficient authoring. Load this skill before authoring or improving any skill.
 metadata:
-  version: "1.1.1"
+  version: "1.2.0"
   status: active
   owner: Coastal Alpine Tech
-  last_updated: "2026-07-26"
-  source_insights: "Greg Isenberg + Ras Mic (Apr 2026); HyperAgent/Howie Liu; IBM Technology – What AI Agent Skills Are and How They Work (2026)"
+  last_updated: "2026-07-27"
+  source_insights: "Greg Isenberg + Ras Mic (Apr 2026); HyperAgent/Howie Liu; IBM Technology – What AI Agent Skills Are and How They Work (2026); AI Agent Sprawl governance patterns"
 ---
 
-# Aether Skill Authoring (v1.1.1)
+# Aether Skill Authoring (v1.2.0)
 
 This skill turns the highest-leverage patterns from frontier agent practice into a concrete, production-ready process for Aether and CAT.
 
-**Core principle:** Skills are the primary lever. Models are already good. The differentiator is the quality, progressive disclosure, and continuous improvement of the skills you give them.
+**Core principle:** Skills are the primary lever. Models are already good. The differentiator is the quality, progressive disclosure, continuous improvement, and governance of the skills you give them.
 
 ## 1. Progressive Disclosure (Non-Negotiable)
 
@@ -69,6 +69,8 @@ Create a skill only when you see:
 
 **Do not** create skills for general knowledge the model already handles well.
 
+Always apply the anti-sprawl pre-creation checklist (see `references/anti-sprawl.md`) before creating a new skill. Prefer updating an existing skill over creating a near-duplicate.
+
 ## 5. Required Structure
 
 ```
@@ -76,21 +78,46 @@ skill-name/
 ├── SKILL.md                 # Required
 ├── references/              # Optional – long docs, checklists, examples
 │   ├── CHANGELOG.md         # Recommended for versioned skills
-│   └── industry-practices.md # Optional reference for alignment notes
+│   ├── industry-practices.md
+│   └── anti-sprawl.md       # Governance & lifecycle policy
 ├── scripts/                 # Optional – deterministic helpers
 └── assets/                  # Optional – templates, sample files
 ```
 
-## 6. Frontmatter Rules (Description Quality is Critical)
+## 6. Frontmatter Rules (Description Quality + Lifecycle Metadata)
+
+### Description (Tier-1 signal)
 
 - `description` is the single most important field. It is the **only** signal the agent sees at Tier 1.
 - Write it as a clear “Use when…” statement that includes both capability and concrete trigger phrases.
 - The description must be precise enough that an LLM can reliably decide “this skill applies” from the description alone.
 - Keep it a plain YAML scalar (avoid complex quoting).
 - Include key constraints (HITL, cultural safety, sovereignty) in the description when they are load-bearing.
-- Always include version, status, owner, and last_updated in metadata.
 
 Vague descriptions cause missed or incorrect triggering.
+
+### Mandatory lifecycle metadata
+
+Every skill **must** include the following in `metadata`:
+
+```yaml
+metadata:
+  version: "x.y.z"
+  status: active          # required: active | experimental | deprecated
+  owner: Coastal Alpine Tech   # required: person or role
+  last_updated: "YYYY-MM-DD"
+```
+
+**Allowed `status` values and selection behaviour**
+
+| Value | Meaning | Default shortlist behaviour |
+|-------|---------|-----------------------------|
+| `active` | Production-ready, preferred for selection | Included |
+| `experimental` | Under trial; may change or be removed | Included only when explicitly relevant or requested |
+| `deprecated` | Superseded or no longer recommended | Excluded from default shortlists; still loadable if named |
+
+- `owner` must be a non-empty string (person, team, or role).
+- `status` and `owner` are required for any new or updated skill.
 
 ## 7. Body Guidelines
 
@@ -119,13 +146,16 @@ Treat skills that contain executable scripts the same way a responsible team tre
 
 - [ ] Description alone is sufficient for the agent to decide when to load it.
 - [ ] Description is precise (avoids vague or overly broad triggers).
+- [ ] `status` is present and is one of: `active` | `experimental` | `deprecated`.
+- [ ] `owner` is present and non-empty.
 - [ ] Body is under ~5k tokens; bulk moved to references/.
 - [ ] HITL gates are explicit where required.
 - [ ] Cultural / health / sovereignty constraints are stated if relevant.
-- [ ] Skill has been generated or refined from at least one successful real run.
+- [ ] Skill has been generated or refined from at least one successful real run (or is a deliberate policy/governance skill).
 - [ ] A failure case has been fed back and the skill updated (or documented as still needed).
 - [ ] Directory name matches the `name` field.
 - [ ] CHANGELOG.md exists for any skill past v0.1.
+- [ ] Anti-sprawl pre-creation checklist has been considered (see `references/anti-sprawl.md`).
 
 ## 10. Anti-Patterns
 
@@ -133,9 +163,11 @@ Treat skills that contain executable scripts the same way a responsible team tre
 - Writing skills purely from theory without a successful run.
 - Putting the “when to use” signal only in the body.
 - Vague or incomplete descriptions that prevent reliable triggering.
+- Missing or invalid `status` / `owner` metadata.
 - Overly long SKILL.md files without progressive disclosure.
 - Skills that lack HITL for high-stakes actions.
 - Creating skills for things the base model already does well.
+- Creating near-duplicate skills instead of updating existing ones.
 
 ## Quick Start Commands (after skill is written)
 
