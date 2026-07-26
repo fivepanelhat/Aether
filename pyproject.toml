@@ -58,3 +58,9 @@ aether = [
 [tool.ruff]
 line-length = 110
 target-version = "py310"
+
+[tool.pytest.ini_options]
+# Fixes "import file mismatch" from duplicate test module basenames
+# (tests/skills_ci/test_validate_skill.py vs skills/aether-skills-ci/tests/test_validate_skill.py).
+# importlib import-mode does not require unique basenames or __init__.py files.
+addopts = "--import-mode=importlib"
