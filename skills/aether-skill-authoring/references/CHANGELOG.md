@@ -1,5 +1,17 @@
 # Changelog — aether-skill-authoring
 
+## [1.2.0] — 2026-07-27
+
+### Added
+- Mandatory lifecycle metadata: `status` (`active` | `experimental` | `deprecated`) and `owner`.
+- Documented selection behaviour for each status value (deprecated skills excluded from default shortlists).
+- New reference: `references/anti-sprawl.md` (standing rules, pre-creation checklist, composition & trajectory discipline, retirement guidance).
+- Anti-sprawl items added to the validation checklist and anti-patterns.
+
+### Changed
+- Frontmatter Rules section expanded to cover both description quality and lifecycle metadata.
+- Version bumped to 1.2.0; source_insights updated to include AI Agent Sprawl governance patterns.
+
 ## [1.1.1] — 2026-07-26
 
 ### Added
