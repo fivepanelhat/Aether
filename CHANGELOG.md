@@ -2,6 +2,30 @@
 
 All notable changes to Aether will be documented in this file.
 
+## [0.7.1] - 2026-07-27
+
+### Added — Alignment Week
+- **`docs/alignments/`** — canonical alignment evidence library (NZ government instruments, Te Mana Raraunga, international production, repo maps)
+- **`docs/alignments/ALIGNMENT-METRICS.md`** — L0–L4 scorecard protocol; five metric families; fail-closed claim rules
+- **Scorecards** — Aether L1 Designed (founder-accepted 2026-07-27); Front_Line_Whanau L0–L1; claim register
+- **`GRANT-REINFORCEMENT.md`** — grant-ready external citation blocks
+- **`MVS-RUNTIME-GAP-PLAN.md`** — engineering path to L2 (Runtime Sovereignty Gate)
+- Governance/security bridge docs and applied inserts to COMPLIANCE.md, CAT_CONGRUENCE.md, SECURITY.md
+- Alignments changelog: `docs/alignments/CHANGELOG.md`
+
+### Added — Experimental skills (status: experimental)
+- `aether-agent-performance` v0.1.x — cost-per-successful-task (CPST) framing
+- `aether-agent-routing` v0.1.x — routing strategies
+- `te-mana-raraunga-controls` v0.1.x — principle → technical control mapping
+
+### Notes
+- Markdown-only for alignments work; no dependency or runtime changes in this release slice
+- External compliance claims require founder approval and must match scorecard tier
+- Portfolio landing (`fivepanelhat`) received ALIGNMENT_EVIDENCE pointers and L1 claim language the same day
+
+### Related
+- PRs #37–#41 on Aether; fivepanelhat PR #16; Hub UX Slices 1–3 tracked on Front_Line_Whanau
+
 ## [0.6.9] - 2026-07-16
 
 ### Added
