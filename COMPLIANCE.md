@@ -1,11 +1,11 @@
 # COMPLIANCE.md
 
 **Coastal Alpine Tech Limited** | **Product:** Aether
-Last updated: 22 July 2026
+Last updated: 27 July 2026
 
 ## Privacy / Security / Governance (fleet mandatory)
 
-**Last reviewed (fleet block):** 22 July 2026
+**Last reviewed (fleet block):** 27 July 2026
 
 | Pillar | Standard |
 | --- | --- |
@@ -20,6 +20,19 @@ Last updated: 22 July 2026
 
 > This document is **alignment evidence**, not a compliance certificate, audit report, or legal advice.
 
+## Alignment Evidence
+
+Detailed mapping of Aether and the wider Kiwi Edge stack to external instruments is maintained in the alignments library:
+
+- New Zealand government instruments (AI Strategy, Algorithm Charter, Public Service AI Framework)
+- Te Mana Raraunga principles and Te Kāhui Raraunga Māori Data Governance Model
+- International production evidence (agent performance, cost-per-successful-task, model routing, harness design)
+- Alignment metrics and scorecards (`docs/alignments/ALIGNMENT-METRICS.md`, `docs/alignments/scorecards/`)
+- Grant reinforcement links (`docs/alignments/GRANT-REINFORCEMENT.md`)
+
+See `docs/alignments/`.
+
+The alignments library is **evidence and mapping only**. Binding controls remain those stated in this document and in the Hardened NZ AI Safety Guidelines. External claims of alignment require concrete controls plus founder approval. Scorecard tier (July 2026): **L1 Designed** until Minimum Viable Set runtime evidence is recorded (`docs/alignments/MVS-RUNTIME-GAP-PLAN.md`).
 
 ## Regulatory Mapping
 
