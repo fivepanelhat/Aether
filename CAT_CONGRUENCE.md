@@ -53,6 +53,17 @@ All AI systems, agents, and claims of responsible AI must follow the **Hardened 
 
 Any external claim of compliance requires explicit founder approval.
 
+### Alignment evidence library
+
+Repo-level and instrument-level mapping lives in the alignments library (`docs/alignments/`). It covers:
+
+- NZ government strategy and Charter commitments
+- Te Mana Raraunga operational controls and Minimum Viable Set
+- International production sources used for performance, routing, and skills architecture
+- Scorecards and grant reinforcement links
+
+Use the relevant `repo-maps/*.md` file and `GRANT-REINFORCEMENT.md` when preparing grants, pilot language, or public claims. Alignments do not replace the Hardened Guidelines or the autonomy ceiling in this document. External claims remain bound to scorecard tier and founder approval.
+
 ## Agent fleet location
 
 Portable skills and policy live under:
