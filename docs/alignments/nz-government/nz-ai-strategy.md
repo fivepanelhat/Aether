@@ -8,7 +8,7 @@ https://www.mbie.govt.nz/business-and-employment/economic-growth/digital-policy/
 July 2025 (web version maintained)
 
 **Nature**  
-Government strategy focused on accelerating private-sector adoption of existing AI technologies, responsible use, and building confidence. Light-touch; does not create new legal obligations.
+Government strategy focused on accelerating private-sector adoption of existing AI technologies, responsible use, and building confidence. Light-touch; does not create new legal obligations. Explicitly adopts OECD AI Principles.
 
 ---
 
@@ -24,10 +24,15 @@ Government strategy focused on accelerating private-sector adoption of existing 
 
 ---
 
-## Reinforcement Links
+## Reinforcement Links (grant-ready)
 
-1. Official strategy page (primary text) — link above  
-2. Supporting Responsible AI guidance for businesses (MBIE companion resource)
+1. **Official strategy (primary)** — https://www.mbie.govt.nz/business-and-employment/economic-growth/digital-policy/new-zealands-ai-strategy-investing-with-confidence  
+2. **Beehive launch release** (8 July 2025) — https://www.beehive.govt.nz/release/government-ai-strategy-boost-productivity  
+3. **Responsible AI Guidance for Businesses** — https://www.mbie.govt.nz/business-and-employment/business/support-for-business/responsible-ai-guidance-for-businesses  
+4. **Digital.govt.nz strategy + guidance hub** — https://www.digital.govt.nz/standards-and-guidance/technology-and-architecture/artificial-intelligence/new-zealands-ai-strategy-and-guidance-for-business  
+5. **OECD AI Principles** (adopted in strategy) — https://oecd.ai/en/ai-principles  
+
+Full citation pack: `docs/alignments/GRANT-REINFORCEMENT.md`
 
 ---
 
@@ -35,4 +40,4 @@ Government strategy focused on accelerating private-sector adoption of existing 
 
 - Covered at principle level in `docs/HARDENED_NZ_AI_SAFETY_GUIDELINES.md`
 - Operationalised through HITL protocol, local-first preference, and evaluation requirements
-- Still requires concrete evidence of measurement (success rates, cost, half-life) before strong external claims
+- Scorecard (July 2026): L1 Designed — require measurement evidence before strong external performance claims
