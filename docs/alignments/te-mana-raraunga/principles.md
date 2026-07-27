@@ -22,13 +22,20 @@ Foundational Aotearoa principles for Māori data sovereignty. Data is treated as
 
 ---
 
-## Reinforcement
+## Reinforcement Links (grant-ready)
 
-1. Official Te Mana Raraunga site (primary)
-2. Te Kāhui Raraunga materials that operationalise these principles into AI governance
+1. **Te Mana Raraunga home** — https://www.temanararaunga.maori.nz/  
+2. **Charter (Tūtohinga)** — https://www.temanararaunga.maori.nz/tutohinga  
+3. **Te Kāhui Raraunga Māori Data Governance Model** — https://www.kahuiraraunga.io/maoridatagovernance  
+4. **Model report (research commons)** — https://researchcommons.waikato.ac.nz/items/c076bc80-973b-4389-ac04-3902de003d48  
+5. **Digital.govt.nz — Sharing Māori data** — https://www.digital.govt.nz/standards-and-guidance/information-sharing-standard/maori-data  
+6. **Royal Society Te Apārangi — Mana Raraunga overview** — https://www.royalsociety.org.nz/what-we-do/our-expert-advice/all-expert-advice-papers/mana-raraunga-data-sovereignty/  
+
+Full pack: `docs/alignments/GRANT-REINFORCEMENT.md`
 
 ---
 
 ## Status in CAT
 
-These principles are the authority behind the experimental `te-mana-raraunga-controls` catalogue and the Minimum Viable Set (Runtime Sovereignty Gate, consent checks, local-first, encryption + key control, HITL, provenance).
+Principles underpin experimental `te-mana-raraunga-controls` and the Minimum Viable Set.  
+**Scorecard:** L1 Designed (July 2026). Do not claim guaranteed Māori data sovereignty until MVS runtime evidence exists.

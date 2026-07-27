@@ -5,7 +5,6 @@
   https://aimultiple.com/ai-agent-performance
 - Factory × LangChain interview with Eno Reyes (16 Jul 2026)  
   https://youtu.be/HbUznYhKFOc
-- Arize + Fireworks CPST study (Jul 2026)
 
 ---
 
@@ -20,14 +19,18 @@
 
 ---
 
-## Reinforcement Videos / Links
+## Reinforcement Videos / Links (grant-ready)
 
-1. AIMultiple Agent Performance page (primary text + tables)
-2. LangChain × Eno Reyes — “The best AI agents cost less than you think”  
-   https://youtu.be/HbUznYhKFOc
+1. **AIMultiple Agent Performance** (primary text) — https://aimultiple.com/ai-agent-performance  
+2. **LangChain × Eno Reyes** — “The best AI agents cost less than you think” — https://youtu.be/HbUznYhKFOc  
+3. **Karpathy on code agents / AutoResearch** (No Priors) — https://www.youtube.com/watch?v=kwSVtQ7dziU  
+4. **Google DeepMind — agent societies / delegation** — https://www.youtube.com/watch?v=V04bm-3d6EQ  
+
+Full pack: `docs/alignments/GRANT-REINFORCEMENT.md`
 
 ---
 
 ## CAT Skill
 
-`aether-agent-performance` (experimental v0.1.2) encodes these findings as operational principles and metrics.
+`aether-agent-performance` (experimental v0.1.2) encodes these findings as operational principles and metrics.  
+**Do not** present AIMultiple or Factory numbers as CAT’s own measured performance.

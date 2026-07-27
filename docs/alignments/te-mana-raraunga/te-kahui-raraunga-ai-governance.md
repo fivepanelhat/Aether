@@ -1,40 +1,29 @@
-# Te Kāhui Raraunga — Māori AI Governance Framework
+# Te Kāhui Raraunga — Māori Data Governance Model
 
 **Source**  
-Te Kāhui Raraunga (operational arm of the Data Iwi Leaders Group)  
-https://www.kahuiraraunga.io/maoriaigovernance
+Te Kāhui Raraunga  
+https://www.kahuiraraunga.io/maoridatagovernance  
+
+**Report**  
+Kukutai et al. (2023). *Māori data governance model.* Te Kāhui Raraunga.  
+https://researchcommons.waikato.ac.nz/items/c076bc80-973b-4389-ac04-3902de003d48  
 
 **Nature**  
-Framework that extends the Māori Data Governance Model into the AI era. Explicitly requires Māori authority over Māori data and Tiriti-anchored governance for AI systems.
+Values-led model for system-wide governance of Māori data in the public service, consistent with Te Tiriti responsibilities. Eight pou (pillars) define critical governance areas.
 
 ---
 
-## Key Messages That Align with CAT
+## Reinforcement Links (grant-ready)
 
-- AI is “Data-Driven Intelligence” — therefore data sovereignty rules apply with full force.
-- Systems must not be implemented in Aotearoa without realising Māori authority over Māori data.
-- Calls for stronger transparency, bias monitoring, accountability, and the ability to exit or change systems.
-- Critiques the current Algorithm Charter as needing overhaul for the AI age.
+1. **Model home** — https://www.kahuiraraunga.io/maoridatagovernance  
+2. **Full report (PDF via research commons)** — https://researchcommons.waikato.ac.nz/items/c076bc80-973b-4389-ac04-3902de003d48  
+3. **Digital.govt.nz guidance on sharing Māori data** — https://www.digital.govt.nz/standards-and-guidance/information-sharing-standard/maori-data  
+4. **Te Mana Raraunga network** — https://www.temanararaunga.maori.nz/  
 
----
-
-## CAT Response
-
-- Concrete technical controls catalogue (`te-mana-raraunga-controls`)
-- Runtime Sovereignty Gate + consent graph as Minimum Viable Set
-- HITL L2+ on all sovereignty-affecting changes
-- Cultural review readiness for high-stakes or public-facing outputs involving Māori data
-- Local-first / NZ residency preference
+Full pack: `docs/alignments/GRANT-REINFORCEMENT.md`
 
 ---
 
-## Reinforcement
+## Status in CAT
 
-1. Official Te Kāhui Raraunga Māori AI Governance Framework page
-2. RNZ / Te Ao Māori News coverage of the framework launch and calls for government adoption (Oct 2025)
-
----
-
-## Status
-
-Primary local policy reference for any claim of Māori data / AI governance alignment. Must be paired with the operational controls, not treated as a statement of intent alone.
+Used as operational reference for cultural safety, purpose binding, and data governance language in Hub and Mana Kai pathways. Complements (does not replace) Te Mana Raraunga principles.
