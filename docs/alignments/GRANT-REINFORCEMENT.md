@@ -6,7 +6,7 @@ Curated primary sources and 1–2 reinforcement links per theme for grant applic
 Cite external sources for the claim; cite CAT controls for *how* we implement. Never present third-party benchmarks as CAT measured results. Respect scorecard tier (L1 = designed language only until L2 evidence).
 
 **Status**  
-Alignment Week — 27 July 2026  
+Hardening Sprint — 28 July 2026  
 **Owner**  
 Coastal Alpine Tech  
 
@@ -30,13 +30,16 @@ Coastal Alpine Tech
 | **Primary** | https://www.mbie.govt.nz/business-and-employment/economic-growth/digital-policy/new-zealands-ai-strategy-investing-with-confidence |
 | **Beehive launch** | https://www.beehive.govt.nz/release/government-ai-strategy-boost-productivity (8 July 2025) |
 | **Digital.govt.nz summary** | https://www.digital.govt.nz/standards-and-guidance/technology-and-architecture/artificial-intelligence/new-zealands-ai-strategy-and-guidance-for-business |
+| **Responsible AI Guidance** | https://www.mbie.govt.nz/business-and-employment/business/support-for-business/responsible-ai-guidance-for-businesses |
 | **PDF** | Strategy PDF linked from MBIE page (718 KB) |
 
 **Grant angle**  
-Strategy prioritises *application* and responsible private-sector adoption over foundational model training — matches CAT edge + agentic application focus.
+Strategy prioritises practical *application* and responsible private-sector adoption (especially agriculture, healthcare, SMEs) over foundational model development. Explicitly supports light-touch, OECD-aligned principles and provides voluntary Responsible AI Guidance that emphasises human oversight, ethical data handling (including Māori data, te reo, tikanga, mātauranga), community engagement, and equitable impact.
 
 **CAT bridge**  
-Hardened NZ AI Safety Guidelines + HITL + measurement (CPST) operationalise “invest with confidence” for AgriTech / community platforms.
+Hardened NZ AI Safety Guidelines + mandatory HITL gates + local-first Te Mana Raraunga controls + DataFlywheel operationalise “invest with confidence” for AgriTech edge deployments and community platforms — exactly the adoption barriers the Strategy seeks to reduce for SMEs and primary industries.
+
+**Claim tier**: L1 Designed (28 July 2026)
 
 ---
 
@@ -49,10 +52,12 @@ Hardened NZ AI Safety Guidelines + HITL + measurement (CPST) operationalise “i
 | **Human-in-the-loop section** | https://www.mbie.govt.nz/business-and-employment/business/support-for-business/responsible-ai-guidance-for-businesses/artificial-intelligence-system-specific-considerations/use-and-outputs |
 
 **Grant angle**  
-Voluntary national guidance: humans remain responsible for final decisions; HITL and recordkeeping expected.
+Voluntary national guidance requiring humans remain responsible for final decisions; risk-proportionate approaches; ethical data practices that explicitly include respect for te reo Māori, Māori imagery, tikanga, mātauranga, and Māori data; good-practice engagement with impacted communities; and equitable outcomes.
 
 **CAT bridge**  
-COMPLIANCE.md human-authority rule + `aether-hitl-protocol` (L2+ on high-stakes paths).
+COMPLIANCE.md human-authority rule + `aether-hitl-protocol` (elevated gates on high-stakes and culturally sensitive paths) + `te-mana-raraunga-controls` implement the Guidance’s expectations for HITL, data care, and community considerations at the edge.
+
+**Claim tier**: L1 Designed
 
 ---
 
@@ -120,7 +125,25 @@ Principles → technical controls catalogue; cultural review + purpose binding c
 
 ---
 
-## 7. International production evidence (performance / routing / harness)
+## 7. Kotahitanga Fund (Kiingitanga / Iwi Investment Platform) — NEW 28 July 2026
+
+| Role | Link / Source |
+|------|---------------|
+| **Primary reporting** | RNZ / NZ Herald / Te Ao Māori News coverage of 29 Nov 2025 launch by Te Arikinui Kuini Nga wai hono i te po at Ōhanga ki te Ao |
+| **Nature** | Iwi-backed, tikanga-based, intergenerational investment platform (~$100m seed pledged); Māori-owned and controlled |
+| **Focus signals** | Infrastructure, clean energy, housing, logistics, cultural media, **Māori tech ecosystems**; outcomes for people + solid long-term returns |
+
+**Grant / engagement angle**  
+Collective Māori capital vehicle designed to deliver scale, intergenerational wealth, and self-determination. Explicit interest in Māori tech ecosystems and infrastructure that can generate both commercial returns and measurable social/economic outcomes.
+
+**CAT bridge**  
+Kiwi Edge AI Stack (offline-first, Te Mana Raraunga operationalised, HITL, DataFlywheel) is purpose-built sovereign infrastructure for whenua productivity and data-as-taonga — a concrete candidate for the “Māori tech ecosystems” and asset-productivity themes the Fund is intended to support. Engagement is relationship-led (Kiingitanga / iwi channels), not open application.
+
+**Claim tier**: L1 Designed — relationship pathway only; no formal application mechanism confirmed as of 28 July 2026.
+
+---
+
+## 8. International production evidence (performance / routing / harness)
 
 | Theme | Primary | Reinforcement (video) |
 |-------|---------|------------------------|
@@ -137,7 +160,7 @@ Global production evidence that unit economics, routing, and harness design matt
 
 ---
 
-## 8. OECD AI Principles (strategy alignment)
+## 9. OECD AI Principles (strategy alignment)
 
 | Role | Link |
 |------|------|
@@ -150,14 +173,15 @@ NZ AI Strategy explicitly adopts OECD AI Principles (Beehive / MBIE). Useful sin
 ## Suggested grant footnote block (copy-adapt)
 
 ```
-New Zealand’s AI Strategy: Investing with Confidence (MBIE, July 2025).
-Responsible AI Guidance for Businesses (MBIE).
+New Zealand’s AI Strategy: Investing with Confidence (MBIE, July 2025) and Responsible AI Guidance for Businesses.
 Algorithm Charter for Aotearoa New Zealand (data.govt.nz).
-Te Mana Raraunga — Māori Data Sovereignty Network; Te Kāhui Raraunga Māori Data Governance Model (2023).
+Te Mana Raraunga — Māori Data Sovereignty Network; Te Kāhui Raraunga Māori Data Governance Model.
 OECD AI Principles (adopted in NZ strategy).
+Kotahitanga Fund (Kiingitanga / iwi-backed investment platform, launched Nov 2025) — Māori tech ecosystems and intergenerational asset productivity themes.
+Te Puni Kōkiri Māori Development Fund (Priority 1: asset productivity + infrastructure).
 
 Implementation mapping: Coastal Alpine Tech / Aether docs/alignments/ and Hardened NZ AI Safety Guidelines.
-Alignment tier: Designed (L1) as of July 2026 scorecard — runtime Minimum Viable Set in progress.
+Alignment tier: Designed (L1) as of 28 July 2026 scorecard — runtime Minimum Viable Set in progress. No certification or guaranteed sovereignty claims.
 ```
 
 ---
@@ -178,4 +202,4 @@ Alignment tier: Designed (L1) as of July 2026 scorecard — runtime Minimum Viab
 - `docs/alignments/international-production/`  
 
 Coastal Alpine Tech · Aether  
-Grant Reinforcement v0.1.0 · 27 July 2026
+Grant Reinforcement v0.2.0 · 28 July 2026 (Hardening Sprint)
