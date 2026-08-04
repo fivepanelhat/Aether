@@ -1,6 +1,6 @@
 ---
 name: aether-night-cycle
-description: Use when designing, implementing, or running continuous overnight operation for Aether. Handles the Night Cycle (evening summary + prioritised next-day plan) and Morning Brief. Ensures scheduled specialist agents run under hard HITL gates. Trigger phrases include night cycle, overnight loop, morning brief, continuous operation, scheduled agents, Polsia-style autonomy adapted for sovereignty.
+description: Use when designing, implementing, or running continuous overnight operation for Aether. Handles the Night Cycle (evening summary + prioritised next-day plan) and Morning Brief. Ensures scheduled specialist agents run under hard HITL gates. Trigger phrases include night cycle, overnight loop, morning brief, continuous operation, scheduled agents, policy-based autonomy adapted for sovereignty.
 metadata:
   version: "1.0.0"
   status: active
