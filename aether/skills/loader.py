@@ -124,15 +124,22 @@ class SkillLoader:
                 f"Using skill name from frontmatter."
             )
 
+        # Sub-dict under 'metadata:' key (used by Skills CI frontmatter schema)
+        nested = metadata.get("metadata") or {}
+
+        def _field(key, default):
+            """Read from top-level first, fall back to nested metadata sub-dict."""
+            return metadata[key] if key in metadata else nested.get(key, default)
+
         # Type validation / normalization
         skill_data = {
             "name": name,
             "description": metadata["description"],
-            "version": str(metadata.get("version", "0.1.0")),
-            "type": metadata.get("type", "general"),
-            "requires_hitl": bool(metadata.get("requires_hitl", False)),
-            "cultural_sensitivity": metadata.get("cultural_sensitivity", "low"),
-            "tags": metadata.get("tags", []) if isinstance(metadata.get("tags"), list) else [],
+            "version": str(_field("version", "0.1.0")),
+            "type": _field("type", "general"),
+            "requires_hitl": bool(_field("requires_hitl", False)),
+            "cultural_sensitivity": _field("cultural_sensitivity", "low"),
+            "tags": _field("tags", []) if isinstance(_field("tags", []), list) else [],
             "folder_path": os.path.dirname(file_path),
             "body": body,
             "raw_metadata": metadata

@@ -48,6 +48,17 @@ Report privately via GitHub Security Advisory or maintainers. Do not file public
 - Report vulnerabilities via GitHub Security Advisories or the maintainer contact on the org profile
 - High-stakes production changes require human approval (HITL)
 
+## Alignment with sovereignty & NZ instruments
+
+Security controls are designed to operate together with Te Mana Raraunga principles and the Hardened NZ AI Safety Guidelines. In particular:
+
+- No silent exfiltration and local-first defaults support Kaitiakitanga and Rangatiratanga.
+- HITL gates for high-stakes and culturally sensitive actions align with the Algorithm Charter spirit and Public Service AI expectations.
+- Detailed mapping lives in the alignments library (`docs/alignments/`), including `SECURITY-PROTOCOL-ALIGNMENT.md`, scorecards, and `GRANT-REINFORCEMENT.md`.
+- Runtime Sovereignty Gate (Minimum Viable Set) is specified in `skills/te-mana-raraunga-controls` and tracked in `docs/alignments/MVS-RUNTIME-GAP-PLAN.md`.
+
+Runtime enforcement remains SecurityGuard, ThreatModeler/Guardrails, and HITL. Alignments provide evidence and mapping only.
+
 ## Data sales and third parties
 
 - **We do not sell personal information or customer operational data to third parties.**
@@ -59,4 +70,3 @@ Report privately via GitHub Security Advisory or maintainers. Do not file public
 - Design in accordance with the **Privacy Act 2020**.
 - Operate in accordance with **Te Mana Raraunga** principles for Māori data sovereignty interests.
 - Align AI features with **NZ AI safety** / responsible AI expectations (HITL, transparency, no silent training on private content).
-
