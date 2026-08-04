@@ -30,5 +30,4 @@ Supports EDAs, councils, accountants, and mid-market buyers evaluating NZ Start-
 ## Related Skills
 
 - `market-validator`
-- `nz-startup-partnership`
 - `aether-hitl-protocol`
