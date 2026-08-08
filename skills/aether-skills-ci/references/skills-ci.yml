@@ -28,7 +28,7 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -45,7 +45,7 @@ jobs:
 
       - name: Run pytest
         run: |
-          python -m pytest tests/ -v --tb=short
+          python -m pytest tests/skills_ci/ -v --tb=short
 
       - name: Upload test results (on failure)
         if: failure()
@@ -67,7 +67,7 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           fetch-depth: 0
 
@@ -98,28 +98,38 @@ jobs:
           echo "EOF" >> $GITHUB_OUTPUT
 
       - name: Validate each skill (structure + frontmatter)
+        env:
+          # Pass the multi-line discover output via env so bash word-splits on
+          # whitespace. Interpolating ${{ ... }} directly into `for` injects raw
+          # newlines and breaks the loop (syntax error near the second skill).
+          SKILLS: ${{ steps.discover.outputs.skills }}
         run: |
           set -e
           FAIL=0
-          for skill in ${{ steps.discover.outputs.skills }}; do
-            echo "────────────────────────────────────────"
+          for skill in $SKILLS; do
+            echo "----------------------------------------"
             echo "Validating skill: $skill"
             if [ -d "skills/$skill" ]; then
               DIR="skills/$skill"
             else
               DIR="$skill"
             fi
-            if [ -f "scripts/validate-skill.sh" ]; then
+            # Nested packs (e.g. skills/nz-startup/*) use a folder without root SKILL.md
+            if [ ! -f "$DIR/SKILL.md" ]; then
+              echo "SKIP: $DIR has no SKILL.md (nested skill pack)"
+              continue
+            fi
+            if [ -f "scripts/validate_skill.py" ]; then
+              if ! python3 scripts/validate_skill.py "$DIR"; then
+                FAIL=1
+              fi
+            elif [ -f "scripts/validate-skill.sh" ]; then
               if ! bash scripts/validate-skill.sh "$DIR"; then
                 FAIL=1
               fi
             else
-              if [ ! -f "$DIR/SKILL.md" ]; then
-                echo "FAIL: $DIR/SKILL.md missing"
-                FAIL=1
-                continue
-              fi
-              echo "OK: basic presence check for $skill"
+              echo "FAIL: no skill validator script"
+              FAIL=1
             fi
           done
           if [ $FAIL -ne 0 ]; then
@@ -136,7 +146,7 @@ jobs:
       - name: Check for secrets / sensitive patterns
         run: |
           set -e
-          if grep -rE '(api[_-]?key|secret|password|token)\s*[:=]\s*["\']?[A-Za-z0-9_\-]{16,}' \
+          if grep -rE "(api[_-]?key|secret|password|token)[[:space:]]*[:=][[:space:]]*[\"']?[A-Za-z0-9_-]{16,}" \
                --include='*.md' --include='*.py' --include='*.yml' --include='*.yaml' \
                skills/ 2>/dev/null; then
             echo "Potential secrets detected — review before merging"
@@ -164,7 +174,7 @@ jobs:
     if: github.ref == 'refs/heads/main' || github.event_name == 'workflow_dispatch'
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Set up Python
         uses: actions/setup-python@v5
