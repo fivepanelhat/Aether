@@ -22,7 +22,7 @@ dev = [
     "ruff>=0.4",
 ]
 webhook = [
-    "fastapi>=0.110",
+    "fastapi>=0.141.1",
     "uvicorn>=0.27",
     "tenacity>=8.2",
 ]
@@ -35,7 +35,7 @@ core = [
     "coastal-alpine-core @ git+https://github.com/fivepanelhat/Coastal-Alpine-Core.git@v0.5.8",
 ]
 all = [
-    "fastapi>=0.110",
+    "fastapi>=0.141.1",
     "uvicorn>=0.27",
     "tenacity>=8.2",
     "pyautogui>=0.9.54",
