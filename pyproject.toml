@@ -30,12 +30,17 @@ computer = [
     "pyautogui>=0.9.54",
     "Pillow>=10.0",
 ]
+# Sprint A soft seams — SessionEvent audit + provider profiles (null-safe without this extra)
+core = [
+    "coastal-alpine-core @ git+https://github.com/fivepanelhat/Coastal-Alpine-Core.git@v0.5.8",
+]
 all = [
     "fastapi>=0.110",
     "uvicorn>=0.27",
     "tenacity>=8.2",
     "pyautogui>=0.9.54",
     "Pillow>=10.0",
+    "coastal-alpine-core @ git+https://github.com/fivepanelhat/Coastal-Alpine-Core.git@v0.5.8",
 ]
 
 [project.scripts]
