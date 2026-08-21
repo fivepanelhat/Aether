@@ -10,6 +10,7 @@ Fixes over previous revision:
 - Skills directory resolved robustly (CWD -> env -> ~/.aether/skills)
 
 Sprint A Phase 1: optional SessionEvent audit via soft-import of Core.
+Sprint A Phase 2: optional llm_profile resolves model/host from Core ProviderProfile.
 """
 
 import logging
@@ -24,7 +25,7 @@ from .threat_modeling import ThreatModeler
 from .tools import ToolRegistry, ToolExecutor, ToolCache
 from .tools.base import ToolResult
 from .skills.loader import SkillLoader
-from .llm import OllamaClient, build_react_messages, parse_decision
+from .llm import OllamaClient, build_llm_client, build_react_messages, parse_decision
 
 # Optional SessionEvent audit (Sprint A Phase 1) — soft dependency
 try:
@@ -82,7 +83,8 @@ class AetherOrchestrator:
                  enable_computer_use: bool = False,
                  enable_session_events: bool = True,
                  session_event_path: Optional[str] = None,
-                 tenant_id: Optional[str] = None):
+                 tenant_id: Optional[str] = None,
+                 llm_profile: Optional[str] = None):
         self.state: Optional[TaskState] = None
         self.errors: List[str] = []
         self.auto_remediate: bool = False
@@ -92,7 +94,12 @@ class AetherOrchestrator:
         self.memory = AetherMemory(persist_path=memory_path)
         self.guardrails = Guardrails()
         self.threat_modeler = ThreatModeler()
-        self.llm = llm or OllamaClient()
+        # Sprint A Phase 2: optional Core profile for model/host defaults
+        if llm is not None:
+            self.llm = llm
+        else:
+            profile = llm_profile or os.environ.get("AETHER_LLM_PROFILE")
+            self.llm = build_llm_client(profile=profile)
         self.use_llm = use_llm
         self.enable_computer_use = bool(enable_computer_use)
 

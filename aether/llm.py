@@ -1,12 +1,16 @@
 """
-Aether LLM Module — Ollama integration (Phase C)
+Aether LLM Module — Ollama integration (Phase C) + Sprint A Phase 2 provider seam
 
 Design goals:
-- stdlib only (urllib), no new dependencies — suits edge/sovereign deployment
+- stdlib only (urllib), no hard dependency on Core — suits edge/sovereign deployment
+- Soft-import Core ProviderProfile / get_provider for model/host defaults when present
+- Chat transport remains Aether OllamaClient (/api/chat + multimodal images)
 - Graceful degradation: if Ollama is unreachable, orchestrator falls back
   to the deterministic pipeline
 - Strict JSON action contract with validation against the tool/skill registry
 - Injectable transport for offline unit testing
+
+CAT: local-first, http(s) only, no secrets in profiles.
 """
 
 import json
@@ -42,6 +46,52 @@ def _require_http_url(url: str) -> str:
     if not parsed.netloc:
         raise ValueError(f"base_url must include a host, got {url!r}")
     return cleaned
+
+
+def _resolve_from_core_profile(
+    profile: Optional[str],
+) -> Dict[str, Any]:
+    """Soft-import Core ProviderProfile. Returns empty dict when Core absent."""
+    if not profile:
+        return {}
+    try:
+        from coastal_alpine_core import get_profile  # type: ignore
+
+        p = get_profile(profile)
+        return {
+            "base_url": getattr(p, "base_url", None),
+            "model": getattr(p, "model", None),
+            "timeout": int(getattr(p, "timeout", 60) or 60),
+            "max_retries": int(getattr(p, "max_retries", 2) or 2),
+        }
+    except Exception as e:
+        logger.debug("Core get_profile(%s) unavailable: %s", profile, e)
+        return {}
+
+
+def build_llm_client(
+    *,
+    profile: Optional[str] = None,
+    base_url: Optional[str] = None,
+    model: Optional[str] = None,
+    timeout: Optional[int] = None,
+    max_retries: Optional[int] = None,
+    transport: Optional[Callable[[str, Dict[str, Any], int], str]] = None,
+) -> "OllamaClient":
+    """
+    Construct an OllamaClient, optionally resolving defaults from a Core
+    ProviderProfile (Sprint A Phase 2 soft seam).
+
+    Explicit kwargs always win over profile fields over module defaults.
+    """
+    resolved = _resolve_from_core_profile(profile)
+    return OllamaClient(
+        base_url=base_url or resolved.get("base_url") or DEFAULT_BASE_URL,
+        model=model or resolved.get("model") or DEFAULT_MODEL,
+        timeout=timeout if timeout is not None else resolved.get("timeout", 60),
+        max_retries=max_retries if max_retries is not None else resolved.get("max_retries", 2),
+        transport=transport,
+    )
 
 
 @dataclass
