@@ -1,20 +1,23 @@
 """Smoke tests for SessionEvent audit bridge (Sprint A)."""
 
-from aether.session_audit import NullSessionEventStore, make_session_store, new_session_id
+from aether.session_audit import NullSessionEventStore, get_store
 
 
 def test_null_store_emit_is_noop():
     store = NullSessionEventStore()
     assert store.emit(session_id="s", event_type="session_start", actor="t") is None
     assert store.list_session("s") == []
+    assert store.resume_from("s", after_event_id="x") == []
 
 
-def test_new_session_id_is_uuid_like():
-    sid = new_session_id()
-    assert isinstance(sid, str) and len(sid) >= 32
+def test_get_store_force_null():
+    store = get_store(force_null=True)
+    assert isinstance(store, NullSessionEventStore)
+    store.emit(session_id="s1", event_type="session_start", actor="test", payload={})
 
 
-def test_make_session_store_default_without_core_or_with():
-    store = make_session_store(storage_path="/tmp/aether_test_events.jsonl")
-    # Either Null or real store; emit must not raise
+def test_get_store_default_emit_does_not_raise(tmp_path):
+    # Without Core installed → Null; with Core → real store. Either way emit is safe.
+    path = tmp_path / "session_events.jsonl"
+    store = get_store(storage_path=path)
     store.emit(session_id="s1", event_type="session_start", actor="test", payload={})
