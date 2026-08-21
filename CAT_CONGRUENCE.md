@@ -1,7 +1,6 @@
 # Coastal Alpine Tech - portfolio congruence
 
 **Company:** Coastal Alpine Tech Limited | **Stage:** Pre-seed | **Region:** Taranaki, Aotearoa New Zealand  
-**R&D since:** 8 August 2025 | **Founding target:** 8 August 2026  
 **Org home:** [fivepanelhat](https://github.com/fivepanelhat/fivepanelhat) | **Founder OS:** [NZ-Start-Up](https://github.com/fivepanelhat/NZ-Start-Up)
 
 This repository is part of the **Kiwi Edge AI Stack** - hybrid edge (RPi 5 16GB + Hailo-10H) + multi-model fleets + Te Mana Raraunga local-first data. It is **not** a claim of large-scale commercial deployment or raised Series capital.
@@ -90,3 +89,14 @@ Product IP is generally **dual proprietary + commercial** unless a specific repo
 | **Role in stack** | Agent skills, HITL, orchestration companion |
 | **Agent fleet** | `.github/agent-fleet/` |
 | **Canonical skills runtime** | [NZ-Start-Up](https://github.com/fivepanelhat/NZ-Start-Up) |
+
+## Congruence requirements
+
+Aether remains congruent with Coastal Alpine Tech when:
+
+- The triad (ARCHITECTURE.md / docs/ARCHITECTURE.md, AGENTS.md, CAT_CONGRUENCE.md) is current at repo root.
+- HITL gates are hard by default.
+- Skills follow CAT skill-authoring standards.
+- Local-first and Te Mana Raraunga constraints are enforced in the ReAct loop and guardrails.
+- No architectural drift from the Hybrid Intelligent Layer is accepted without founder approval.
+- Integration with the CAT Agent Harness, Weaver, and Coastal-Alpine-Core stays explicit and evidence-based.
