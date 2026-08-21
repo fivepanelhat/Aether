@@ -2,6 +2,24 @@
 
 All notable changes to Aether will be documented in this file.
 
+## Unreleased
+
+### Added — Sprint A Phase 2 (Provider seams)
+- **`build_llm_client(profile=...)`** in `aether/llm.py`: soft-imports Core `get_profile` for model/host/timeout defaults when Coastal-Alpine-Core ≥0.5.8 is installed; falls back to Aether defaults when Core is absent
+- **`llm_profile`** constructor arg on `AetherOrchestrator` + env `AETHER_LLM_PROFILE`
+- Chat transport remains Aether `OllamaClient` (`/api/chat` + multimodal images) — Core generate API is not forced onto the ReAct path
+- CAT stamp · local-first · no hard dependency on Core
+
+### Added — Sprint A Phase 1 (SessionEvent)
+- **`aether/session_audit.py`**: soft-import bridge to Coastal-Alpine-Core `SessionEventStore`
+  - Null fallback when Core is not installed (zero behaviour change)
+  - Hooks on `start_task`, `call_tool`, `_execute_skill`, `_approve_if_needed`, `run_react_loop` / `run_pipeline`
+  - Emits: `session_start`, `prompt_received`, `tool_call`, `tool_result`, `skill_applied`,
+    `approval_required` / `approval_granted` / `approval_denied`, `session_end`, `error`
+  - Local-first JSONL (`~/.aether/session_events.jsonl`), no secrets in payloads
+- Optional constructor flags: `enable_session_events=True`, `session_event_path=…`, `tenant_id=…`
+- CAT stamp · Te Mana Raraunga evidence path · HITL-ready audit only
+
 ## [0.7.1] - 2026-07-27
 
 ### Added — Alignment Week
@@ -39,18 +57,6 @@ All notable changes to Aether will be documented in this file.
 
 ### Notes
 External claims of compliance (grants, investor materials, pilot agreements) require explicit founder approval via this skill.
-
-## Unreleased
-
-### Added — Sprint A Phase 1 (SessionEvent)
-- **`aether/session_audit.py`**: soft-import bridge to Coastal-Alpine-Core `SessionEventStore`
-  - Null fallback when Core is not installed (zero behaviour change)
-  - Hooks on `start_task`, `call_tool`, `_execute_skill`, `_approve_if_needed`, `run_react_loop` / `run_pipeline`
-  - Emits: `session_start`, `prompt_received`, `tool_call`, `tool_result`, `skill_applied`,
-    `approval_required` / `approval_granted` / `approval_denied`, `session_end`, `error`
-  - Local-first JSONL (`~/.aether/session_events.jsonl`), no secrets in payloads
-- Optional constructor flags: `enable_session_events=True`, `session_event_path=…`, `tenant_id=…`
-- CAT stamp · Te Mana Raraunga evidence path · HITL-ready audit only
 
 ### Super Grok skills structure (2026-07-19)
 - **`grants-agent` v0.1.0** - structured from Super Grok chat *Maori AI startups - Grants and Funding*
