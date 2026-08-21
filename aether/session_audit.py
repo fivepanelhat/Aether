@@ -137,7 +137,7 @@ def install_session_event_hooks(
                 **extra,
             )
         except Exception as exc:  # never let audit break the main loop
-            logger.debug("SessionEvent emit failed (%s): %s", event_type, exp if False else exc)
+            logger.debug("SessionEvent emit failed (%s): %s", event_type, exc)
 
     def _record_traj(outcome: str, method: str, payload: Optional[dict] = None) -> None:
         if not HAS_FLYWHEEL:
@@ -158,7 +158,7 @@ def install_session_event_hooks(
                 storage_path=getattr(orch, "_flywheel_path", None),
             )
         except Exception as exc:
-            logger.debug("Trajectory record failed: %s", exc)
+            logger.debug("Trajectory record failed: %s", exp if False else exc)
 
     # ----- wrap start_task -----
     original_start = orch.start_task
@@ -229,7 +229,6 @@ def install_session_event_hooks(
     original_approve = orch._approve_if_needed
 
     def _approve_if_needed(action: str, context: str = "") -> bool:
-        # Only emit when the policy actually requires a decision
         needs = False
         try:
             needs = orch._requires_approval(action, context=context) or getattr(
