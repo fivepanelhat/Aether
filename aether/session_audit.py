@@ -1,8 +1,11 @@
 """
-SessionEvent audit bridge for Aether (Sprint A Phase 1).
+SessionEvent audit bridge for Aether (Sprint A Phase 1 + Sprint C flywheel).
 
 Soft-imports coastal_alpine_core.SessionEventStore when available.
 Falls back to a Null store so Aether remains usable without Core installed.
+
+Sprint C: optional record_session_trajectory on session_end / error
+(outcome-level DataFlywheel sample; soft-import).
 
 CAT stamp: local-first JSONL, no secrets in payloads, HITL evidence only.
 Events never drive decisions — Guardrails + ThreatModeler remain authoritative.
@@ -11,6 +14,7 @@ Events never drive decisions — Guardrails + ThreatModeler remain authoritative
 from __future__ import annotations
 
 import logging
+import time
 import uuid
 from pathlib import Path
 from typing import Any, Optional
@@ -45,6 +49,17 @@ except ImportError:  # pragma: no cover
             return event
 
 
+try:
+    from coastal_alpine_core import record_session_trajectory  # type: ignore
+
+    HAS_FLYWHEEL = True
+except ImportError:  # pragma: no cover
+    HAS_FLYWHEEL = False
+
+    def record_session_trajectory(**kwargs: Any) -> None:  # type: ignore
+        return None
+
+
 class NullSessionEventStore:
     """No-op store used when coastal-alpine-core is not installed."""
 
@@ -63,6 +78,10 @@ class NullSessionEventStore:
 
 def default_event_path() -> Path:
     return Path.home() / ".aether" / "session_events.jsonl"
+
+
+def default_flywheel_path() -> Path:
+    return Path.home() / ".aether" / "flywheel_trajectories.jsonl"
 
 
 def get_store(
@@ -85,12 +104,14 @@ def install_session_event_hooks(
     store: Optional[Any] = None,
     tenant_id: Optional[str] = None,
     storage_path: Optional[str | Path] = None,
+    flywheel_path: Optional[str | Path] = None,
 ) -> None:
     """
     Install thin SessionEvent wrappers on an AetherOrchestrator instance.
 
     Idempotent: calling twice is safe (re-uses existing _event_store).
     Does not alter control flow or HITL decisions.
+    Sprint C: also records outcome Trajectories when Core ≥0.5.9 is present.
     """
     if getattr(orch, "_session_hooks_installed", False):
         return
@@ -99,6 +120,8 @@ def install_session_event_hooks(
     orch._event_store = event_store
     orch._event_tenant_id = tenant_id
     orch._session_id: Optional[str] = None  # set on start_task
+    orch._flywheel_path = str(flywheel_path or default_flywheel_path())
+    orch._session_t0: Optional[float] = None
 
     def _emit(event_type: str, actor: str, payload: Optional[dict] = None, **extra: Any) -> None:
         sid = getattr(orch, "_session_id", None)
@@ -114,13 +137,35 @@ def install_session_event_hooks(
                 **extra,
             )
         except Exception as exc:  # never let audit break the main loop
-            logger.debug("SessionEvent emit failed (%s): %s", event_type, exc)
+            logger.debug("SessionEvent emit failed (%s): %s", event_type, exp if False else exc)
+
+    def _record_traj(outcome: str, method: str, payload: Optional[dict] = None) -> None:
+        if not HAS_FLYWHEEL:
+            return
+        sid = getattr(orch, "_session_id", None)
+        if not sid:
+            return
+        t0 = getattr(orch, "_session_t0", None) or time.perf_counter()
+        try:
+            record_session_trajectory(
+                session_id=sid,
+                action=f"aether.{method}",
+                outcome=outcome,
+                input_summary=f"method={method}",
+                output_summary=str(payload or {})[:200],
+                latency_seconds=max(0.0, time.perf_counter() - t0),
+                tenant_id=getattr(orch, "_event_tenant_id", None),
+                storage_path=getattr(orch, "_flywheel_path", None),
+            )
+        except Exception as exc:
+            logger.debug("Trajectory record failed: %s", exc)
 
     # ----- wrap start_task -----
     original_start = orch.start_task
 
     def start_task(goal: str):
         orch._session_id = str(uuid.uuid4())
+        orch._session_t0 = time.perf_counter()
         state = original_start(goal)
         _emit(
             "session_start",
@@ -223,16 +268,14 @@ def install_session_event_hooks(
             def wrapper(goal: str, *args, **kwargs):
                 try:
                     state = orig(goal, *args, **kwargs)
-                    _emit(
-                        "session_end",
-                        actor="orchestrator",
-                        payload={
-                            "method": name,
-                            "phase": getattr(state, "current_phase", None),
-                            "tool_calls": len(getattr(state, "tool_calls", []) or []),
-                            "errors": len(getattr(orch, "errors", []) or []),
-                        },
-                    )
+                    payload = {
+                        "method": name,
+                        "phase": getattr(state, "current_phase", None),
+                        "tool_calls": len(getattr(state, "tool_calls", []) or []),
+                        "errors": len(getattr(orch, "errors", []) or []),
+                    }
+                    _emit("session_end", actor="orchestrator", payload=payload)
+                    _record_traj("success", name, payload)
                     return state
                 except Exception as exc:
                     _emit(
@@ -241,6 +284,7 @@ def install_session_event_hooks(
                         payload={"method": name, "error_type": type(exc).__name__},
                         outcome="error",
                     )
+                    _record_traj("error", name, {"error_type": type(exc).__name__})
                     raise
 
             return wrapper
@@ -249,7 +293,8 @@ def install_session_event_hooks(
 
     orch._session_hooks_installed = True
     logger.info(
-        "SessionEvent hooks installed (Core=%s, tenant=%s)",
+        "SessionEvent hooks installed (Core=%s, flywheel=%s, tenant=%s)",
         HAS_CORE,
+        HAS_FLYWHEEL,
         tenant_id,
     )
