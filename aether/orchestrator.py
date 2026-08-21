@@ -8,6 +8,8 @@ Fixes over previous revision:
 - Tool calls are logged exactly once (audit trail is accurate)
 - max_steps=0 no longer raises NameError
 - Skills directory resolved robustly (CWD -> env -> ~/.aether/skills)
+
+Sprint A Phase 1: optional SessionEvent audit via soft-import of Core.
 """
 
 import logging
@@ -23,6 +25,13 @@ from .tools import ToolRegistry, ToolExecutor, ToolCache
 from .tools.base import ToolResult
 from .skills.loader import SkillLoader
 from .llm import OllamaClient, build_react_messages, parse_decision
+
+# Optional SessionEvent audit (Sprint A Phase 1) — soft dependency
+try:
+    from .session_audit import install_session_event_hooks, HAS_CORE as _HAS_SESSION_CORE
+except ImportError:  # pragma: no cover
+    install_session_event_hooks = None  # type: ignore
+    _HAS_SESSION_CORE = False
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s | %(levelname)s | %(message)s")
 logger = logging.getLogger("AetherOrchestrator")
@@ -70,7 +79,10 @@ class TaskState:
 class AetherOrchestrator:
     def __init__(self, memory_path: Optional[str] = None, skills_directory: Optional[str] = None,
                  llm: Optional[OllamaClient] = None, use_llm: bool = True,
-                 enable_computer_use: bool = False):
+                 enable_computer_use: bool = False,
+                 enable_session_events: bool = True,
+                 session_event_path: Optional[str] = None,
+                 tenant_id: Optional[str] = None):
         self.state: Optional[TaskState] = None
         self.errors: List[str] = []
         self.auto_remediate: bool = False
@@ -106,6 +118,18 @@ class AetherOrchestrator:
             )
 
         logger.info(f"AetherOrchestrator initialized with {len(self.skills_registry)} skills")
+
+        # SessionEvent audit (soft). Default on when Core is present; still safe when absent.
+        self._session_hooks_installed = False
+        if enable_session_events and install_session_event_hooks is not None:
+            try:
+                install_session_event_hooks(
+                    self,
+                    storage_path=session_event_path,
+                    tenant_id=tenant_id,
+                )
+            except Exception as exc:
+                logger.warning("SessionEvent hooks could not be installed: %s", exc)
 
     # ==================== Skill Registry ====================
 

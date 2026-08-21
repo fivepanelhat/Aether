@@ -42,6 +42,16 @@ External claims of compliance (grants, investor materials, pilot agreements) req
 
 ## Unreleased
 
+### Added — Sprint A Phase 1 (SessionEvent)
+- **`aether/session_audit.py`**: soft-import bridge to Coastal-Alpine-Core `SessionEventStore`
+  - Null fallback when Core is not installed (zero behaviour change)
+  - Hooks on `start_task`, `call_tool`, `_execute_skill`, `_approve_if_needed`, `run_react_loop` / `run_pipeline`
+  - Emits: `session_start`, `prompt_received`, `tool_call`, `tool_result`, `skill_applied`,
+    `approval_required` / `approval_granted` / `approval_denied`, `session_end`, `error`
+  - Local-first JSONL (`~/.aether/session_events.jsonl`), no secrets in payloads
+- Optional constructor flags: `enable_session_events=True`, `session_event_path=…`, `tenant_id=…`
+- CAT stamp · Te Mana Raraunga evidence path · HITL-ready audit only
+
 ### Super Grok skills structure (2026-07-19)
 - **`grants-agent` v0.1.0** - structured from Super Grok chat *Maori AI startups - Grants and Funding*
   - Discover / fit-score / draft / track / Kotahitanga modes
