@@ -30,9 +30,9 @@ computer = [
     "pyautogui>=0.9.54",
     "Pillow>=10.0",
 ]
-# Soft seams: SessionEvent + providers + session→trajectory (null-safe without this extra)
+# Soft seams: SessionEvent + providers + trajectory + Sprint E (overlays/effects/PTC)
 core = [
-    "coastal-alpine-core @ git+https://github.com/fivepanelhat/Coastal-Alpine-Core.git@v0.5.9",
+    "coastal-alpine-core @ git+https://github.com/fivepanelhat/Coastal-Alpine-Core.git@v0.5.10",
 ]
 all = [
     "fastapi>=0.110",
@@ -40,7 +40,7 @@ all = [
     "tenacity>=8.2",
     "pyautogui>=0.9.54",
     "Pillow>=10.0",
-    "coastal-alpine-core @ git+https://github.com/fivepanelhat/Coastal-Alpine-Core.git@v0.5.9",
+    "coastal-alpine-core @ git+https://github.com/fivepanelhat/Coastal-Alpine-Core.git@v0.5.10",
 ]
 
 [project.scripts]
@@ -65,17 +65,7 @@ line-length = 110
 target-version = "py310"
 
 [tool.ruff.lint]
-# Pin an explicit rule set. Ruff's *unpinned* default expands with each
-# release (0.16 treats UP/BLE/I/PL/SIM/RUF as default), which silently turned
-# CI red on ~269 pre-existing style findings that are not bugs. E4/E7/E9/F is
-# Ruff's documented default baseline (Pyflakes + essential pycodestyle) and
-# catches the real correctness issues (undefined names, unused imports, syntax).
-# Stylistic modernisation (pyupgrade, import-sort, pylint opinions) is tracked
-# as a separate, reviewed task — deliberately not gated here.
 select = ["E4", "E7", "E9", "F"]
 
 [tool.pytest.ini_options]
-# Fixes "import file mismatch" from duplicate test module basenames
-# (tests/skills_ci/test_validate_skill.py vs skills/aether-skills-ci/tests/test_validate_skill.py).
-# importlib import-mode does not require unique basenames or __init__.py files.
 addopts = "--import-mode=importlib"

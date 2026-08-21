@@ -2,61 +2,85 @@
 # Proprietary and confidential. No open-source grant is implied by access to
 # this file; use is governed solely by the LICENSE at the repository root.
 """
-Dynamic Skill Loader for Aether (Refined Phase 1)
+Dynamic Skill Loader for Aether (Sprint E)
 
-Responsibilities:
-- Scan the skills/ directory
-- Parse and validate SKILL.md files
-- Register skills dynamically
-- Provide good error handling and logging
+- Scan skills/ directories
+- Parse and validate SKILL.md
+- Honour depends_on / dependencies for topological load order
+- Soft-import Core resolve_skill_order when available
 """
 
-import os
-import yaml
-from typing import Dict, Any, List, Optional
+from __future__ import annotations
+
 import logging
+import os
+from typing import Any, Dict, List, Optional
+
+import yaml
 
 logger = logging.getLogger("AetherSkillLoader")
+
+try:
+    from coastal_alpine_core import resolve_skill_order  # Core ≥0.5.10
+except ImportError:  # pragma: no cover
+    resolve_skill_order = None  # type: ignore
+
+
+def _local_topo(skills: Dict[str, Dict[str, Any]]) -> List[str]:
+    """Minimal fallback if Core skill_graph is unavailable."""
+    dep_map = {}
+    for name, meta in skills.items():
+        raw = meta.get("depends_on") or []
+        if isinstance(raw, str):
+            raw = [raw]
+        dep_map[name] = [str(x) for x in raw if str(x) in skills]
+    indegree = {n: len(dep_map[n]) for n in dep_map}
+    ready = sorted(n for n, d in indegree.items() if d == 0)
+    order: List[str] = []
+    while ready:
+        n = ready.pop(0)
+        order.append(n)
+        for m, deps in dep_map.items():
+            if n in deps and m not in order:
+                indegree[m] -= 1
+                if indegree[m] == 0:
+                    ready.append(m)
+                    ready.sort()
+    if len(order) != len(skills):
+        logger.warning("Skill dependency cycle or unresolved deps; using registration order")
+        return list(skills.keys())
+    return order
 
 
 class SkillLoader:
     def __init__(self, skills_directory: str = "skills"):
         self.skills_directory = skills_directory
         self.loaded_skills: Dict[str, Dict[str, Any]] = {}
+        self.load_order: List[str] = []
 
     def load_all_skills(self) -> Dict[str, Dict[str, Any]]:
-        """
-        Scan the skills directory and load all valid skills.
-        Returns a dictionary of skill_name -> skill_metadata.
-        """
         self.loaded_skills = {}
+        self.load_order = []
 
         if not os.path.isdir(self.skills_directory):
             logger.warning(
-                f"Skills directory '{self.skills_directory}' not found.\n"
-                "Aether will continue with core functionality only.\n"
-                "Create the 'skills/' folder and add skills to unlock extended capabilities."
+                "Skills directory '%s' not found. Aether continues in core mode.",
+                self.skills_directory,
             )
             return self.loaded_skills
 
-        skill_folders = [f for f in os.listdir(self.skills_directory) 
-                         if os.path.isdir(os.path.join(self.skills_directory, f))]
+        skill_folders = [
+            f
+            for f in os.listdir(self.skills_directory)
+            if os.path.isdir(os.path.join(self.skills_directory, f))
+        ]
 
         if not skill_folders:
-            logger.info(
-                "No skills found in the skills/ directory. "
-                "Aether is running in core mode. "
-                "Add skills to unlock more capabilities."
-            )
+            logger.info("No skills found; running in core mode.")
             return self.loaded_skills
 
         for folder_name in skill_folders:
             skill_path = os.path.join(self.skills_directory, folder_name)
-
-            if not os.path.isdir(skill_path):
-                continue
-
-            # Prefer SKILL.md; accept skill.md for case-sensitive Linux trees
             skill_md_path = os.path.join(skill_path, "SKILL.md")
             if not os.path.isfile(skill_md_path):
                 alt = os.path.join(skill_path, "skill.md")
@@ -70,27 +94,46 @@ class SkillLoader:
                 if skill_data:
                     name = skill_data["name"]
                     self.loaded_skills[name] = skill_data
-                    logger.info(f"Loaded skill: {name} (from folder: {folder_name})")
+                    logger.info("Loaded skill: %s (folder: %s)", name, folder_name)
             except Exception as e:
-                logger.error(f"Failed to load skill from folder '{folder_name}': {e}")
+                logger.error("Failed to load skill from folder '%s': %s", folder_name, e)
 
-        logger.info(f"Dynamic Skill Loader finished. Loaded {len(self.loaded_skills)} skills.")
+        try:
+            if resolve_skill_order is not None:
+                self.load_order = resolve_skill_order(self.loaded_skills)
+            else:
+                self.load_order = _local_topo(self.loaded_skills)
+        except Exception as e:
+            logger.warning("Skill graph resolution failed (%s); using dict order", e)
+            self.load_order = list(self.loaded_skills.keys())
+
+        # Rebuild dict in load order for downstream consumers
+        ordered = {n: self.loaded_skills[n] for n in self.load_order if n in self.loaded_skills}
+        for n, meta in self.loaded_skills.items():
+            if n not in ordered:
+                ordered[n] = meta
+        self.loaded_skills = ordered
+
+        logger.info(
+            "Skill Loader finished. Loaded %d skills. Order: %s",
+            len(self.loaded_skills),
+            self.load_order,
+        )
         return self.loaded_skills
 
-    def _parse_and_validate_skill(self, file_path: str, folder_name: str) -> Optional[Dict[str, Any]]:
-        """
-        Parse SKILL.md and perform basic validation.
-        """
+    def _parse_and_validate_skill(
+        self, file_path: str, folder_name: str
+    ) -> Optional[Dict[str, Any]]:
         with open(file_path, "r", encoding="utf-8") as f:
             content = f.read()
 
         if not content.strip().startswith("---"):
-            logger.warning(f"Skill file missing YAML frontmatter: {file_path}")
+            logger.warning("Skill file missing YAML frontmatter: %s", file_path)
             return None
 
         parts = content.split("---", 2)
         if len(parts) < 3:
-            logger.warning(f"Invalid YAML frontmatter structure in: {file_path}")
+            logger.warning("Invalid YAML frontmatter structure in: %s", file_path)
             return None
 
         frontmatter_raw = parts[1].strip()
@@ -99,39 +142,42 @@ class SkillLoader:
         try:
             metadata = yaml.safe_load(frontmatter_raw)
         except yaml.YAMLError as e:
-            logger.error(f"YAML parsing failed in {file_path}: {e}")
+            logger.error("YAML parsing failed in %s: %s", file_path, e)
             return None
 
         if not isinstance(metadata, dict):
-            logger.warning(f"Frontmatter is not a dictionary in: {file_path}")
+            logger.warning("Frontmatter is not a dictionary in: %s", file_path)
             return None
 
-        # === Validation ===
         if "name" not in metadata or not metadata["name"]:
-            logger.warning(f"Missing required field 'name' in: {file_path}")
+            logger.warning("Missing required field 'name' in: %s", file_path)
             return None
 
         if "description" not in metadata or not metadata["description"]:
-            logger.warning(f"Missing required field 'description' in: {file_path}")
+            logger.warning("Missing required field 'description' in: %s", file_path)
             return None
 
         name = metadata["name"]
-
-        # Warn if folder name and skill name don't match (but still allow it)
         if name != folder_name:
             logger.warning(
-                f"Skill name '{name}' does not match folder name '{folder_name}'. "
-                f"Using skill name from frontmatter."
+                "Skill name '%s' does not match folder '%s'. Using frontmatter name.",
+                name,
+                folder_name,
             )
 
-        # Sub-dict under 'metadata:' key (used by Skills CI frontmatter schema)
         nested = metadata.get("metadata") or {}
 
         def _field(key, default):
-            """Read from top-level first, fall back to nested metadata sub-dict."""
             return metadata[key] if key in metadata else nested.get(key, default)
 
-        # Type validation / normalization
+        depends_raw = _field("depends_on", _field("dependencies", []))
+        if isinstance(depends_raw, str):
+            depends_on = [depends_raw]
+        elif isinstance(depends_raw, list):
+            depends_on = [str(x) for x in depends_raw]
+        else:
+            depends_on = []
+
         skill_data = {
             "name": name,
             "description": metadata["description"],
@@ -140,22 +186,21 @@ class SkillLoader:
             "requires_hitl": bool(_field("requires_hitl", False)),
             "cultural_sensitivity": _field("cultural_sensitivity", "low"),
             "tags": _field("tags", []) if isinstance(_field("tags", []), list) else [],
+            "depends_on": depends_on,
+            "reversible": bool(_field("reversible", False)),
             "folder_path": os.path.dirname(file_path),
             "body": body,
-            "raw_metadata": metadata
+            "raw_metadata": metadata,
         }
 
         return skill_data
 
     def get_skill(self, name: str) -> Optional[Dict[str, Any]]:
-        """Get a loaded skill by name."""
         return self.loaded_skills.get(name)
 
     def list_skill_names(self) -> List[str]:
-        """Return list of all loaded skill names."""
-        return list(self.loaded_skills.keys())
+        return list(self.load_order) if self.load_order else list(self.loaded_skills.keys())
 
     def reload_skills(self) -> Dict[str, Dict[str, Any]]:
-        """Reload all skills from disk. Useful during development."""
         logger.info("Reloading all skills from disk...")
         return self.load_all_skills()
