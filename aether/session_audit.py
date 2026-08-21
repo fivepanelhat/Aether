@@ -96,9 +96,6 @@ def get_store(
     return SessionEventStore(str(path))
 
 
-# ---------------------------------------------------------------------------
-# Hook installer
-# ---------------------------------------------------------------------------
 def install_session_event_hooks(
     orch: Any,
     store: Optional[Any] = None,
@@ -119,7 +116,7 @@ def install_session_event_hooks(
     event_store = store if store is not None else get_store(storage_path)
     orch._event_store = event_store
     orch._event_tenant_id = tenant_id
-    orch._session_id: Optional[str] = None  # set on start_task
+    orch._session_id: Optional[str] = None
     orch._flywheel_path = str(flywheel_path or default_flywheel_path())
     orch._session_t0: Optional[float] = None
 
@@ -136,7 +133,7 @@ def install_session_event_hooks(
                 payload=payload or {},
                 **extra,
             )
-        except Exception as exc:  # never let audit break the main loop
+        except Exception as exc:
             logger.debug("SessionEvent emit failed (%s): %s", event_type, exc)
 
     def _record_traj(outcome: str, method: str, payload: Optional[dict] = None) -> None:
@@ -158,9 +155,8 @@ def install_session_event_hooks(
                 storage_path=getattr(orch, "_flywheel_path", None),
             )
         except Exception as exc:
-            logger.debug("Trajectory record failed: %s", exp if False else exc)
+            logger.debug("Trajectory record failed: %s", exc)
 
-    # ----- wrap start_task -----
     original_start = orch.start_task
 
     def start_task(goal: str):
@@ -181,7 +177,6 @@ def install_session_event_hooks(
 
     orch.start_task = start_task  # type: ignore[method-assign]
 
-    # ----- wrap call_tool -----
     original_call_tool = orch.call_tool
 
     def call_tool(tool_name: str, **kwargs):
@@ -205,7 +200,6 @@ def install_session_event_hooks(
 
     orch.call_tool = call_tool  # type: ignore[method-assign]
 
-    # ----- wrap _execute_skill -----
     original_execute_skill = orch._execute_skill
 
     def _execute_skill(skill_name: str, goal: str):
@@ -225,7 +219,6 @@ def install_session_event_hooks(
 
     orch._execute_skill = _execute_skill  # type: ignore[method-assign]
 
-    # ----- wrap _approve_if_needed -----
     original_approve = orch._approve_if_needed
 
     def _approve_if_needed(action: str, context: str = "") -> bool:
@@ -257,7 +250,6 @@ def install_session_event_hooks(
 
     orch._approve_if_needed = _approve_if_needed  # type: ignore[method-assign]
 
-    # ----- mark end of run_* methods -----
     for method_name in ("run_react_loop", "run_pipeline"):
         original = getattr(orch, method_name, None)
         if original is None:
