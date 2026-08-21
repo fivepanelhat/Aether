@@ -18,6 +18,7 @@ This repository is part of the **Kiwi Edge AI Stack** - hybrid edge (RPi 5 16GB 
 | Narrative | fivepanelhat |
 | Founder OS / EDA | NZ-Start-Up |
 | Agent / HITL | Aether |
+| Agent runtime | cat-agent-harness |
 | Edge orchestration | Weaver |
 | Shared SDK | Coastal-Alpine-Core, coastal-alpine-stack |
 | Field | Sovereign-Edge-Firmware |
