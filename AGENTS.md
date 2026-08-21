@@ -1,7 +1,6 @@
 # AGENTS.md - Coastal Alpine Tech portfolio
 
 **Coastal Alpine Tech Limited - Pre-seed** | Taranaki | Aotearoa New Zealand  
-**R&D since 8 August 2025** | **Founded 8 August 2026**  
 **Org:** [fivepanelhat](https://github.com/fivepanelhat/fivepanelhat) | **Founder OS:** [NZ-Start-Up](https://github.com/fivepanelhat/NZ-Start-Up)
 
 Instructions for any coding or agentic assistant in this repository.
@@ -81,3 +80,15 @@ Run whatever this repo defines (pytest, cargo test, npm test, etc.). At minimum:
 
 Practical, NZ-grounded, pre-seed honest. No hype that agents "run the company."  
 Respect Te Mana Raraunga and Te Tiriti; escalate cultural content.
+
+---
+
+## Triad status (CAT)
+
+This repository maintains the standard CAT governance triad:
+
+- `ARCHITECTURE.md` / `docs/ARCHITECTURE.md` — system design
+- `AGENTS.md` (this file) — behavioural rules
+- `CAT_CONGRUENCE.md` — portfolio alignment
+
+HITL remains hard by default. Local models preferred. Computer-use path is dry-run capable and gated.
