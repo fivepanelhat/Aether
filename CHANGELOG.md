@@ -4,6 +4,13 @@ All notable changes to Aether will be documented in this file.
 
 ## Unreleased
 
+### Added — Bounded Recursion & Governance Hardening (2026-08-24)
+- **Harness / Eval layer** (`aether-eval-harness` → v1.2.0): Bounded Recursion & Harness Safety section. Default recursion depth ≤ 3, immutable evaluation ruler, no auto-apply of recursive proposals, Runtime Sovereignty Gate required, self-certification forbidden.
+- **Skill chain** (`aether-skill-composition` → v0.2.0, `aether-skill-authoring` → v1.1.0): Recursive composition limited to one additional level with mandatory outer L2; skill-generating / self-improving changes require full before/after diff + evidence; L3 escalation for any attempt to touch HITL gates, recursion ceilings or Te Mana Raraunga Must controls.
+- **Governance layer** (`aether-hitl-protocol` → v1.1.0): New **Non-Recursive Core** section. Gate definitions (L0–L4), standing-policy rules, Te Mana Raraunga Must controls, autonomy ceilings and cultural/Te Tiriti requirements are now explicitly immutable fixed points. Any rewrite attempt escalates to L3/L4.
+- Light guardrail note added to `agent-hardening`.
+- Local Super Grok skill copies updated and versioned with matching CHANGELOG entries.
+
 ### Added — Sprint A Phase 2 (Provider seams)
 - **`build_llm_client(profile=...)`** in `aether/llm.py`: soft-imports Core `get_profile` for model/host/timeout defaults when Coastal-Alpine-Core ≥0.5.8 is installed; falls back to Aether defaults when Core is absent
 - **`llm_profile`** constructor arg on `AetherOrchestrator` + env `AETHER_LLM_PROFILE`
