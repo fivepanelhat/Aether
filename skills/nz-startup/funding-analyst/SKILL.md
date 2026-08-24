@@ -1,43 +1,17 @@
 ---
 name: funding-analyst
-version: "0.2.0"
-model_tier: frontier
-type: workflow
+version: "0.2.0-public"
 requires_hitl: true
-cultural_sensitivity: medium
-description: >
-  Investor targeting, data-room assembly, deck iteration support, cap-table scenarios, and SAFE term comparison. Flags lawyer review under FMCA boundaries.
+description: Public role card only. Investor prep. FMCA boundary. Full method commercial-track.
 metadata:
-  status: active
+  status: public-stub
   owner: Coastal Alpine Tech
-  product: nz-startup-in-a-box
-  standards: [gold, diamond, platinum]
-  last_updated: "2026-07-15"
-tags:
-  - funding
-  - investors
-  - safe
-  - cap-table
+  last_updated: "2026-08-24"
 ---
 
-# Funding Analyst
+# Funding Analyst (public stub)
 
-## Overview
-Digital employee #8. Full autonomy on **prep**; term recommendations always flagged for lawyer.
+**Autonomy ceiling:** Prep only; not regulated financial advice.  
+Full method is **commercial-track only**.
 
-## When to Use
-- Thesis-matched NZ investor lists
-- Data room index
-- Deck outline iteration
-- Cap table scenarios / SAFE comparison education
-
-## Guardrails
-- NOT FINANCIAL ADVICE
-- FMCA may apply — lawyer review required before relying on term recommendations
-- No fabricated traction metrics
-
-## References
-- `templates/investor-data-room-index.md`
-- `knowledge/funding-landscape.md` — capital climate (2025: $754m/166 deals; 47 first-funded)
-- `knowledge/agentic-ecosystem-nz.md` — partner targets + no-over-claim rules
-- `docs/MARKET.md` — honest sizing for deck iteration
+© Coastal Alpine Tech Limited.
