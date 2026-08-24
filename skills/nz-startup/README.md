@@ -1,33 +1,14 @@
-# NZ Start-Up fleet skills (synced into Aether)
+# NZ Start-Up skills (Aether bridge) — public stubs only
 
-These skills are the **Coastal Alpine Tech founder-OS digital employees** from
-[NZ-Start-Up](https://github.com/fivepanelhat/NZ-Start-Up). They live under
-`skills/nz-startup/` so Aether can load them alongside core Aether skills.
+These files are **evaluation role cards** for the NZ Start-Up fleet bridge inside Aether.
 
-## Install / refresh
+Full procedures, templates, and jurisdiction-depth context packs are **commercial-track only** (Coastal Alpine Tech Track B / NZ-Start-Up commercial licence). They are not published here.
 
-```bash
-# From NZ-Start-Up clone (preferred):
-nz-startup install-skills --target path/to/Aether/skills/nz-startup
+| Public | Commercial |
+|--------|------------|
+| Skill name + role + autonomy ceiling | Procedures, checklists, templates, routing |
+| HITL slogan | Sprintit method and scored packs |
 
-# Or re-copy this directory from NZ-Start-Up/skills/*
-```
+Canonical product: [NZ-Start-Up](https://github.com/fivepanelhat/NZ-Start-Up)
 
-## Autonomy (non-negotiable)
-
-Agents **inform, draft, prepare, monitor, remind**.  
-Humans **advise, sign, file, send, pay**.
-
-Load first: `agent-hardening` + Aether `.github/agent-fleet/anti-hallucination.md`.
-
-## Skills included
-
-See each `*/SKILL.md`. Product runtime + CLI: install `nz-startup-in-a-box` from the NZ-Start-Up repo.
-
-Includes **first-principles-operator** (digital employee / `nz-startup operate`) and full founder fleet (formation through board CoS).
-
-## Anti-hallucination
-
-Prefer tools/files. Label FACT / INFERENCE / UNKNOWN. Refuse invented NZBN, LOIs, partners, stats.
-
-Synced for portfolio congruence — keep versions aligned with NZ-Start-Up releases.
+© Coastal Alpine Tech Limited. All rights reserved.
