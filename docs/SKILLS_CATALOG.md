@@ -7,6 +7,30 @@ Run `python -m aether.cli skills` (or `aether skills` when installed) to list lo
 
 ---
 
+## Governance & Hardened Skills (2026-08-24)
+
+### aether-eval-harness
+**Type**: Evaluation · **Priority**: Very High · **Version**: 1.2.0 · **HITL**: yes  
+**Description**: Multi-layer eval (unit, behavioural, architecture congruence, LLM-as-judge, Night Cycle, human). Includes **Bounded Recursion & Harness Safety**: recursion depth ≤ 3, immutable evaluation ruler, no auto-apply of recursive proposals, Runtime Sovereignty Gate required.  
+**Use when**: Designing success criteria, regression suites, LLM-as-judge lanes, proving agent reliability, or any recursive improvement proposal.
+
+### aether-hitl-protocol
+**Type**: Governance · **Priority**: Very High · **Version**: 1.1.0 · **HITL**: yes  
+**Description**: Gate levels L0–L4, standing policies, approval artefacts. Includes **Non-Recursive Core**: HITL gates, Te Mana Raraunga Must controls, autonomy ceilings and cultural requirements are immutable fixed points. Attempts to rewrite them escalate to L3/L4.  
+**Use when**: Designing or reviewing any approval flow, Night Cycle behaviour, or sovereignty-affecting change.
+
+### aether-skill-composition
+**Type**: Orchestration · **Priority**: High · **Version**: 0.2.0 · **HITL**: yes  
+**Description**: Produces ordered shortlists (2–5 skills). Recursive composition limited to one additional level and requires outer L2 confirmation.  
+**Use when**: Non-trivial multi-skill tasks, planning skill sequences, or any recursive skill chaining.
+
+### aether-skill-authoring
+**Type**: Meta · **Priority**: High · **Version**: 1.1.0 · **HITL**: yes  
+**Description**: How to create/update skills. Hardened rules: skill-generating or self-improving changes require full diff + evidence; L3 escalation for proposals that touch HITL gates, recursion ceilings or Te Mana Raraunga Must controls.  
+**Use when**: Authoring or refining any new or existing skill.
+
+---
+
 ## Architecture & sovereignty (new)
 
 ### kiwi-edge-architecture
@@ -96,6 +120,7 @@ Run `python -m aether.cli skills` (or `aether skills` when installed) to list lo
 | Org security sprint | `security-notifications-triage` → `build-ci-hygiene` → `release-preflight` |
 | Whānau hub UI | `hub-nextjs-component` → `design-system-unification` → `te-mana-raraunga-sovereignty` |
 | AI safety / compliance claims | `aether-nz-ai-safety` → `aether-hitl-protocol` → `te-mana-raraunga-sovereignty` |
+| Recursive skill / harness work | `aether-skill-composition` → `aether-eval-harness` → `aether-hitl-protocol` → `aether-skill-authoring` |
 
 ---
 
