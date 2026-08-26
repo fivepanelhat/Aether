@@ -7,12 +7,12 @@ Run `python -m aether.cli skills` (or `aether skills` when installed) to list lo
 
 ---
 
-## Governance & Hardened Skills (2026-08-24)
+## Governance & Hardened Skills (2026-08-24 + practical utilities 2026-08-26)
 
 ### aether-eval-harness
-**Type**: Evaluation · **Priority**: Very High · **Version**: 1.2.0 · **HITL**: yes  
-**Description**: Multi-layer eval (unit, behavioural, architecture congruence, LLM-as-judge, Night Cycle, human). Includes **Bounded Recursion & Harness Safety**: recursion depth ≤ 3, immutable evaluation ruler, no auto-apply of recursive proposals, Runtime Sovereignty Gate required.  
-**Use when**: Designing success criteria, regression suites, LLM-as-judge lanes, proving agent reliability, or any recursive improvement proposal.
+**Type**: Evaluation · **Priority**: Very High · **Version**: 1.3.0 · **HITL**: yes  
+**Description**: Multi-layer eval + Bounded Recursion & Harness Safety + explicit **Second-Order / Meta-Eval Lane** (versioned, proposal-only, fixed evaluation set, L2+ gated).  
+**Use when**: Designing success criteria, regression suites, LLM-as-judge lanes, proving agent reliability, meta-evaluation of the harness itself, or any recursive improvement proposal.
 
 ### aether-hitl-protocol
 **Type**: Governance · **Priority**: Very High · **Version**: 1.1.0 · **HITL**: yes  
@@ -20,14 +20,19 @@ Run `python -m aether.cli skills` (or `aether skills` when installed) to list lo
 **Use when**: Designing or reviewing any approval flow, Night Cycle behaviour, or sovereignty-affecting change.
 
 ### aether-skill-composition
-**Type**: Orchestration · **Priority**: High · **Version**: 0.2.0 · **HITL**: yes  
-**Description**: Produces ordered shortlists (2–5 skills). Recursive composition limited to one additional level and requires outer L2 confirmation.  
+**Type**: Orchestration · **Priority**: High · **Version**: 0.3.0 · **HITL**: yes  
+**Description**: Produces ordered shortlists (2–5 skills). Recursive composition limited to one additional level (outer L2). High-confidence trajectories may *propose* (never auto-apply) updates to composition heuristics or meta-skills.  
 **Use when**: Non-trivial multi-skill tasks, planning skill sequences, or any recursive skill chaining.
 
 ### aether-skill-authoring
-**Type**: Meta · **Priority**: High · **Version**: 1.1.0 · **HITL**: yes  
-**Description**: How to create/update skills. Hardened rules: skill-generating or self-improving changes require full diff + evidence; L3 escalation for proposals that touch HITL gates, recursion ceilings or Te Mana Raraunga Must controls.  
-**Use when**: Authoring or refining any new or existing skill.
+**Type**: Meta · **Priority**: High · **Version**: 1.2.0 · **HITL**: yes  
+**Description**: How to create/update skills. Hardened rules + self-improvement against a fixed evaluation set (all changes as diffs + evidence; no auto-merge). L3 escalation for any attempt to touch HITL gates, recursion ceilings or Te Mana Raraunga Must controls.  
+**Use when**: Authoring or refining any new or existing skill, including recursive self-improvement of the authoring skill.
+
+### aether-night-cycle
+**Type**: Orchestration · **Priority**: High · **Version**: 1.1.0 · **HITL**: yes  
+**Description**: Evening summary + prioritised next-day plan + Morning Brief. New **Recursive Improvement Proposals** section: overnight meta/recursive proposals are queued for Morning Brief with source, diff, evidence and required gate; agents may generate but never apply.  
+**Use when**: Continuous overnight operation, scheduled agents, morning review of recursive proposals.
 
 ---
 
