@@ -4,6 +4,12 @@ All notable changes to Aether will be documented in this file.
 
 ## Unreleased
 
+### Added — Practical Recursive Utilities (2026-08-26)
+- **`aether-eval-harness` → v1.3.0**: Explicit **Second-Order / Meta-Eval Lane** (versioned under `references/meta-eval/`). Proposal-only, fixed evaluation set, L2+ gated, inherits recursion depth ceiling and immutable-ruler rules.
+- **`aether-skill-composition` → v0.3.0**: High-confidence trajectories may *propose* (never auto-apply) updates to composition heuristics or meta-skills; requires explicit L2 confirmation.
+- **`aether-skill-authoring` → v1.2.0**: Authoring skill may improve itself (or another skill) against a fixed evaluation set; all changes presented as complete diffs + evidence; no auto-merge.
+- **`aether-night-cycle` → v1.1.0**: New **Recursive Improvement Proposals** section. Overnight recursive/meta proposals are queued for Morning Brief with source, diff, evidence and required gate; agents may generate but never apply.
+
 ### Added — Bounded Recursion & Governance Hardening (2026-08-24)
 - **Harness / Eval layer** (`aether-eval-harness` → v1.2.0): Bounded Recursion & Harness Safety section. Default recursion depth ≤ 3, immutable evaluation ruler, no auto-apply of recursive proposals, Runtime Sovereignty Gate required, self-certification forbidden.
 - **Skill chain** (`aether-skill-composition` → v0.2.0, `aether-skill-authoring` → v1.1.0): Recursive composition limited to one additional level with mandatory outer L2; skill-generating / self-improving changes require full before/after diff + evidence; L3 escalation for any attempt to touch HITL gates, recursion ceilings or Te Mana Raraunga Must controls.
