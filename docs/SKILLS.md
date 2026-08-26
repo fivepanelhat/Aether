@@ -4,7 +4,7 @@ Skills live under `skills/` and are loaded by `aether.skills.loader.SkillLoader`
 
 Full catalogue: [SKILLS_CATALOG.md](./SKILLS_CATALOG.md).
 
-## Super Grok governance skills (2026-07 / hardened 2026-08-24)
+## Super Grok governance skills (2026-07 / hardened 2026-08-24 + practical utilities 2026-08-26)
 
 | Skill | Role | Version |
 |-------|------|---------|
@@ -12,11 +12,12 @@ Full catalogue: [SKILLS_CATALOG.md](./SKILLS_CATALOG.md).
 | `aether-skills-ci` | Validate / version / CI skills | active |
 | `cat-architectural-standards` | Gold / Platinum / Diamond maturity + HITL gates | active |
 | `aether-git-workflow` | Safe git with approval gates | active |
-| `aether-skill-authoring` | How to write new skills (hardened for recursive/meta-skill) | **1.1.0** |
+| `aether-skill-authoring` | How to write new skills (hardened + self-improvement against fixed eval set) | **1.2.0** |
 | `aether-nz-ai-safety` | NZ AI safety (Algorithm Charter, MBIE, Te Mana Raraunga) | active |
 | `aether-hitl-protocol` | Gate levels L0–L4 + **Non-Recursive Core** (immutable fixed points) | **1.1.0** |
-| `aether-eval-harness` | Eval layers + **Bounded Recursion & Harness Safety** (depth ≤3, immutable ruler) | **1.2.0** |
-| `aether-skill-composition` | Ordered shortlists + recursive composition limit (one extra level, L2) | **0.2.0** |
+| `aether-eval-harness` | Eval layers + Bounded Recursion + **Second-Order / Meta-Eval Lane** | **1.3.0** |
+| `aether-skill-composition` | Ordered shortlists + recursive limit + trajectory proposals (L2 only) | **0.3.0** |
+| `aether-night-cycle` | Overnight loop + Morning Brief + **Recursive Improvement Proposals** surface | **1.1.0** |
 
 ## Super Grok domain skills (2026-07-19)
 
@@ -61,6 +62,9 @@ Humans **advise, sign, file, send, pay**.
 
 Cultural / health / production changes always require explicit HITL approval.
 
-## Hardening note (2026-08-24)
+## Hardening notes
 
-Bounded recursion, immutable evaluation ruler, Non-Recursive Core, and related anti-patterns were applied to the harness, skill chain, and governance layers. See root [CHANGELOG.md](../CHANGELOG.md) Unreleased section and individual skill CHANGELOGs.
+- **2026-08-24**: Bounded recursion, immutable evaluation ruler, Non-Recursive Core.
+- **2026-08-26**: Practical recursive utilities — meta-eval lane, trajectory proposals only, authoring self-improvement against fixed eval set, Night Cycle as Morning Brief surface for all recursive proposals.
+
+See root [CHANGELOG.md](../CHANGELOG.md) Unreleased section.
