@@ -1,6 +1,7 @@
 # Aether Skills Catalog (public)
 
-**Fleet size:** 93 named skills across Coastal Alpine Tech.  
+**Updated:** 1 September 2026 — skills and the private CAT Agent Harness were created and updated for NZ-Start-Up and related products. This page does not describe those procedures.
+
 **This repo working set:** platform / skill contract (5 skills).  
 **Customisable:** yes — same contract, any industry, under licence.
 
@@ -18,6 +19,8 @@
 
 Names only. Procedures are private.
 
-Founder OS, Capital, Governance, and Edge packs are documented in the private harness (`cat-agent-harness/skills/packs/`).
+Commercial-track packs live in the private harness (`cat-agent-harness`). Public GitHub does not publish pack worksheets, methods, or prices.
 
 Do not treat this public tree as a complete operating system.
+
+See also [SKILLS_HARNESS_UPDATE_2026-09-01.md](./SKILLS_HARNESS_UPDATE_2026-09-01.md).

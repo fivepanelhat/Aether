@@ -4,6 +4,8 @@ Skills live under `skills/` and are loaded by `aether.skills.loader.SkillLoader`
 
 Full catalogue: [SKILLS_CATALOG.md](./SKILLS_CATALOG.md).
 
+**1 September 2026:** skills and the private CAT Agent Harness were created and updated for NZ-Start-Up and related products. This public page does not describe those procedures. Notice: [SKILLS_HARNESS_UPDATE_2026-09-01.md](./SKILLS_HARNESS_UPDATE_2026-09-01.md).
+
 ## Super Grok governance skills (2026-07 / hardened 2026-08-24 + practical utilities 2026-08-26)
 
 | Skill | Role | Version |
@@ -34,10 +36,9 @@ Canonical funding board (when present): `fivepanelhat/.github/funding`.
 
 Under `skills/nz-startup/` (synced from [NZ-Start-Up](https://github.com/fivepanelhat/NZ-Start-Up)):
 
-- formation, compliance, grants/RDTI, market, GTM, finance, legal, board CoS
-- **`first-principles-operator`** - digital employee P0 brief (`nz-startup operate`)
+- Public role cards only for the Founder OS working set
 - Load via `nz-startup-fleet-bridge` + `agent-hardening`
-- Pair `grants-agent` with fleet `grants-rdti-clerk` / `funding-analyst` when founder memory is in scope
+- Commercial-track procedures stay in the private harness
 
 ## CI
 
@@ -66,5 +67,6 @@ Cultural / health / production changes always require explicit HITL approval.
 
 - **2026-08-24**: Bounded recursion, immutable evaluation ruler, Non-Recursive Core.
 - **2026-08-26**: Practical recursive utilities — meta-eval lane, trajectory proposals only, authoring self-improvement against fixed eval set, Night Cycle as Morning Brief surface for all recursive proposals.
+- **2026-09-01**: Skills and private harness updated for NZ-Start-Up and related products. Public Aether does not publish those procedures.
 
 See root [CHANGELOG.md](../CHANGELOG.md) Unreleased section.
